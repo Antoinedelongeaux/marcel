@@ -6,6 +6,7 @@ import { getMemories_Question,save_question } from '../components/data_handling'
 import { saveActiveSubjectId, getActiveSubjectId } from '../components/local_storage';
 import { useFocusEffect } from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
 function AskQuestionScreen({ route }) {
   const navigation = useNavigation();
@@ -14,7 +15,7 @@ function AskQuestionScreen({ route }) {
   const [question, setQuestion] = useState('');
   const [answers, setAnswers] = useState([]);
   const [owner, setOwner] = useState(null);
-  const [tags, setTags] = useState(["Famille"]);
+  const [tags, setTags] = useState(["Famille", "Vie professionnelle", "Vie personnelle", "Hobbies & passions", "Valeurs", "Voyages", "Autre"]);
   const [subject_active, setSubject_active] = useState(null);
   const [choice, setChoice] = useState('newQuestion'); // 'newQuestion' ou 'existingQuestion'
   const [personal, setPersonal] = useState(true);
@@ -36,15 +37,17 @@ function AskQuestionScreen({ route }) {
 
   const handleAction = () => {
     if (choice === 'newQuestion') {
-      console.log("userInput",userInput)
-      save_question(userInput, tags, subject_active,setQuestion); // Poser une nouvelle question
-      navigateToScreen('AnswerQuestionScreen', { questionId: question.id });
+      console.log("userInput",userInput);
+      save_question(userInput, tags, subject_active, setQuestion).then((savedQuestion) => {
+        navigateToScreen('AnswerQuestionScreen', { questionId: savedQuestion.id });
+      }).catch(error => console.error(error));
     } else {
-
       navigateToScreen('AnswerQuestionScreen', { questionId: question.id });
-
     }
   };
+  
+
+
   const navigateToScreen = (screenName, params) => {
     navigation.navigate(screenName, params);
   };
@@ -67,18 +70,7 @@ function AskQuestionScreen({ route }) {
     }
   }, [choice]);
 
-  // Partie du code dédiée au questions existantes :
-/*
-  useFocusEffect(
-    React.useCallback(() => {
-      if (session && subject_active != null) {
 
-        getMemories_Question(subject_active, setQuestion, setAnswers, setOwner, index,setIndex, tags,personal);
-        
-      }
-    }, [session, index, subject_active, tags,personal])
-  );
-  */
 
   useFocusEffect(
     React.useCallback(() => {
@@ -185,14 +177,14 @@ function AskQuestionScreen({ route }) {
         <View style={styles.navigationContainer}>
         {index > 0 ? (
     <TouchableOpacity onPress={goToPreviousQuestion} style={styles.navButton}>
-      <MaterialIcons name="arrow-back" size={36} color="black" />
+      <FontAwesome name="arrow-left" size={28} color="black" />
     </TouchableOpacity>
   ) : (
     // Élément fantôme pour garder l'icône arrow-forward alignée à droite
     <View style={{ width: 36 }} />
   )}
         <TouchableOpacity onPress={goToNextQuestion} style={styles.navButton}>
-        <MaterialIcons name="arrow-forward" size={36} color="black" />
+        <FontAwesome name="arrow-right" size={28} color="black" />
         </TouchableOpacity>
         </View>
         <View>

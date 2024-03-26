@@ -11,59 +11,44 @@ global.Buffer = Buffer;
 
 
 
-
+import { Platform } from 'react-native';
 
 export const save_audio = async (audioFileUri, name) => {
   try {
     console.log("audioFileUri : ", audioFileUri);
 
-    const fileInfo = await FileSystem.getInfoAsync(audioFileUri);
-    console.log("Taille du fichier avant upload: ", fileInfo.size);
-    // Ensure you're using the URI to read the file content as base64
-    const base64 = await FileSystem.readAsStringAsync(audioFileUri, { encoding: FileSystem.EncodingType.Base64 });
+    if (Platform.OS !== 'web') {
+      const fileInfo = await FileSystem.getInfoAsync(audioFileUri);
+      console.log("Taille du fichier avant upload: ", fileInfo.size);
 
-    // Utiliser une extension .mp3 pour le fichier
-    //const fileName = `${Date.now()}.mp3`;
-    const fileName = name
-    // Convertir base64 en Uint8Array. Utilisation de Buffer pour remplacer atob dans React Native
-    //const buffer = Buffer.from(base64, 'base64');
+      const base64 = await FileSystem.readAsStringAsync(audioFileUri, { encoding: FileSystem.EncodingType.Base64 });
+      const fileName = name;
 
-    // Upload using base64 string
-
-
-
-    const { error: uploadError } = await supabase
-      .storage
-      .from('audio')
-      .upload(fileName, decode(base64), {
-        contentType: `audio/mp3`,
+      const { error: uploadError } = await supabase.storage.from('audio').upload(fileName, decode(base64), {
+        contentType: 'audio/mp3',
         cacheControl: '3600',
         upsert: false,
       });
 
-    if (uploadError) {
-      throw uploadError;
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const publicURL = "https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/audio/" + fileName;
+      console.log(`File uploaded and accessible at: ${publicURL}`);
+      return publicURL;
+    } else {
+      console.log("FileSystem operations are not supported on web.");
+      // Gérez la logique spécifique au web ici si nécessaire
+      return null;
     }
-
-
-
-
-    // Générer l'URL publique pour l'audio téléchargé
-    const publicURL = "https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/audio/" + fileName;
-
-    console.log(`File uploaded and accessible at: ${publicURL}`);
-
-    //const localAudioUri = await downloadFileToLocalFileSystem(audioFileUri);
-    //await transcribeAudio(audioFileUri);
-    
-
-    // Retourner l'URL publique pour référence
-    return publicURL;
   } catch (error) {
     console.error('Error in save_audio:', error);
     return null;
   }
 };
+
+
 
 
 export const delete_audio = async (name) => {

@@ -5,6 +5,8 @@ import { getMemories_Questions,getMemories_Answers_to_Question } from '../compon
 import { useFocusEffect } from '@react-navigation/native';
 import { getActiveSubjectId } from '../components/local_storage';
 import { globalStyles } from '../../global';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 function ReadQuestionsScreen({ route }) {
   const navigation = useNavigation();
@@ -13,7 +15,7 @@ function ReadQuestionsScreen({ route }) {
   const [subject_active, setSubject_active] = useState(null);
   // Assurez-vous que "posée par un proche" est un choix possible dès le départ si nécessaire
   const [tags, setTags] = useState(["Famille", "Vie professionnelle", "Vie personnelle", "Hobbies & passions", "Valeurs", "Voyages", "Autre"]);
-  const allTags = ["Famille", "Vie professionnelle", "Vie personnelle", "Hobbies & passions", "Valeurs", "Voyages", "Autre","posée par un proche"];
+  const allTags = ["Famille", "Vie professionnelle", "Vie personnelle", "Hobbies & passions", "Valeurs", "Voyages", "Autre"];
   const [personal, setPersonal] = useState(false);
   const [activeQuestionAnswers, setActiveQuestionAnswers] = useState({});
 
@@ -41,6 +43,10 @@ function ReadQuestionsScreen({ route }) {
     }, [session, subject_active, tags, personal])
   );
 
+    // Fonction pour naviguer vers une nouvelle page
+    const navigateToScreen = (screenName) => {
+      navigation.navigate(screenName);
+    };
   const toggleTag = (tag) => {
     if (tags.includes(tag)) {
       setTags(tags.filter(t => t !== tag));
@@ -77,6 +83,15 @@ const toggleAnswersDisplay = async (questionId) => {
 
   return (
     <ScrollView contentContainerStyle={styles.contentContainer}>
+<View style={styles.navigationContainer}>
+      <TouchableOpacity onPress={() => navigateToScreen('BiographyScreen')} style={styles.navButton}>
+        <FontAwesome name="arrow-left" size={28} color="black" />
+      </TouchableOpacity>
+      <TouchableOpacity onPress={() => navigateToScreen('AskQuestionScreen')} style={styles.navButton}>
+        <MaterialIcons name="question-answer" size={28} color="black" />
+      </TouchableOpacity>
+    </View>
+
       <Text></Text>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
         {allTags.map((tag, index) => (
@@ -129,6 +144,14 @@ const toggleAnswersDisplay = async (questionId) => {
 const styles = StyleSheet.create({
   contentContainer: {
     padding: 20,
+  },
+  navigationContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+  },
+  navButton: {
+    padding: 10,
   },
   tagButton: {
     margin: 5,

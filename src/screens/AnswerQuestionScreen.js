@@ -104,10 +104,11 @@ function ReadAnswersScreen({ route }) {
   };
 
   const refreshAnswers = async () => {
-    console.log("id_question",id_question)
-    const updatedAnswers = await getMemories_Question_by_id(id_question, setQuestion, setAnswers, setOwner);
-    setAnswers(updatedAnswers);
+    console.log("Rafraîchissement des réponses pour la question", id_question);
+    await getMemories_Question_by_id(id_question, setQuestion, setAnswers, setOwner);
+    // Ici, getMemories_Question_by_id devrait déjà mettre à jour `answers` via `setAnswers`.
   };
+  
   
 
   const handleDeleteAnswer = async (answerId) => {
@@ -149,13 +150,17 @@ function ReadAnswersScreen({ route }) {
     <ScrollView contentContainerStyle={styles.contentContainer}>
 
 <View style={styles.navigationContainer}>
-      <TouchableOpacity onPress={() => navigateToScreen('BiographyScreen')} style={styles.navButton}>
-        <FontAwesome name="arrow-left" size={28} color="black" />
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigateToScreen('AskQuestionScreen')} style={styles.navButton}>
-        <MaterialIcons name="question-answer" size={28} color="black" />
-      </TouchableOpacity>
-    </View>
+  <TouchableOpacity onPress={() => navigateToScreen('BiographyScreen')} style={styles.navButton}>
+    <FontAwesome name="arrow-left" size={28} color="black" />
+  </TouchableOpacity>
+  <TouchableOpacity onPress={refreshAnswers} style={styles.navButton}>
+    <FontAwesome name="refresh" size={28} color="black" />
+  </TouchableOpacity>
+  <TouchableOpacity onPress={() => navigateToScreen('AskQuestionScreen')} style={styles.navButton}>
+    <MaterialIcons name="question-answer" size={28} color="black" />
+  </TouchableOpacity>
+</View>
+
       
 
 
@@ -295,12 +300,16 @@ const styles = StyleSheet.create({
     color: 'white',
     textAlign: 'center',
   },
+  container: {
+    flex: 1,
+    backgroundColor: "#E8FFF6", // Appliquez l'arrière-plan au conteneur principal
+    paddingTop: 60,
+  },
   contentContainer: {
-    backgroundColor: "#E8FFF6",
+    flexGrow: 1, // Ajoutez ceci pour vous assurer que le contentContainer du ScrollView utilise l'espace disponible
     paddingBottom: 20,
     paddingRight: 10,
     paddingLeft: 10,
-    paddingTop: 60,
   },
   questionContainer: {
     marginBottom: 20,

@@ -231,52 +231,38 @@ export async function submitMemories_Answer(answer, question, session, audio, na
 };
 
 
-export async function save_question(question, tags, subject_active,setQuestion) {
-  // Générer un identifiant aléatoire pour la question
+export async function save_question(question, tags, subject_active, setQuestion) {
   const id_question = [...Array(12)].map(() => Math.floor(Math.random() * 10)).join('');
-  console.log("question :",question)
-  
-  if (question.trim() === '') {
-    Alert.alert('Veuillez renseigner une question');
-    return;
-  }
 
-  try {
-    // Insérer la question dans la base de données
-    const { error } = await supabase
-      .from('Memoires_questions')
-      .insert([
-        { id: id_question, id_subject: subject_active, question: question, tags: tags }
-      ]);
-
-    if (error) throw error;
-
-    const question_full = {
-      id: id_question, id_subject: subject_active, question: question, tags: tags
+  return new Promise(async (resolve, reject) => {
+    if (question.trim() === '') {
+      Alert.alert('Veuillez renseigner une question');
+      return reject(new Error('La question est vide.'));
     }
-    console.log("Question enregistrée :",question_full)
-    setQuestion(question_full)
 
-    // Insérer chaque tag associé à la question
-    for (const tag of tags) {
-      const { error: error_tag } = await supabase
-        .from('Memoires_question_to_tag')
+    try {
+      const { error } = await supabase
+        .from('Memoires_questions')
         .insert([
-          { tag: tag, id_question: id_question }
+          { id: id_question, id_subject: subject_active, question: question, tags: tags }
         ]);
 
-      if (error_tag) throw error_tag;
+      if (error) throw error;
+
+      const question_full = {
+        id: id_question, id_subject: subject_active, question: question, tags: tags
+      };
+      console.log("Question enregistrée :",question_full);
+      setQuestion(question_full); // Mise à jour de l'état avec la nouvelle question
+
+      resolve(question_full); // Résolution de la promesse avec l'objet question
+    } catch (error) {
+      Alert.alert('Erreur', error.message);
+      reject(error); // Rejet de la promesse en cas d'erreur
     }
-
-    
-
-
-
-    Alert.alert('Question enregistrée');
-  } catch (error) {
-    Alert.alert('Erreur', error.message);
-  }
+  });
 }
+
 
 
 
