@@ -3,8 +3,9 @@ import { supabase } from '../lib/supabase'
 import { useState, useEffect } from 'react'
 import { View, StyleSheet, Button, Text, Alert, Keyboard, TouchableWithoutFeedback, TextInput, TouchableOpacity } from 'react-native'
 import { globalStyles } from '../../global'
-import { listSubjects, joinSubject, getSubjects } from '../components/data_handling';
+import { listSubjects, joinSubject, getSubjects, get_project } from '../components/data_handling';
 import { saveActiveSubjectId, getActiveSubjectId } from '../components/local_storage';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function ProfileScreen({ route }) {
     const session = route.params.session
@@ -17,6 +18,9 @@ export default function ProfileScreen({ route }) {
     const [subject_active, setSubject_active] = useState(null);
     const [vision, setVision] = useState('Biographies');
     const [showProjects, setShowProjects] = useState(false);
+    const [searchName, setSearchName] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
+    
 
     async function fetchSubjects() {
 
@@ -71,7 +75,21 @@ export default function ProfileScreen({ route }) {
     };
 
 
-
+    const SearchBar = ({ searchName, setSearchName, onSearch }) => {
+        return (
+          <View style={styles.searchContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="Rechercher un projet"
+              value={searchName}
+              onChangeText={setSearchName}
+            />
+            <TouchableOpacity onPress={onSearch} style={styles.icon}>
+              <Ionicons name="ios-search" size={24} color="black" />
+            </TouchableOpacity>
+          </View>
+        );
+      };
 
 
 
@@ -183,7 +201,7 @@ export default function ProfileScreen({ route }) {
 
 
     return (
-        <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+       // <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
 
             <View style={globalStyles.container}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -238,12 +256,25 @@ export default function ProfileScreen({ route }) {
                             <Text style={globalStyles.globalButtonText}>{showProjects ? "Masquer les projets" : "Rejoindre un nouveau projet biographique"}</Text>
                         </TouchableOpacity>
 
-                        {showProjects && subjects.map((subject) => (
-                            <TouchableOpacity key={subject.id + 1} style={[globalStyles.globalButton_tag, styles.unSelectedTag]} onPress={async () => { await joinSubject(subject.id); fetchSubjects(); }}>
-                                <Text style={globalStyles.globalButtonText_tag}>{subject.title}</Text>
-                            </TouchableOpacity>
+                        {showProjects && (
+  <>
+<SearchBar searchName={searchName} setSearchName={setSearchName} onSearch={() => get_project(searchName, setLoading, setSearchResults)} />
 
-                        ))}
+    {searchResults.map((result) => (
+      <TouchableOpacity
+        key={result.id}
+        style={[globalStyles.globalButton_tag, styles.unSelectedTag]}
+        onPress={async () => {
+          await joinSubject(result.id);
+          fetchSubjects();
+        }}
+      >
+        <Text style={globalStyles.globalButtonText_tag}>{result.title}</Text>
+      </TouchableOpacity>
+    ))}
+  </>
+)}
+
                     </>
                 )}
 
@@ -295,7 +326,7 @@ export default function ProfileScreen({ route }) {
                     </View>
                 </>)}
             </View>
-        </TouchableWithoutFeedback>
+        //</TouchableWithoutFeedback>
     )
 
 
@@ -305,6 +336,23 @@ const styles = StyleSheet.create({
     unSelectedTag: {
         backgroundColor: '#b1b3b5', // Changez la couleur selon votre thème
     },
+    searchContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 5,
+        paddingHorizontal: 10,
+        marginBottom: 20,
+      },
+      input: {
+        flex: 1,
+        height: 40,
+        padding: 10,
+      },
+      icon: {
+        marginLeft: 10,
+      },
 
 })
 

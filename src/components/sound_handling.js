@@ -38,9 +38,26 @@ export const save_audio = async (audioFileUri, name) => {
       console.log(`File uploaded and accessible at: ${publicURL}`);
       return publicURL;
     } else {
-      console.log("FileSystem operations are not supported on web.");
-      // Gérez la logique spécifique au web ici si nécessaire
-      return null;
+      console.log("Handling audio upload on web...");
+
+      // Vous devez avoir accès au Blob ou au File de l'enregistrement ici. 
+      // Par exemple, si `audioFileUri` est un objet Blob ou File directement :
+      const fileName = name;
+
+      // Note: Supabase accepte l'upload de Blob/File directement, sans conversion en base64
+      const { error: uploadError, data } = await supabase.storage.from('audio').upload(fileName, audioFileUri, {
+        contentType: 'audio/mp3',
+        cacheControl: '3600',
+        upsert: false,
+      });
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const publicURL = `https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/audio/${fileName}`;
+      console.log(`File uploaded and accessible at: ${publicURL}`);
+      return publicURL;
     }
   } catch (error) {
     console.error('Error in save_audio:', error);

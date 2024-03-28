@@ -455,3 +455,23 @@ export async function update_answer_text(id_answer,answer) {
   Alert.alert("Erreur", errorUpdating.message);
 }
 }
+
+
+export async function get_project(name,setLoading, setSearchResults) {
+  // Exemple de pseudo code, à adapter selon votre logique d'application
+  try {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('Memoires_subjects') // Remplacez 'projects' par le nom de votre table
+      .select('*')
+      .ilike('title', `%${name}%`); // Recherche insensible à la casse contenant `name`
+
+    if (error) throw error;
+
+    setSearchResults(data); // Mettez à jour les résultats de recherche
+  } catch (error) {
+    Alert.alert('Erreur lors de la recherche', error.message);
+  } finally {
+    setLoading(false);
+  }
+}
