@@ -92,7 +92,7 @@ function AskQuestionScreen({ route }) {
 
   const findInspiration = async () => {
     setInspirationClicked(true);
-    await getMemories_Question(subject_active, (question) => {
+    await getMemories_Question(null, (question) => {
       setQuestion(question); // Mise à jour de l'état question avec l'objet question
       setUserInput(question.question); // Réinitialiser userInput lorsqu'une nouvelle inspiration est trouvée
     }, setAnswers, setOwner, index, setIndex, tags, false);

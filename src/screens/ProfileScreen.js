@@ -77,12 +77,12 @@ export default function ProfileScreen({ route }) {
 
     const SearchBar = ({ searchName, setSearchName, onSearch }) => {
         return (
-          <View style={styles.searchContainer}>
+            <View style={styles.searchContainer}>
             <TextInput
               style={styles.input}
               placeholder="Rechercher un projet"
               value={searchName}
-              onChangeText={setSearchName}
+              onChangeText={(text) => setSearchName(text)}
             />
             <TouchableOpacity onPress={onSearch} style={styles.icon}>
               <Ionicons name="ios-search" size={24} color="black" />
@@ -90,6 +90,7 @@ export default function ProfileScreen({ route }) {
           </View>
         );
       };
+    
 
 
 
@@ -201,7 +202,7 @@ export default function ProfileScreen({ route }) {
 
 
     return (
-       // <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+
 
             <View style={globalStyles.container}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -258,7 +259,18 @@ export default function ProfileScreen({ route }) {
 
                         {showProjects && (
   <>
-<SearchBar searchName={searchName} setSearchName={setSearchName} onSearch={() => get_project(searchName, setLoading, setSearchResults)} />
+
+<View style={styles.searchContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="Rechercher un projet"
+              value={searchName}
+              onChangeText={(text) => setSearchName(text)}
+            />
+            <TouchableOpacity onPress={() => get_project(searchName, setLoading, setSearchResults)} style={styles.icon}>
+              <Ionicons name="ios-search" size={24} color="black" />
+            </TouchableOpacity>
+          </View>
 
     {searchResults.map((result) => (
       <TouchableOpacity

@@ -4,25 +4,32 @@ import { supabase } from '../lib/supabase';
 
 export async function getMemories_Question(subject_active, setQuestion, setAnswers, setOwner, index, setIndex, tags, personal) {
   try {
-
-    
     // Construire dynamiquement la condition or en fonction des tags fournis
+    console.log("index : ",index)
     const orCondition = tags.map(tag => `tags.cs.{"${tag}"}`).join(',');
 
     // Préparer la requête de base
     let query = supabase
       .from('Memoires_questions')
-      .select('*')
-      .eq('id_subject', subject_active)
-      .or(orCondition);
+      .select('*');
+
+    if (subject_active !== null) {
+      // Appliquer le filtre id_subject seulement si subject_active n'est pas null
+      query = query.eq('id_subject', subject_active);
+    }else {
+      query = query.is('id_subject', null);
+    }
+
+    query = query.or(orCondition);
 
     if (personal) {
       // Ajouter un filtre pour exclure les questions avec id_owner null
       query = query.not('id_owner', 'is', null);
-    }else {
+    } else {
       query = query.is('id_owner', null);
     }
 
+    console.log(query)
     // Exécuter la requête
     const { data: questionsWithTags, error: errorQuestionsWithTags } = await query;
 
@@ -32,6 +39,7 @@ export async function getMemories_Question(subject_active, setQuestion, setAnswe
     if (index >= questionsWithTags.length) {
       if (index > 0) {
         // Réinitialiser l'index à 0 et relancer la fonction
+        console.log("questionsWithTags : ", questionsWithTags)
         setIndex(0);
         return getMemories_Question(subject_active, setQuestion, setAnswers, setOwner, 0, setIndex, tags, personal);
       } else {
@@ -56,7 +64,7 @@ export async function getMemories_Question(subject_active, setQuestion, setAnswe
     // Mettre à jour l'état avec la question sélectionnée et ses réponses
     const ownerName = await get_user_name(selectedQuestion.id_owner);
     setOwner(ownerName);
-    console.log("selectedQuestion : ",selectedQuestion);
+    console.log("selectedQuestion : ", selectedQuestion);
     setQuestion(selectedQuestion);
     setAnswers(answersForSelectedQuestion || []); // Assurez-vous que setAnswers reçoit un tableau, même si aucune réponse n'est trouvée ou en cas d'erreur
   } catch (error) {
@@ -65,6 +73,7 @@ export async function getMemories_Question(subject_active, setQuestion, setAnswe
     setAnswers([]); // Assurez-vous de réinitialiser les réponses en cas d'erreur
   }
 }
+
 
 export async function getMemories_Question_by_id(id_question,setQuestion, setAnswers, setOwner) {
   try {
