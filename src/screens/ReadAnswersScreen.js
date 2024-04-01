@@ -22,6 +22,9 @@ function ReadQuestionsScreen({ route }) {
   const [openChapters, setOpenChapters] = useState({});
   const [isModalVisible, setIsModalVisible] = useState(false);
  const [newChapterTitle, setNewChapterTitle] = useState('');
+ const [isChapterModalVisible, setIsChapterModalVisible] = useState(false);
+const [selectedQuestionId, setSelectedQuestionId] = useState(null);
+
 
 
   useEffect(() => {
@@ -53,9 +56,10 @@ function ReadQuestionsScreen({ route }) {
   );
 
     // Fonction pour naviguer vers une nouvelle page
-    const navigateToScreen = (screenName) => {
-      navigation.navigate(screenName);
+    const navigateToScreen = (screenName, params) => {
+      navigation.navigate(screenName, params);
     };
+    
   const toggleTag = (tag) => {
     if (tags.includes(tag)) {
       setTags(tags.filter(t => t !== tag));
@@ -84,23 +88,14 @@ function ReadQuestionsScreen({ route }) {
 
 
   const handleAssociateQuestion = (questionId) => {
-
     if (chapters.length === 0) {
-      // Affichez une alerte ou un message si aucune donnée de chapitre n'est disponible
       Alert.alert("Aucun chapitre disponible", "Veuillez d'abord créer des chapitres.");
       return;
     }
-  
-    const chapterButtons = chapters.map((chapter) => ({
-      text: chapter.title,
-      onPress: () => handleJoinQuestionToChapter(questionId, chapter.id),
-    }));
-  
-    Alert.alert("Associer à un chapitre", "Choisissez le chapitre:", [
-      ...chapterButtons,
-      { text: "Annuler", style: "cancel" },
-    ]);
+    setSelectedQuestionId(questionId);
+    setIsChapterModalVisible(true);
   };
+  
 
 
 
@@ -133,6 +128,8 @@ const toggleAnswersDisplay = async (questionId) => {
     </View>
 
       <Text></Text>
+
+      {/*}
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
         {allTags.map((tag, index) => (
           <TouchableOpacity
@@ -143,6 +140,8 @@ const toggleAnswersDisplay = async (questionId) => {
           </TouchableOpacity>
         ))}
       </View>
+*/}
+
       <View style={styles.questionsContainer}>
       {questions?.length > 0 ? 
        <>
@@ -186,7 +185,18 @@ const toggleAnswersDisplay = async (questionId) => {
               <View style={styles.separator} />
             )}
                  </View>
-               ))}
+               )
+               
+               )}
+  
+  {activeQuestionAnswers[question.id] &&(
+  <TouchableOpacity 
+  onPress={() => {console.log("questionId:", question.id ) ; navigateToScreen('AnswerQuestionScreen', { questionId: question.id })}} 
+  style={globalStyles.globalButton_wide}
+>
+  <Text style={globalStyles.globalButtonText}>Répondre</Text>
+</TouchableOpacity>
+  )}
              </View>
            ))}
          </View>
@@ -225,34 +235,36 @@ const toggleAnswersDisplay = async (questionId) => {
     <Modal
   animationType="slide"
   transparent={true}
-  visible={isModalVisible}
-  onRequestClose={() => {
-    setIsModalVisible(!isModalVisible);
-  }}
+  visible={isChapterModalVisible}
+  onRequestClose={() => setIsChapterModalVisible(false)}
 >
   <View style={styles.centeredView}>
     <View style={styles.modalView}>
-      <Text style={styles.modalText}>Nouveau Chapitre</Text>
-      <TextInput
-        style={styles.modalInput}
-        onChangeText={setNewChapterTitle}
-        value={newChapterTitle}
-        placeholder="Titre du chapitre"
-      />
+    <ScrollView>
+  {chapters.map((chapter) => (
+    <TouchableOpacity
+      key={chapter.id}
+      onPress={() => {
+        handleJoinQuestionToChapter(selectedQuestionId, chapter.id);
+        setIsChapterModalVisible(false);
+      }}
+      style={styles.modalButton} // Utilisez le style ajusté ici
+    >
+      <Text style={styles.textStyle}>{chapter.title}</Text>
+    </TouchableOpacity>
+  ))}
+</ScrollView>
+
       <TouchableOpacity
+        onPress={() => setIsChapterModalVisible(false)}
         style={[globalStyles.globalButton_wide]}
-        onPress={() => {
-          create_chapter(newChapterTitle, subject_active);
-          setIsModalVisible(!isModalVisible);
-          setNewChapterTitle(''); 
-          get_chapters(subject_active, setChapters);
-        }}
       >
-        <Text style={globalStyles.globalButtonText}>Créer</Text>
+        <Text style={globalStyles.globalButtonText}>Fermer</Text>
       </TouchableOpacity>
     </View>
   </View>
 </Modal>
+
 
     </>
   );
@@ -407,11 +419,37 @@ const styles = StyleSheet.create({
   buttonClose: {
     backgroundColor: "#2196F3"
   },
+
+  // Mettez à jour ce style pour s'assurer que le texte est visible sur un fond clair
   textStyle: {
-    color: "white",
+    color: "black",
     fontWeight: "bold",
-    textAlign: "center"
+    textAlign: "center",
+    fontSize: 32, // Supposant que la taille par défaut est 16, cela rendra le texte deux fois plus grand.
   },
+
+// Assurez-vous que le style du modalView est correct et ne cause pas de texte blanc sur fond blanc
+modalView: {
+  margin: 20,
+  backgroundColor: "white", // Fond blanc, assurez-vous que le texte n'est pas aussi blanc
+  borderRadius: 20,
+  padding: 35,
+  alignItems: "center",
+  shadowColor: "#000",
+  shadowOffset: {
+    width: 0,
+    height: 2
+  },
+  shadowOpacity: 0.25,
+  shadowRadius: 4,
+  elevation: 5
+},
+modalButton: {
+  // Supposons que vous ajoutiez un nouveau style pour les boutons dans le modal
+  marginBottom: 10, // Ajoutez de l'espace entre les boutons pour une meilleure répartition
+  padding: 10, // Augmentez le padding pour que le touchable ait une meilleure apparence
+},
+
   
   
 });

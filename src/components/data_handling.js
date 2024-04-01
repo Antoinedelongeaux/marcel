@@ -130,7 +130,8 @@ export async function getMemories_Questions(subject_active, setQuestions, tags, 
     // Préparer la requête de base pour récupérer les questions
     let query = supabase
       .from('Memoires_questions')
-      .select('*, Memoires_answers!inner(*)')
+      .select('*, Memoires_answers(*)')
+      //.select('*, Memoires_answers!inner(*)') pour exckure les questions sans réponses
       .eq('id_subject', subject_active);
 
     if (orCondition !== 'true') {

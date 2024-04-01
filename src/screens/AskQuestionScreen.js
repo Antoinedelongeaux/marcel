@@ -37,11 +37,12 @@ function AskQuestionScreen({ route }) {
 
   const handleAction = () => {
     if (choice === 'newQuestion') {
-   
+      console.log("questionId: ",question.id )
       save_question(userInput, tags, subject_active, setQuestion).then((savedQuestion) => {
         navigateToScreen('AnswerQuestionScreen', { questionId: savedQuestion.id });
       }).catch(error => console.error(error));
     } else {
+      console.log("questionId: ",question.id )
       navigateToScreen('AnswerQuestionScreen', { questionId: question.id });
     }
   };
