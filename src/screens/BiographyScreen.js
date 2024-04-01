@@ -52,12 +52,20 @@ function BiographyScreen() {
           <Text style={globalStyles.globalButtonText}>Choisir une question</Text>
         </TouchableOpacity>
        
+
+
         <TouchableOpacity
           style={globalStyles.globalButton_wide}
           onPress={() => navigateToScreen('ReadAnswersScreen')}>
           <Text style={globalStyles.globalButtonText}>Consulter la biographie</Text>
         </TouchableOpacity>
         <Text></Text>
+        <TouchableOpacity
+          style={globalStyles.globalButton_wide}
+          onPress={() => navigateToScreen('ManageBiographyScreen')}>
+          <Text style={globalStyles.globalButtonText}>Gérer la biographie</Text>
+        </TouchableOpacity>
+
       </>)}
     </View>
   );

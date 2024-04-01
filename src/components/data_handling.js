@@ -1,11 +1,15 @@
 
 import { Alert } from 'react-native';
 import { supabase } from '../lib/supabase';
+import { v4 as uuidv4 } from 'uuid'; // Importez la fonction v4 et renommez-la en uuidv4
+
+
+
 
 export async function getMemories_Question(subject_active, setQuestion, setAnswers, setOwner, index, setIndex, tags, personal) {
   try {
+
     // Construire dynamiquement la condition or en fonction des tags fournis
-    console.log("index : ",index)
     const orCondition = tags.map(tag => `tags.cs.{"${tag}"}`).join(',');
 
     // Préparer la requête de base
@@ -29,17 +33,18 @@ export async function getMemories_Question(subject_active, setQuestion, setAnswe
       query = query.is('id_owner', null);
     }
 
-    console.log(query)
+    
     // Exécuter la requête
     const { data: questionsWithTags, error: errorQuestionsWithTags } = await query;
-
+   
     if (errorQuestionsWithTags) throw errorQuestionsWithTags;
 
     // Vérifier si l'index est hors de portée
-    if (index >= questionsWithTags.length) {
+    
+    if (index >= questionsWithTags.length && questionsWithTags.length>0) {
       if (index > 0) {
         // Réinitialiser l'index à 0 et relancer la fonction
-        console.log("questionsWithTags : ", questionsWithTags)
+        
         setIndex(0);
         return getMemories_Question(subject_active, setQuestion, setAnswers, setOwner, 0, setIndex, tags, personal);
       } else {
@@ -64,12 +69,12 @@ export async function getMemories_Question(subject_active, setQuestion, setAnswe
     // Mettre à jour l'état avec la question sélectionnée et ses réponses
     const ownerName = await get_user_name(selectedQuestion.id_owner);
     setOwner(ownerName);
-    console.log("selectedQuestion : ", selectedQuestion);
+
     setQuestion(selectedQuestion);
     setAnswers(answersForSelectedQuestion || []); // Assurez-vous que setAnswers reçoit un tableau, même si aucune réponse n'est trouvée ou en cas d'erreur
   } catch (error) {
     console.error("Error", error.message);
-    setQuestion({ "question": "Error" });
+    setQuestion({ "question": "..." });
     setAnswers([]); // Assurez-vous de réinitialiser les réponses en cas d'erreur
   }
 }
@@ -106,7 +111,7 @@ export async function getMemories_Question_by_id(id_question,setQuestion, setAns
     // Mettre à jour l'état avec la question sélectionnée et ses réponses
     const ownerName = await get_user_name(question.id_owner);
     setOwner(ownerName);
-    console.log("Question : ",question);
+
     setQuestion(question);
     setAnswers(answersForSelectedQuestion || []); // Assurez-vous que setAnswers reçoit un tableau, même si aucune réponse n'est trouvée ou en cas d'erreur
   } catch (error) {
@@ -142,7 +147,8 @@ export async function getMemories_Questions(subject_active, setQuestions, tags, 
 
     // Pour chaque question, compter le nombre de réponses et conditionnellement récupérer le nom d'utilisateur du propriétaire
     const questionsWithDetails = await Promise.all(questions.map(async (question) => {
-      const answersCount = question.Memoires_answers.length;
+      const answersCount = question.Memoires_answers?.length || 0;
+
 
       let username = 'Marcel'; // Valeur par défaut si id_owner est null
       if (question.id_owner) {
@@ -261,7 +267,7 @@ export async function save_question(question, tags, subject_active, setQuestion)
       const question_full = {
         id: id_question, id_subject: subject_active, question: question, tags: tags
       };
-      console.log("Question enregistrée :",question_full);
+
       setQuestion(question_full); // Mise à jour de l'état avec la nouvelle question
 
       resolve(question_full); // Résolution de la promesse avec l'objet question
@@ -364,6 +370,7 @@ export async function listSubjects(id_user) {
 
 
 export async function joinSubject(id_subject) {
+
   const { error } = await supabase
     .from('Memoires_contributors')
     .insert([
@@ -452,8 +459,7 @@ export async function get_user_name(id_user) {
 export async function update_answer_text(id_answer,answer) {
   try {
 
-    console.log("Réponse : ", answer )
-    console.log("Question : ",id_answer )
+
     const { data, error: errorUpdating } = await supabase
       .from('Memoires_answers')
       .update({ answer: answer }) // Assurez-vous que `answer` contient la nouvelle valeur de la réponse
@@ -484,3 +490,90 @@ export async function get_project(name,setLoading, setSearchResults) {
     setLoading(false);
   }
 }
+
+export async function create_project(name) {
+  // Exemple de pseudo code, à adapter selon votre logique d'application
+  try {
+
+    const id = uuidv4(); 
+
+
+    const { data, error } = await supabase
+      .from('Memoires_subjects') // Remplacez 'projects' par le nom de votre table
+      .insert([
+        { id: id , title: name}
+      ]);
+
+    joinSubject(id)
+    
+    
+    if (error) throw error;
+
+    Alert.alert("Le projet a bien été créé");
+
+  } catch (error) {
+    Alert.alert('Erreur lors de la création', error.message);
+  } 
+}
+
+
+export async function get_chapters(id_subject, setChapters) {
+  // Exemple de pseudo code, à adapter selon votre logique d'application
+  try {
+
+    const { data, error } = await supabase
+    .from('Memoires_chapters') 
+    .select('*')
+    .eq('id_subject', id_subject); 
+ 
+    if (error) throw error;
+
+    setChapters(data)
+  
+
+  } catch (error) {
+    Alert.alert('Erreur lors de la création', error.message);
+  } 
+}
+
+
+export async function join_question_to_chapter(id_question, id_chapter) {
+  // Exemple de pseudo code, à adapter selon votre logique d'application
+  try {
+
+    const { data, error } = await supabase
+    .from('Memoires_questions') 
+    .update({ id_chapitre: id_chapter})
+    .eq('id', id_question); 
+ 
+    if (error) throw error;
+
+  
+
+  } catch (error) {
+    Alert.alert('Erreur lors du chapitrage', error.message);
+  } 
+}
+
+
+export async function create_chapter(title,id_subject) {
+  // Exemple de pseudo code, à adapter selon votre logique d'application
+  try {
+
+
+    const { data, error } = await supabase
+      .from('Memoires_chapters') // Remplacez 'projects' par le nom de votre table
+      .insert([
+        { title: title, id_subject: id_subject}
+      ]);
+
+    
+    if (error) throw error;
+
+    Alert.alert("Le chapitre a bien été créé");
+
+  } catch (error) {
+    Alert.alert('Erreur lors de la création', error.message);
+  } 
+}
+

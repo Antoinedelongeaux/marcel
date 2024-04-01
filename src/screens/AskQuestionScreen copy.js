@@ -130,8 +130,30 @@ function AskQuestionScreen({ route }) {
 
 
           <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginBottom: 20 }}>
-
-  
+  <TouchableOpacity
+    onPress={() => setChoice('existingQuestion')}
+    style={choice === 'existingQuestion' ? styles.choiceSelected : styles.choiceUnselected}
+    // Assurez-vous que chaque bouton prend exactement la moitié de l'espace disponible
+  >
+    <Text
+      style={choice === 'existingQuestion' ? styles.choiceTextSelected : styles.choiceTextUnselected}
+      // Le style du texte ici ne doit pas empêcher le retour à la ligne
+    >
+      Choisir une question déjà posée
+    </Text>
+  </TouchableOpacity>
+  <TouchableOpacity
+    onPress={() => setChoice('newQuestion')}
+    style={choice === 'newQuestion' ? styles.choiceSelected : styles.choiceUnselected}
+    // Utilisation de flex pour diviser également l'espace
+  >
+    <Text
+      style={choice === 'newQuestion' ? styles.choiceTextSelected : styles.choiceTextUnselected}
+      // Permettre au texte de retourner à la ligne si nécessaire
+    >
+      Poser une nouvelle question
+    </Text>
+  </TouchableOpacity>
 </View>
 
 
@@ -156,12 +178,57 @@ function AskQuestionScreen({ route }) {
         </>
       )}
 
+      {/* Ici, vous pouvez ajouter le composant ou la logique pour "Choisir une question existante" */}
+      {choice === 'existingQuestion' && (<>
+        <View style={styles.navigationContainer}>
+        {index > 0 ? (
+    <TouchableOpacity onPress={goToPreviousQuestion} style={styles.navButton}>
+      <FontAwesome name="arrow-left" size={28} color="black" />
+    </TouchableOpacity>
+  ) : (
+    // Élément fantôme pour garder l'icône arrow-forward alignée à droite
+    <View style={{ width: 36 }} />
+  )}
+        <TouchableOpacity onPress={goToNextQuestion} style={styles.navButton}>
+        <FontAwesome name="arrow-right" size={28} color="black" />
+        </TouchableOpacity>
+        </View>
+        <View style={styles.questionContainer}>
+        
+        {question ? (<>
 
+{question.question == "End" ? (<Text>Vous avez atteint la dernière question correspondant à ces filtres</Text>) : (
+
+
+  <View key={question.id} style={styles.questionContainer}>
+
+    <Text style={globalStyles.title}>{question.question}</Text>
+    
+    <Text>
+Question posée par <Text style={{ fontWeight: 'bold' }}>{owner && owner !== '' ? owner : "Marcel"}</Text>
+</Text>
+
+<Text></Text>
+
+
+
+      </View>
+      )}
+        <Text ></Text>
+   
+      </>
+      ) : (
+        <Text>Questions en cours de chargement ...</Text>
+      )}
+       
+     </View>
+     </>
+      )}
    
    <TouchableOpacity
         style={globalStyles.globalButton_wide}
         onPress={handleAction}>
-        <Text style={globalStyles.globalButtonText}>Poser la question et y répondre </Text>
+        <Text style={globalStyles.globalButtonText}>{choice === 'newQuestion' ? "Poser la question et y répondre" : "Répondre à la question"}</Text>
       </TouchableOpacity>
     
     </ScrollView>

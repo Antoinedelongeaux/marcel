@@ -13,7 +13,6 @@ import { useFocusEffect } from '@react-navigation/native';
 function ReadAnswersScreen({ route }) {
   const navigation = useNavigation();
   const id_question = route.params.questionId;
-  console.log('route.params :',route.params)
   const session = route.params.session;
   const [question, setQuestion] = useState(null);
   const [owner, setOwner] = useState(null);
@@ -41,7 +40,7 @@ function ReadAnswersScreen({ route }) {
       };
       fetchActiveSubjectId();
       if (session && subject_active != null) {
-        console.log("id_question",id_question)
+
         getMemories_Question_by_id(id_question, setQuestion, setAnswers, setOwner);
         
       }
@@ -313,6 +312,8 @@ const styles = StyleSheet.create({
   },
   questionContainer: {
     marginBottom: 20,
+    marginRight: 10,
+    marginLeft: 10,
   },
   questionText: {
     marginBottom: 10,

@@ -1,0 +1,267 @@
+import React from 'react'
+import { supabase } from '../lib/supabase'
+import { useState, useEffect } from 'react'
+import { View, StyleSheet, Button, Text, Alert, Keyboard, TouchableWithoutFeedback, TextInput, TouchableOpacity } from 'react-native'
+import { globalStyles } from '../../global'
+import { listSubjects, joinSubject, getSubjects, get_project, create_project } from '../components/data_handling';
+import { saveActiveSubjectId, getActiveSubjectId } from '../components/local_storage';
+import { Ionicons } from '@expo/vector-icons';
+
+export default function ProfileScreen({ route }) {
+    const session = route.params.session
+    const [loading, setLoading] = useState(true)
+    const [username, setUsername] = useState('')
+    const [full_name, setFull_name] = useState('')
+
+    const [subjects, setSubjects] = useState([]);
+    const [subjects_active, setSubjects_active] = useState([]);
+    const [subject_active, setSubject_active] = useState(null);
+    const [vision, setVision] = useState('Biographies');
+    const [showProjects, setShowProjects] = useState(false);
+    const [showNewProject, setShowNewProject] = useState(false);
+    const [searchName, setSearchName] = useState('');
+    const [newName, setNewName] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
+    
+
+    async function fetchSubjects() {
+
+        if (session) {
+            getProfile();
+            try {
+                const temp = await getSubjects(session.user.id);
+                setSubjects_active(temp);
+
+                // Si vous souhaitez également rafraîchir la liste des sujets disponibles à rejoindre
+                const temp2 = await listSubjects(session.user.id);
+                setSubjects(temp2);
+
+
+            } catch (error) {
+                console.error("Error fetching subjects:", error);
+            }
+        }
+        console.log("Coucou !")
+    }
+
+    useEffect(() => {
+
+        fetchSubjects();
+    }, [session]);
+
+    useEffect(() => {
+
+        saveActiveSubjectId(subject_active);
+
+    }, [subject_active]);
+
+
+    const handleJoinSubject = async (id) => {
+        setSubject_active(id);
+        try {
+            const { data, error } = await supabase
+                .from('profiles')
+                .update({ active_biography: id })
+                .eq('id', session?.user.id);
+
+            if (error) {
+                throw error;
+            }
+
+            console.log('Mise à jour réussie', data);
+
+            // Après une mise à jour réussie, rafraîchissez les données
+            await fetchSubjects(); // Cette fonction va récupérer à nouveau les sujets actifs et disponibles
+        } catch (error) {
+            console.error('Erreur lors de la mise à jour du profil', error.message);
+        }
+    };
+
+
+    
+    
+
+
+
+
+
+    async function getProfile() {
+        try {
+            setLoading(true)
+            if (!session?.user) throw new Error('No user on the session!')
+
+            const { data, error, status } = await supabase
+                .from('profiles')
+                .select(`*`)
+                .eq('id', session?.user.id)
+                .single()
+            if (error && status !== 406) {
+                throw error
+            }
+
+            if (data) {
+                setUsername(data.username)
+                setFull_name(data.full_name)
+                setSubject_active(data.active_biography)
+            }
+        } catch (error) {
+            if (error instanceof Error) {
+                Alert.alert(error.message)
+            }
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    
+
+
+
+
+    return (
+
+
+            <View style={globalStyles.container}>
+ 
+                        {subjects_active.length > 0 ? (
+                            <>
+                                <Text style={globalStyles.title}>Biographies auxquelles vous contribuez</Text>
+                                {subjects_active.map((subject) => (
+                                    <TouchableOpacity key={subject.content_subject.id} style={[globalStyles.globalButton_tag, subject_active === subject.content_subject.id ? styles.SelectedTag : styles.unSelectedTag]} onPress={() => handleJoinSubject(subject.content_subject.id)}>
+                                        <Text style={[globalStyles.buttonText, subject_active === subject.content_subject.id ? globalStyles.globalButtonText_active : globalStyles.globalButtonText]}>
+                                            {subject.content_subject.title} {subject_active === subject.content_subject.id ? "(actif)" : ""}
+                                        </Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </>
+                        ) : (
+                            <Text>Vous ne contribuez à aucune biographie actuellement.</Text>
+                        )}
+
+                        <Text></Text>
+                        <Text></Text>
+                        <Text></Text>
+                        <Text></Text>
+                        <Text></Text>
+
+
+                        <Text style={globalStyles.title}>Vous souhaitez contribuer à une autre projet ? </Text>
+                        <TouchableOpacity style={showProjects ? globalStyles.globalButton : globalStyles.globalButton_active} onPress={() => setShowProjects(!showProjects)}>
+                            <Text style={globalStyles.globalButtonText}>{showProjects ? "Masquer les projets" : "Rejoindre un nouveau projet biographique"}</Text>
+                        </TouchableOpacity>
+
+                        {showProjects && (
+  <>
+
+<View style={styles.searchContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="Rechercher un projet"
+              value={searchName}
+              onChangeText={(text) => setSearchName(text)}
+            />
+            <TouchableOpacity onPress={() => get_project(searchName, setLoading, setSearchResults)} style={styles.icon}>
+              <Ionicons name="ios-search" size={24} color="black" />
+            </TouchableOpacity>
+          </View>
+
+    {searchResults.map((result) => (
+      <TouchableOpacity
+        key={result.id}
+        style={[globalStyles.globalButton_tag, styles.unSelectedTag]}
+        onPress={async () => {
+          await joinSubject(result.id);
+          fetchSubjects();
+        }}
+      >
+        <Text style={globalStyles.globalButtonText_tag}>{result.title}</Text>
+      </TouchableOpacity>
+    ))}
+  </>
+)}
+
+        
+<TouchableOpacity style={showNewProject? globalStyles.globalButton : globalStyles.globalButton_active} onPress={() => setShowNewProject(!showNewProject)}>
+                            <Text style={globalStyles.globalButtonText}>{showNewProject ? "Abandonner la création" : "Créer un nouveau projet"}</Text>
+                        </TouchableOpacity>
+                        {showNewProject && (
+  <>
+
+<View style={styles.searchContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="Nom du nouveau projet"
+              value={newName}
+              onChangeText={(text) => setNewName(text)}
+            />
+            <TouchableOpacity onPress={async () => {await create_project(newName);await fetchSubjects();}} style={styles.icon}>
+              <Ionicons name="add-circle-outline" size={24} color="black" />
+            </TouchableOpacity>
+          </View>
+
+    
+  </>
+)}
+
+            </View>
+        //</TouchableWithoutFeedback>
+    )
+
+
+}
+
+const styles = StyleSheet.create({
+
+    searchContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 5,
+        paddingHorizontal: 10,
+        marginBottom: 20,
+        backgroundColor: '#f9f9f9', // Légère couleur de fond pour le conteneur de recherche
+        shadowColor: "#000", // Ajout d'ombre
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
+      },
+      input: {
+        flex: 1,
+        height: 40,
+        padding: 10,
+      },
+      icon: {
+        marginLeft: 10,
+      },
+      unSelectedTag: {
+        backgroundColor: '#b1b3b5', // Couleur de fond plus douce pour les tags non sélectionnés
+        marginVertical: 5, // Ajoute un peu d'espace verticalement autour de chaque tag
+        borderRadius: 5, // Bords arrondis pour les tags
+        borderWidth: 0.5, // Légère bordure pour définir les tags
+        borderColor: '#d0d0d0', // Couleur de la bordure
+        padding: 10, // Espace intérieur pour rendre le tag plus grand
+    },
+    SelectedTag: {
+        backgroundColor: '#0b2d52',// Couleur de fond plus douce pour les tags non sélectionnés
+        marginVertical: 5, // Ajoute un peu d'espace verticalement autour de chaque tag
+        borderRadius: 5, // Bords arrondis pour les tags
+        borderWidth: 0.5, // Légère bordure pour définir les tags
+        borderColor: '#d0d0d0', // Couleur de la bordure
+        padding: 10, // Espace intérieur pour rendre le tag plus grand
+        shadowColor: '#000', // Ombre pour iOS
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+    },
+    
+
+
+
+})
+
+
