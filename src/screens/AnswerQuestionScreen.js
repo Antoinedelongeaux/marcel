@@ -150,7 +150,7 @@ function ReadAnswersScreen({ route }) {
     <ScrollView contentContainerStyle={styles.contentContainer}>
 
 <View style={styles.navigationContainer}>
-  <TouchableOpacity onPress={() => navigateToScreen('BiographyScreen')} style={styles.navButton}>
+  <TouchableOpacity onPress={() => navigateToScreen('ReadAnswersScreen')} style={styles.navButton}>
     <FontAwesome name="arrow-left" size={28} color="black" />
   </TouchableOpacity>
   <TouchableOpacity onPress={refreshAnswers} style={styles.navButton}>

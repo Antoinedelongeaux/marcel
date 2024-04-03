@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { globalStyles } from '../../global'; // Assurez-vous que le chemin est correct
-import { getMemories_Question,save_question } from '../components/data_handling';
+import { getMemories_Question,save_question,getMemories_Questions_by_tags } from '../components/data_handling';
 import { saveActiveSubjectId, getActiveSubjectId } from '../components/local_storage';
 import { useFocusEffect } from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -13,9 +13,9 @@ function AskQuestionScreen({ route }) {
   const session = route.params.session;
   const [index, setIndex] = useState(0);
   const [question, setQuestion] = useState('');
-  const [answers, setAnswers] = useState([]);
+  const [questions, setQuestions] = useState('');
   const [owner, setOwner] = useState(null);
-  const [tags, setTags] = useState(["Famille", "Vie professionnelle", "Vie personnelle", "Hobbies & passions", "Valeurs", "Voyages", "Autre"]);
+  const [tags, setTags] = useState(["Famille"]);
   const [subject_active, setSubject_active] = useState(null);
   const [choice, setChoice] = useState('newQuestion'); // 'newQuestion' ou 'existingQuestion'
   const [personal, setPersonal] = useState(true);
@@ -73,52 +73,63 @@ function AskQuestionScreen({ route }) {
 
 
 
-  useFocusEffect(
-    React.useCallback(() => {
-      if (choice === 'existingQuestion' || inspirationClicked) {
-        getMemories_Question(subject_active, setQuestion, setAnswers, setOwner, index, setIndex, tags, personal);
-      }
-    }, [session, index, subject_active, tags, personal, choice, inspirationClicked])
-  );
+
   
-  const goToNextQuestion = () => {
-    setIndex((prevIndex) => prevIndex + 1);
-  };
-
-  const goToPreviousQuestion = () => {
-    setIndex((prevIndex) => prevIndex - 1);
-  };
-
-
-
-  const findInspiration = async () => {
-    setInspirationClicked(true);
-    await getMemories_Question(null, (question) => {
-      setQuestion(question); // Mise à jour de l'état question avec l'objet question
-      setUserInput(question.question); // Réinitialiser userInput lorsqu'une nouvelle inspiration est trouvée
-    }, setAnswers, setOwner, index, setIndex, tags, false);
-  };
+ 
 
   useEffect(() => {
-    // Assurez-vous que findInspiration est seulement appelée si inspirationClicked est vrai.
-    if (choice === 'newQuestion' && inspirationClicked ) {
-      findInspiration();
-    }
-  }, [index]);
 
-  const changeInspiration = () => {
-    setIndex(prevIndex => prevIndex + 1);
+    setInspirationClicked(true);
+    getMemories_Questions_by_tags((questions) => {
+      setQuestions(questions); // Mise à jour de l'état question avec l'objet question
+    }, tags);
 
-  };
+  }, [tags]);
+
+
+
   
 
   return (
     <ScrollView contentContainerStyle={styles.contentContainer}>
+      <View style={styles.navigationContainer}>
+      <TouchableOpacity onPress={() => navigateToScreen('ReadAnswersScreen')} style={styles.navButton}>
+        <FontAwesome name="arrow-left" size={28} color="black" />
+      </TouchableOpacity>
       <Text></Text>
+    </View>
+     
       <Text></Text>
       <Text></Text>
 
-<View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+
+          <TextInput
+            style={[globalStyles.answer_input]}
+            placeholder={question.question ? question.question : "Définir le titre de votre note ici"}
+            value={userInput}
+            onChangeText={text => setUserInput(text)}
+            multiline={true}
+            numberOfLines={4}
+          />
+          
+
+        
+      
+
+
+   
+   <TouchableOpacity
+        style={globalStyles.globalButton_wide}
+        onPress={handleAction}>
+        <Text style={globalStyles.globalButtonText}>Enregistrer le titre de la note </Text>
+      </TouchableOpacity>
+    
+<Text></Text>
+<Text></Text>
+
+
+
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
             {allTags.map((tag, index) => (
               <TouchableOpacity
                 key={index}
@@ -132,40 +143,28 @@ function AskQuestionScreen({ route }) {
 
           <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginBottom: 20 }}>
 
-  
 </View>
 
-
-      {choice === 'newQuestion' && (
-        <>
  
 
 
- <TouchableOpacity onPress={inspirationClicked ? changeInspiration : findInspiration} style={globalStyles.globalButton_wide}>
-            <Text style={globalStyles.globalButtonText}>{inspirationClicked ? "Nouvelle inspiration" : "Trouver de l'inspiration"}</Text>
-          </TouchableOpacity>
-          <TextInput
-            style={[globalStyles.answer_input]}
-            placeholder={question.question ? question.question : "Posez votre question ici"}
-            value={userInput}
-            onChangeText={text => setUserInput(text)}
-            multiline={true}
-            numberOfLines={4}
-          />
-          
-
-        </>
-      )}
-
-
-   
-   <TouchableOpacity
-        style={globalStyles.globalButton_wide}
-        onPress={handleAction}>
-        <Text style={globalStyles.globalButtonText}>Poser la question et y répondre </Text>
+      {questions.length > 0 && (
+  <View style={{marginBottom: 20}}>
+    {questions.map((questionItem, i) => (
+      <TouchableOpacity
+        key={i}
+        style={styles.questionContainer}
+        onPress={() => setUserInput(questionItem.question)}>
+        <Text>{questionItem.question}</Text>
       </TouchableOpacity>
-    
+    ))}
+  </View>
+)}
+
+
     </ScrollView>
+
+    
   );
 }
 

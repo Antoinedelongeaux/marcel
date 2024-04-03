@@ -46,11 +46,6 @@ function BiographyScreen() {
         <Text style={globalStyles.title}>{subject.title}</Text>
 
 
-        <TouchableOpacity
-          style={globalStyles.globalButton_wide}
-          onPress={() => navigateToScreen('AskQuestionScreen')}>
-          <Text style={globalStyles.globalButtonText}>Choisir une question</Text>
-        </TouchableOpacity>
        
 
 

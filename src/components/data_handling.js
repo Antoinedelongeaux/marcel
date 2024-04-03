@@ -79,6 +79,41 @@ export async function getMemories_Question(subject_active, setQuestion, setAnswe
   }
 }
 
+export async function getMemories_Questions_by_tags(setQuestions, tags) {
+  try {
+
+    // Construire dynamiquement la condition or en fonction des tags fournis
+    const orCondition = tags.map(tag => `tags.cs.{"${tag}"}`).join(',');
+
+    // Préparer la requête de base
+    let query = supabase
+      .from('Memoires_questions')
+      .select('*');
+
+
+    query = query.is('id_subject', null);
+    
+
+    query = query.or(orCondition);
+    query = query.is('id_owner', null);
+    
+
+    
+    // Exécuter la requête
+    const { data: questionsWithTags, error: errorQuestionsWithTags } = await query;
+   
+    if (errorQuestionsWithTags) throw errorQuestionsWithTags;
+
+
+
+    setQuestions(questionsWithTags);
+
+  } catch (error) {
+    console.error("Error", error.message);
+    setQuestions({ "question": "..." });
+  }
+}
+
 
 export async function getMemories_Question_by_id(id_question,setQuestion, setAnswers, setOwner) {
   try {

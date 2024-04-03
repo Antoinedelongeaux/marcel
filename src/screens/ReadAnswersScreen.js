@@ -129,23 +129,12 @@ const toggleAnswersDisplay = async (questionId) => {
 
       <Text></Text>
 
-      {/*}
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
-        {allTags.map((tag, index) => (
-          <TouchableOpacity
-            key={index}
-            style={[globalStyles.globalButton_tag, tags.includes(tag) ? {} : styles.unSelectedTag]}
-            onPress={() => toggleTag(tag)}>
-            <Text style={globalStyles.globalButtonText_tag}>{tag}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-*/}
+     
 
       <View style={styles.questionsContainer}>
       {questions?.length > 0 ? 
        <>
-       {[{ id: null, title: "Non Chapitré" }, ...chapters].map((chapter) => (
+       {[{ id: null, title: "Non classé" }, ...chapters].map((chapter) => (
          <View key={chapter.id ? chapter.id : "non-chapitre"}>
            <TouchableOpacity onPress={() => toggleChapter(chapter.id)}>
              <Text style={globalStyles.title}>{chapter.title}</Text>
@@ -222,7 +211,7 @@ const toggleAnswersDisplay = async (questionId) => {
   style={globalStyles.globalButton_narrow}
   onPress={() => navigateToScreen('AskQuestionScreen')}
 >
-  <Text style={globalStyles.globalButtonText}>Nouvelle Question</Text>
+  <Text style={globalStyles.globalButtonText}>Nouvelle Note / question </Text>
 </TouchableOpacity>
 
 
@@ -260,6 +249,46 @@ const toggleAnswersDisplay = async (questionId) => {
         style={[globalStyles.globalButton_wide]}
       >
         <Text style={globalStyles.globalButtonText}>Fermer</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</Modal>
+
+<Modal
+  animationType="slide"
+  transparent={true}
+  visible={isModalVisible}
+  onRequestClose={() => {
+    setIsModalVisible(!isModalVisible);
+  }}
+>
+  <View style={styles.centeredView}>
+    <View style={styles.modalView}>
+      <Text style={styles.modalText}>Nouveau Chapitre</Text>
+      <TextInput
+        style={styles.modalInput}
+        onChangeText={setNewChapterTitle}
+        value={newChapterTitle}
+        placeholder="Titre du chapitre"
+      />
+      <TouchableOpacity
+        style={[globalStyles.globalButton_wide]}
+        onPress={() => {
+          create_chapter(newChapterTitle, subject_active);
+          setIsModalVisible(!isModalVisible);
+          setNewChapterTitle(''); 
+          get_chapters(subject_active, setChapters);
+        }}
+      >
+        <Text style={globalStyles.globalButtonText}>Créer</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[globalStyles.globalButton_wide]}
+        onPress={() => {
+          setIsModalVisible(!isModalVisible);
+        }}
+      >
+        <Text style={globalStyles.globalButtonText}>Annuler</Text>
       </TouchableOpacity>
     </View>
   </View>

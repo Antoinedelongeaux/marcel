@@ -1,17 +1,20 @@
 import React from 'react'
 import { supabase } from '../lib/supabase'
 import { useState, useEffect } from 'react'
+import { useNavigation } from '@react-navigation/native';
 import { View, StyleSheet, Button, Text, Alert, Keyboard, TouchableWithoutFeedback, TextInput, TouchableOpacity } from 'react-native'
 import { globalStyles } from '../../global'
 import { listSubjects, joinSubject, getSubjects, get_project, create_project } from '../components/data_handling';
 import { saveActiveSubjectId, getActiveSubjectId } from '../components/local_storage';
 import { Ionicons } from '@expo/vector-icons';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
 export default function ProfileScreen({ route }) {
     const session = route.params.session
     const [loading, setLoading] = useState(true)
     const [username, setUsername] = useState('')
     const [full_name, setFull_name] = useState('')
+    const navigation = useNavigation();
 
     const [subjects, setSubjects] = useState([]);
     const [subjects_active, setSubjects_active] = useState([]);
@@ -22,7 +25,9 @@ export default function ProfileScreen({ route }) {
     const [searchName, setSearchName] = useState('');
     const [newName, setNewName] = useState('');
     const [searchResults, setSearchResults] = useState([]);
-    
+    const navigateToScreen = (screenName, params) => {
+        navigation.navigate(screenName, params);
+      };
 
     async function fetchSubjects() {
 
@@ -122,7 +127,12 @@ export default function ProfileScreen({ route }) {
 
 
             <View style={globalStyles.container}>
- 
+<View style={styles.navigationContainer}>
+      <TouchableOpacity onPress={() => navigateToScreen('BiographyScreen')} style={styles.navButton}>
+        <FontAwesome name="arrow-left" size={28} color="black" />
+      </TouchableOpacity>
+      
+    </View>
                         {subjects_active.length > 0 ? (
                             <>
                                 <Text style={globalStyles.title}>Biographies auxquelles vous contribuez</Text>
@@ -211,6 +221,17 @@ export default function ProfileScreen({ route }) {
 }
 
 const styles = StyleSheet.create({
+    navigationContainer: {
+        flexDirection: 'row', // Organise les éléments enfants en ligne
+        justifyContent: 'space-between', // Distribue l'espace entre les éléments enfants
+        padding: 10, // Ajoute un peu de padding autour pour éviter que les éléments touchent les bords
+      },
+      navButton: {
+        // Style pour les boutons de navigation
+        padding: 10, // Ajoute un peu de padding pour rendre le touchable plus grand
+        // Ajoutez d'autres styles ici selon le design souhaité
+        alignItems: 'center', // Centre le contenu (l'icône) du bouton
+      },
 
     searchContainer: {
         flexDirection: 'row',
