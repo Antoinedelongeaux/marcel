@@ -129,7 +129,7 @@ export default function ProfileScreen({ route }) {
     }
 
     try {
-        await validate_project_contributors(contributor.id_user, newAuthorization);
+        await validate_project_contributors(subject_active.id, contributor.id_user, newAuthorization);
         // Après la validation, rafraîchir la liste des contributeurs pour afficher la mise à jour
         await fetchContributors();
     } catch (error) {
@@ -279,9 +279,9 @@ export default function ProfileScreen({ route }) {
         {contributors?.length > 0 ? (
             contributors.map((contributor) => (
                 <View key={contributor.id} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 10 }}>
-                    <Text>{contributor.name} - Accès au projet : {contributor.authorized}</Text>
+                    <Text>{contributor.name} - Accès au projet : </Text>
                     <TouchableOpacity onPress={() => toggleAuthorization(contributor)}>
-                        <Text style={{color: '#007BFF'}}>Changer</Text>
+                        <Text style={{color: '#007BFF'}}>{contributor.authorized}</Text>
                     </TouchableOpacity>
                 </View>
             ))
