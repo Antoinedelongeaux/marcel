@@ -613,3 +613,61 @@ export async function create_chapter(title,id_subject) {
   } 
 }
 
+export async function get_project_contributors(id_subject) {
+  // Exemple de pseudo code, à adapter selon votre logique d'application
+  try {
+
+    const { data, error } = await supabase
+      .from('Memoires_contributors') 
+      .select('*')
+      .eq('id_subject', id_subject); 
+
+    if (error) throw error;
+
+    return data
+    
+  } catch (error) {
+    Alert.alert('Erreur lors de la recherche de contributeurs ', error.message);
+  } 
+}
+
+
+export async function validate_project_contributors(id_user,validation) {
+  // Exemple de pseudo code, à adapter selon votre logique d'application
+  try {
+
+    const { data, error } = await supabase
+      .from('Memoires_contributors') 
+      .update({ authorised: validation})
+      .eq('id_user', id_user); 
+
+    if (error) throw error;
+
+    return data
+    
+  } catch (error) {
+    Alert.alert('Erreur lors la mise à jour du contributeur ', error.message);
+  } 
+}
+
+
+export async function get_project_by_id(id) {
+  // Exemple de pseudo code, à adapter selon votre logique d'application
+  try {
+
+    const { data, error } = await supabase
+      .from('Memoires_subjects') // Remplacez 'projects' par le nom de votre table
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+
+    return data;
+
+  } catch (error) {
+    Alert.alert('Erreur lors de la recherche', error.message);
+  } 
+}
+
+

@@ -16,7 +16,6 @@ export default function ProfileScreen({ route }) {
     const [subjects, setSubjects] = useState([]);
     const [subjects_active, setSubjects_active] = useState([]);
     const [subject_active, setSubject_active] = useState(null);
-    const [vision, setVision] = useState('Biographies');
     const [showProjects, setShowProjects] = useState(false);
     const [searchName, setSearchName] = useState('');
     const [searchResults, setSearchResults] = useState([]);
@@ -205,92 +204,12 @@ export default function ProfileScreen({ route }) {
 
 
             <View style={globalStyles.container}>
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <TouchableOpacity
-                        key={1}
-                        style={[
-                            globalStyles.globalButton_narrow,
-                            vision === 'Biographies' ? { backgroundColor: '#0b2d52' } : {}
-                        ]}
-                        onPress={() => setVision('Biographies')}
-                    >
-                        <Text style={globalStyles.globalButtonText}>Biographies</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                        key={2}
-                        style={[
-                            globalStyles.globalButton_narrow,
-                            vision === 'Profil' ? { backgroundColor: '#0b2d52' } : {}
-                        ]}
-                        onPress={() => setVision('Profil')}
-                    >
-                        <Text style={globalStyles.globalButtonText}>Profil</Text>
-                    </TouchableOpacity>
-                </View>
+         
 
 
-                {vision == 'Biographies' && (
-                    <>
-                        {subjects_active.length > 0 ? (
-                            <>
-                                <Text style={globalStyles.title}>Biographies auxquelles vous contribuez</Text>
-                                {subjects_active.map((subject) => (
-                                    <TouchableOpacity key={subject.content_subject.id} style={[globalStyles.button, subject_active === subject.content_subject.id ? globalStyles.globalButton_active : globalStyles.globalButton]} onPress={() => handleJoinSubject(subject.content_subject.id)}>
-                                        <Text style={[globalStyles.buttonText, subject_active === subject.content_subject.id ? globalStyles.globalButtonText_active : globalStyles.globalButtonText]}>
-                                            {subject.content_subject.title} {subject_active === subject.content_subject.id ? "(actif)" : ""}
-                                        </Text>
-                                    </TouchableOpacity>
-                                ))}
-                            </>
-                        ) : (
-                            <Text>Vous ne contribuez à aucune biographie actuellement.</Text>
-                        )}
 
-                        <Text></Text>
-                        <Text></Text>
-                        <Text></Text>
-                        <Text></Text>
-                        <Text></Text>
 
-                        <TouchableOpacity style={globalStyles.globalButton} onPress={() => setShowProjects(!showProjects)}>
-                            <Text style={globalStyles.globalButtonText}>{showProjects ? "Masquer les projets" : "Rejoindre un nouveau projet biographique"}</Text>
-                        </TouchableOpacity>
-
-                        {showProjects && (
-  <>
-
-<View style={styles.searchContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="Rechercher un projet"
-              value={searchName}
-              onChangeText={(text) => setSearchName(text)}
-            />
-            <TouchableOpacity onPress={() => get_project(searchName, setLoading, setSearchResults)} style={styles.icon}>
-              <Ionicons name="ios-search" size={24} color="black" />
-            </TouchableOpacity>
-          </View>
-
-    {searchResults.map((result) => (
-      <TouchableOpacity
-        key={result.id}
-        style={[globalStyles.globalButton_tag, styles.unSelectedTag]}
-        onPress={async () => {
-          await joinSubject(result.id);
-          fetchSubjects();
-        }}
-      >
-        <Text style={globalStyles.globalButtonText_tag}>{result.title}</Text>
-      </TouchableOpacity>
-    ))}
-  </>
-)}
-
-                    </>
-                )}
-
-                {vision == 'Profil' && (<>
+    
                     <Text></Text>
                     <Text style={globalStyles.title}>Vos informations de profil</Text>
                     <Text></Text>
@@ -336,7 +255,7 @@ export default function ProfileScreen({ route }) {
     */}
 
                     </View>
-                </>)}
+               
             </View>
         //</TouchableWithoutFeedback>
     )

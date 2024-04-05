@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useNavigation } from '@react-navigation/native';
 import { View, StyleSheet, Button, Text, Alert, Keyboard, TouchableWithoutFeedback, TextInput, TouchableOpacity } from 'react-native'
 import { globalStyles } from '../../global'
-import { listSubjects, joinSubject, getSubjects, get_project, create_project } from '../components/data_handling';
+import { listSubjects, joinSubject, getSubjects, get_project, create_project, get_project_contributors,validate_project_contributors, get_project_by_id } from '../components/data_handling';
 import { saveActiveSubjectId, getActiveSubjectId } from '../components/local_storage';
 import { Ionicons } from '@expo/vector-icons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -18,16 +18,22 @@ export default function ProfileScreen({ route }) {
 
     const [subjects, setSubjects] = useState([]);
     const [subjects_active, setSubjects_active] = useState([]);
-    const [subject_active, setSubject_active] = useState(null);
+    const [subject_active, setSubject_active] = useState({id:0});
     const [vision, setVision] = useState('Biographies');
     const [showProjects, setShowProjects] = useState(false);
     const [showNewProject, setShowNewProject] = useState(false);
     const [searchName, setSearchName] = useState('');
     const [newName, setNewName] = useState('');
     const [searchResults, setSearchResults] = useState([]);
+    const [contributors, setContributors] = useState([]);
+    const [showContributors, setShowContributors] = useState(false);
+
+
+
     const navigateToScreen = (screenName, params) => {
         navigation.navigate(screenName, params);
       };
+
 
     async function fetchSubjects() {
 
@@ -56,13 +62,21 @@ export default function ProfileScreen({ route }) {
 
     useEffect(() => {
 
-        saveActiveSubjectId(subject_active);
+        saveActiveSubjectId(subject_active.id);
 
     }, [subject_active]);
 
 
     const handleJoinSubject = async (id) => {
-        setSubject_active(id);
+      get_project_by_id(id).then(temp => {
+        console.log("temp :", temp)
+        setSubject_active(temp);
+    }).catch(error => {
+        console.error("Une erreur s'est produite lors de la récupération du projet:", error);
+        // Vous pouvez ici gérer l'erreur comme bon vous semble
+    });
+    
+
         try {
             const { data, error } = await supabase
                 .from('profiles')
@@ -83,7 +97,20 @@ export default function ProfileScreen({ route }) {
     };
 
 
-    
+    const fetchContributors = async () => {
+      if(subject_active) {
+          try {
+              const result = await get_project_contributors(subject_active.id);
+              if(result.error) {
+                  throw result.error;
+              }
+              console.log("result :",result)
+              setContributors(result);
+          } catch (error) {
+              console.error("Error fetching project contributors:", error);
+          }
+      }
+  };
     
 
 
@@ -107,7 +134,8 @@ export default function ProfileScreen({ route }) {
             if (data) {
                 setUsername(data.username)
                 setFull_name(data.full_name)
-                setSubject_active(data.active_biography)
+                const temp = await get_project_by_id(data.active_biography)
+                setSubject_active(temp)
             }
         } catch (error) {
             if (error instanceof Error) {
@@ -137,9 +165,9 @@ export default function ProfileScreen({ route }) {
                             <>
                                 <Text style={globalStyles.title}>Biographies auxquelles vous contribuez</Text>
                                 {subjects_active.map((subject) => (
-                                    <TouchableOpacity key={subject.content_subject.id} style={[globalStyles.globalButton_tag, subject_active === subject.content_subject.id ? styles.SelectedTag : styles.unSelectedTag]} onPress={() => handleJoinSubject(subject.content_subject.id)}>
-                                        <Text style={[globalStyles.buttonText, subject_active === subject.content_subject.id ? globalStyles.globalButtonText_active : globalStyles.globalButtonText]}>
-                                            {subject.content_subject.title} {subject_active === subject.content_subject.id ? "(actif)" : ""}
+                                    <TouchableOpacity key={subject.content_subject.id} style={[globalStyles.globalButton_tag, subject_active.id === subject.content_subject.id ? styles.SelectedTag : styles.unSelectedTag]} onPress={() => handleJoinSubject(subject.content_subject.id)}>
+                                        <Text style={[globalStyles.buttonText, subject_active.id === subject.content_subject.id ? globalStyles.globalButtonText_active : globalStyles.globalButtonText]}>
+                                            {subject.content_subject.title} {subject_active.id === subject.content_subject.id ? "(actif)" : ""}
                                         </Text>
                                     </TouchableOpacity>
                                 ))}
@@ -212,6 +240,28 @@ export default function ProfileScreen({ route }) {
     
   </>
 )}
+<TouchableOpacity
+    style={showContributors ? globalStyles.globalButton : globalStyles.globalButton_active}
+    onPress={() => {
+        setShowContributors(!showContributors);
+        fetchContributors();
+    }}
+>
+    <Text style={globalStyles.globalButtonText}>Gestion des accès au projet {subject_active && `: ${subject_active.title}`}</Text>
+</TouchableOpacity>
+
+{showContributors && (
+    <View>
+        {contributors?.length > 0 ? (
+            contributors.map((contributor) => (
+                <Text key={contributor.id}>{contributor.id_user} - Accès au projet :  {contributor.authorized}</Text>
+            ))
+        ) : (
+            <Text>Aucun contributeur pour ce projet</Text>
+        )}
+    </View>
+)}
+
 
             </View>
         //</TouchableWithoutFeedback>

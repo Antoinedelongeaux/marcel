@@ -22,8 +22,10 @@ function BiographyScreen() {
         if (temp != null) {
           const temp2 = await getSubject(temp);
           setSubject(temp2);
-
+        }else {
+          navigation.navigate('ManageBiographyScreen');
         }
+
       };
 
       fetchActiveSubjectId();
@@ -40,7 +42,6 @@ function BiographyScreen() {
 
   return (
     <View style={styles.container}>
-      {subject_active == null && (<Text>Vous n'avez pas encore sélectionné de projet actif. Veuillez en choisir un dans "Paramètres"</Text>)}
       {subject_active != null && (<>
 
         <Text style={globalStyles.title}>{subject.title}</Text>
