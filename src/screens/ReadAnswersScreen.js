@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import {  Modal, TextInput,Alert, View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import { getMemories_Questions,getMemories_Answers_to_Question ,get_chapters,join_question_to_chapter,create_chapter} from '../components/data_handling';
+import { getMemories_Questions,getMemories_Answers_to_Question ,get_chapters,join_question_to_chapter,create_chapter,delete_chapter} from '../components/data_handling';
 import { useFocusEffect } from '@react-navigation/native';
 import { getActiveSubjectId } from '../components/local_storage';
 import { globalStyles } from '../../global';
@@ -122,8 +122,8 @@ const toggleAnswersDisplay = async (questionId) => {
       <TouchableOpacity onPress={() => navigateToScreen('BiographyScreen')} style={styles.navButton}>
         <FontAwesome name="arrow-left" size={28} color="black" />
       </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigateToScreen('AskQuestionScreen')} style={styles.navButton}>
-        <MaterialIcons name="question-answer" size={28} color="black" />
+      <TouchableOpacity onPress={() => navigateToScreen('ManageBiographyScreen')} style={styles.navButton}>
+        <MaterialIcons name="menu" size={28} color="black" />
       </TouchableOpacity>
     </View>
 
@@ -139,7 +139,44 @@ const toggleAnswersDisplay = async (questionId) => {
            <TouchableOpacity onPress={() => toggleChapter(chapter.id)}>
              <Text style={globalStyles.title}>{chapter.title}</Text>
            </TouchableOpacity>
+           {openChapters[chapter.id] && (
+            <>
+            <View style={styles.navigationContainer}>
+              <Text></Text>
+              <Text></Text>
+              <Text></Text>
+              <Text></Text>
+              <Text></Text>
+              <Text></Text>
+              <Text></Text>
+              <Text></Text>
+              <Text></Text>
+              <Text></Text>
+              {/* Icône d'édition */}
+              <TouchableOpacity
+                onPress={() => {
+                  // Définir l'action pour ouvrir le modal d'édition
+                }}
+                style={{ marginRight: 10 }} // Ajustez selon le besoin
+              >
+                <FontAwesome name="edit" size={24} color="black" />
+              </TouchableOpacity>
+
+              {/* Icône de suppression */}
+              <TouchableOpacity
+                onPress={() => delete_chapter(chapter.id)}
+              >
+                <FontAwesome name="trash" size={24} color="black" />
+              </TouchableOpacity>
+            </View>
+            <Text></Text>
+            <Text></Text>
+            </>
+          )}
+
+
            {openChapters[chapter.id] && questions.filter(q => q.id_chapitre === chapter.id).map((question) => (
+             
              <View key={question.id} style={styles.questionCard}>
                <Text style={styles.questionText}>{question.question}</Text>
     

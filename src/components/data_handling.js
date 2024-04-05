@@ -702,3 +702,19 @@ export async function get_project_by_id(id) {
 }
 
 
+export async function delete_chapter(id_chapter) {
+  // Exemple de pseudo code, à adapter selon votre logique d'application
+  try {
+    const { data, error } = await supabase
+      .from('Memoires_chapters')
+      .delete()
+      .match({ id: id_chapter }); 
+    
+    if (error) throw error;
+
+    Alert.alert("Le chapitre a bien été supprimé");
+
+  } catch (error) {
+    Alert.alert('Erreur lors de la suppression', error.message);
+  } 
+}
