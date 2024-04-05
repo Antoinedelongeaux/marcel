@@ -405,17 +405,41 @@ export async function listSubjects(id_user) {
 
 
 
-export async function joinSubject(id_subject) {
+export async function joinSubject(id_subject, id_user) {
+  try {
+    // Vérifier d'abord si l'enregistrement existe
+    const { data: existing, error: fetchError } = await supabase
+      .from('Memoires_contributors')
+      .select('*')
+      .eq('id_subject', id_subject)
+      .eq('id_user', id_user)
+      .maybeSingle(); // Utilisez maybeSingle() pour obtenir soit un objet soit null si aucun enregistrement n'est trouvé
 
-  const { error } = await supabase
-    .from('Memoires_contributors')
-    .insert([
-      { id_subject: id_subject }
-    ]);
-  if (error) throw error;
-  return
+    if (fetchError) throw fetchError;
 
+    // Si un enregistrement existe déjà, ne rien faire et peut-être informer l'utilisateur
+    if (existing) {
+      console.log('Vous avez dejà émis une demande d\'accès à ce projet. Le propriétaire doit valider votre demande');
+      return; // Sortir de la fonction pour éviter d'ajouter un doublon
+    }
+
+    // Si aucun enregistrement existant n'a été trouvé, procéder à l'insertion
+    const { error: insertError } = await supabase
+      .from('Memoires_contributors')
+      .insert([
+        { id_subject: id_subject, id_user: id_user } // Assurez-vous d'inclure id_user dans l'insertion
+      ]);
+
+    if (insertError) throw insertError;
+
+    // L'insertion a réussi
+    console.log('Le contributeur a été ajouté avec succès.');
+  } catch (error) {
+    console.error('Erreur lors de la tentative d\'ajout du contributeur :', error.message);
+    throw error; // Propager l'erreur pour une gestion ultérieure si nécessaire
+  }
 }
+
 
 
 export async function getSubjects(id_user) {
@@ -424,7 +448,8 @@ export async function getSubjects(id_user) {
     const { data: list_subjects, error } = await supabase
       .from('Memoires_contributors')
       .select('*')
-      .eq('id_user', id_user);
+      .eq('id_user', id_user)
+      .eq('authorized', "Oui");
     if (error) throw error;
 
 
@@ -614,22 +639,27 @@ export async function create_chapter(title,id_subject) {
 }
 
 export async function get_project_contributors(id_subject) {
-  // Exemple de pseudo code, à adapter selon votre logique d'application
   try {
-
-    const { data, error } = await supabase
-      .from('Memoires_contributors') 
+    const { data: contributors, error } = await supabase
+      .from('Memoires_contributors')
       .select('*')
-      .eq('id_subject', id_subject); 
+      .eq('id_subject', id_subject);
 
     if (error) throw error;
 
-    return data
+    // Ajout des noms des contributeurs à la liste des contributeurs
+    const contributorsWithName = await Promise.all(contributors.map(async (contributor) => {
+      const name = await get_user_name(contributor.id_user);
+      return { ...contributor, name }; // Ajoute le nom au contributeur
+    }));
+
+    return contributorsWithName;
     
   } catch (error) {
-    Alert.alert('Erreur lors de la recherche de contributeurs ', error.message);
-  } 
+    Alert.alert('Erreur lors de la recherche de contributeurs', error.message);
+  }
 }
+
 
 
 export async function validate_project_contributors(id_user,validation) {

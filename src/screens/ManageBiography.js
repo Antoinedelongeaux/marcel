@@ -69,7 +69,6 @@ export default function ProfileScreen({ route }) {
 
     const handleJoinSubject = async (id) => {
       get_project_by_id(id).then(temp => {
-        console.log("temp :", temp)
         setSubject_active(temp);
     }).catch(error => {
         console.error("Une erreur s'est produite lors de la récupération du projet:", error);
@@ -113,6 +112,31 @@ export default function ProfileScreen({ route }) {
   };
     
 
+  const toggleAuthorization = async (contributor) => {
+    let newAuthorization;
+    switch (contributor.authorized) {
+        case 'Oui':
+            newAuthorization = 'Non';
+            break;
+        case 'Non':
+            newAuthorization = 'En attente';
+            break;
+        case 'En attente':
+            newAuthorization = 'Oui';
+            break;
+        default:
+            newAuthorization = 'En attente'; // Valeur par défaut si aucun cas n'est correspondant
+    }
+
+    try {
+        await validate_project_contributors(contributor.id_user, newAuthorization);
+        // Après la validation, rafraîchir la liste des contributeurs pour afficher la mise à jour
+        await fetchContributors();
+    } catch (error) {
+        console.error("Erreur lors de la mise à jour de l'autorisation:", error);
+        Alert.alert("Erreur", "Impossible de mettre à jour l'autorisation du contributeur.");
+    }
+};
 
 
 
@@ -208,7 +232,7 @@ export default function ProfileScreen({ route }) {
         key={result.id}
         style={[globalStyles.globalButton_tag, styles.unSelectedTag]}
         onPress={async () => {
-          await joinSubject(result.id);
+          await joinSubject(result.id,session.user.id);
           fetchSubjects();
         }}
       >
@@ -254,13 +278,19 @@ export default function ProfileScreen({ route }) {
     <View>
         {contributors?.length > 0 ? (
             contributors.map((contributor) => (
-                <Text key={contributor.id}>{contributor.id_user} - Accès au projet :  {contributor.authorized}</Text>
+                <View key={contributor.id} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 10 }}>
+                    <Text>{contributor.name} - Accès au projet : {contributor.authorized}</Text>
+                    <TouchableOpacity onPress={() => toggleAuthorization(contributor)}>
+                        <Text style={{color: '#007BFF'}}>Changer</Text>
+                    </TouchableOpacity>
+                </View>
             ))
         ) : (
             <Text>Aucun contributeur pour ce projet</Text>
         )}
     </View>
 )}
+
 
 
             </View>
