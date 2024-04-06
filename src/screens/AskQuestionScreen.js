@@ -15,7 +15,7 @@ function AskQuestionScreen({ route }) {
   const [question, setQuestion] = useState('');
   const [questions, setQuestions] = useState('');
   const [owner, setOwner] = useState(null);
-  const [tags, setTags] = useState(["Famille"]);
+  const [tags, setTags] = useState([""]);
   const [subject_active, setSubject_active] = useState(null);
   const [choice, setChoice] = useState('newQuestion'); // 'newQuestion' ou 'existingQuestion'
   const [personal, setPersonal] = useState(true);

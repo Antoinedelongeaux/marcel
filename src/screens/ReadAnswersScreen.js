@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import {  Modal, TextInput,Alert, View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import { getMemories_Questions,getMemories_Answers_to_Question ,get_chapters,join_question_to_chapter,create_chapter,delete_chapter} from '../components/data_handling';
+import { getSubject ,getMemories_Questions,getMemories_Answers_to_Question ,get_chapters,join_question_to_chapter,create_chapter,delete_chapter,edit_chapter,delete_question} from '../components/data_handling';
 import { useFocusEffect } from '@react-navigation/native';
 import { getActiveSubjectId } from '../components/local_storage';
 import { globalStyles } from '../../global';
@@ -23,7 +23,32 @@ function ReadQuestionsScreen({ route }) {
   const [isModalVisible, setIsModalVisible] = useState(false);
  const [newChapterTitle, setNewChapterTitle] = useState('');
  const [isChapterModalVisible, setIsChapterModalVisible] = useState(false);
-const [selectedQuestionId, setSelectedQuestionId] = useState(null);
+ const [selectedQuestionId, setSelectedQuestionId] = useState(null);
+ const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+ const [editChapterId, setEditChapterId] = useState(null);
+ const [editChapterTitle, setEditChapterTitle] = useState('');
+
+ const [subject, setSubject] = useState([]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const fetchActiveSubjectId = async () => {
+        var temp = null;
+        temp = await getActiveSubjectId();
+        setSubject_active(temp);
+        if (temp != null) {
+          const temp2 = await getSubject(temp);
+          setSubject(temp2);
+        }else {
+          navigation.navigate('ManageBiographyScreen');
+        }
+
+      };
+
+      fetchActiveSubjectId();
+
+    }, [])
+  );
 
 
 
@@ -113,6 +138,49 @@ const toggleAnswersDisplay = async (questionId) => {
 };
 
 
+const confirmDeletion = (id, isChapter = true) => {
+  Alert.alert(
+    "Confirmation de suppression",
+    `Êtes-vous sûr de vouloir supprimer ce ${isChapter ? 'chapitre' : 'question'}? Cette action est irréversible.`,
+    [
+      {
+        text: "Annuler",
+        style: "cancel"
+      },
+      {
+        text: "Supprimer",
+        onPress: () => {
+          if (isChapter) {
+            delete_chapter(id);
+            get_chapters(subject_active, setChapters);
+          } else {
+            delete_question(id);
+            getMemories_Questions(subject_active, setQuestions, tags, personal);
+          }
+          Alert.alert("Suppression", `Le ${isChapter ? 'chapitre' : 'question'} a été supprimé.`);
+        },
+        style: "destructive"
+      }
+    ]
+  );
+};
+
+const refreshPage = async () => {
+  if (subject_active != null) {
+    // Récupérer les questions liées au sujet actif
+    await getMemories_Questions(subject_active, setQuestions, tags, personal);
+    
+    // Récupérer les chapitres liés au sujet actif
+    await get_chapters(subject_active, setChapters);
+    
+    // Optionnellement, vous pourriez vouloir réinitialiser d'autres états si nécessaire
+    setActiveQuestionAnswers({});  // Réinitialise les réponses affichées si elles sont gérées localement
+  } else {
+    Alert.alert("Erreur", "Aucun sujet actif sélectionné. Veuillez sélectionner un sujet pour rafraîchir les données.");
+  }
+};
+
+
   return (
     <>
 
@@ -122,22 +190,26 @@ const toggleAnswersDisplay = async (questionId) => {
       <TouchableOpacity onPress={() => navigateToScreen('BiographyScreen')} style={styles.navButton}>
         <FontAwesome name="arrow-left" size={28} color="black" />
       </TouchableOpacity>
+      <TouchableOpacity onPress={refreshPage} style={styles.navButton}>
+    <FontAwesome name="refresh" size={28} color="black" />
+  </TouchableOpacity>
       <TouchableOpacity onPress={() => navigateToScreen('ManageBiographyScreen')} style={styles.navButton}>
         <MaterialIcons name="menu" size={28} color="black" />
       </TouchableOpacity>
     </View>
 
       <Text></Text>
-
-     
+      <Text style={globalStyles.title}>{subject.title}</Text>
+      
 
       <View style={styles.questionsContainer}>
       {questions?.length > 0 ? 
        <>
+  
        {[{ id: null, title: "Non classé" }, ...chapters].map((chapter) => (
          <View key={chapter.id ? chapter.id : "non-chapitre"}>
            <TouchableOpacity onPress={() => toggleChapter(chapter.id)}>
-             <Text style={globalStyles.title}>{chapter.title}</Text>
+             <Text style={globalStyles.title_chapter}>{chapter.title}</Text>
            </TouchableOpacity>
            {openChapters[chapter.id] && (
             <>
@@ -154,20 +226,25 @@ const toggleAnswersDisplay = async (questionId) => {
               <Text></Text>
               {/* Icône d'édition */}
               <TouchableOpacity
-                onPress={() => {
-                  // Définir l'action pour ouvrir le modal d'édition
-                }}
+                  onPress={() => {
+                    setEditChapterId(chapter.id);
+                    setEditChapterTitle(chapter.title);
+                    setIsEditModalVisible(true);
+                 }}
                 style={{ marginRight: 10 }} // Ajustez selon le besoin
               >
-                <FontAwesome name="edit" size={24} color="black" />
+                  <FontAwesome name="edit" size={24} color="black" />
               </TouchableOpacity>
+
 
               {/* Icône de suppression */}
               <TouchableOpacity
-                onPress={() => delete_chapter(chapter.id)}
-              >
-                <FontAwesome name="trash" size={24} color="black" />
-              </TouchableOpacity>
+  onPress={() => confirmDeletion(chapter.id, true)} // true pour spécifier qu'il s'agit d'un chapitre
+  style={{ marginRight: 10 }}
+>
+  <FontAwesome name="trash" size={24} color="black" />
+</TouchableOpacity>
+
             </View>
             <Text></Text>
             <Text></Text>
@@ -179,15 +256,24 @@ const toggleAnswersDisplay = async (questionId) => {
              
              <View key={question.id} style={styles.questionCard}>
                <Text style={styles.questionText}>{question.question}</Text>
-    
-               <TouchableOpacity onPress={() => handleAssociateQuestion(question.id)} style={styles.associateButton}>
-                 <FontAwesome name="link" size={24} color="black" />
-               </TouchableOpacity>
+               <View style={styles.navigationContainer}>
+  <Text style={styles.answersCount}>
+    {question.answers_count} réponses
+  </Text>
+  <TouchableOpacity onPress={() => handleAssociateQuestion(question.id)} style={styles.associateButton}>
+    <FontAwesome name="link" size={24} color="black" />
+  </TouchableOpacity>
+  <TouchableOpacity
+  onPress={() => confirmDeletion(question.id, false)} // false pour spécifier qu'il s'agit d'une question
+  style={styles.deleteButton}
+>
+  <FontAwesome name="trash" size={24} color="black" />
+</TouchableOpacity>
 
-               <Text style={styles.answersCount}>
-         
-      {question.answers_count} réponses
-    </Text>
+</View>
+
+
+
     {/* Assurez-vous que cette partie est correctement rendue et que le TouchableOpacity est accessible */}
     <TouchableOpacity 
       onPress={() => toggleAnswersDisplay(question.id)} 
@@ -267,6 +353,8 @@ const toggleAnswersDisplay = async (questionId) => {
   <View style={styles.centeredView}>
     <View style={styles.modalView}>
     <ScrollView>
+      <Text>Déplacer la note dans le chapitre : </Text>
+      <Text></Text>
   {chapters.map((chapter) => (
     <TouchableOpacity
       key={chapter.id}
@@ -331,6 +419,47 @@ const toggleAnswersDisplay = async (questionId) => {
   </View>
 </Modal>
 
+<Modal
+  animationType="slide"
+  transparent={true}
+  visible={isEditModalVisible}
+  onRequestClose={() => setIsEditModalVisible(false)}
+>
+  <View style={styles.centeredView}>
+    <View style={styles.modalView}>
+      <Text style={styles.modalText}>Éditer Chapitre</Text>
+      <TextInput
+        style={styles.modalInput}
+        onChangeText={setEditChapterTitle}
+        value={editChapterTitle}
+        placeholder="Nouveau titre du chapitre"
+      />
+      <TouchableOpacity
+        style={[globalStyles.globalButton_wide]}
+        onPress={() => {
+          edit_chapter(editChapterId, editChapterTitle);
+          setIsEditModalVisible(false);
+          setEditChapterTitle(''); // Reset title after update
+          get_chapters(subject_active, setChapters); // Refresh chapters list
+        }}
+      >
+        <Text style={globalStyles.globalButtonText}>Sauvegarder</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[globalStyles.globalButton_wide]}
+        onPress={() => {
+          setIsEditModalVisible(false);
+          setEditChapterTitle('');
+        }}
+      >
+        <Text style={globalStyles.globalButtonText}>Annuler</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</Modal>
+
+
+
 
     </>
   );
@@ -372,8 +501,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'lightgrey',
   },
   questionText: {
-    fontSize: 18,
-  },
+    fontSize: 16,
+    color: 'blue',  
+},
+
   answersCount: {
     fontWeight: 'bold',
   },
@@ -433,10 +564,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   associateButton: {
-    position: 'absolute',
-    right: 10,
-    top: 10,
+    marginRight: 5,
   },
+  
+
   
 
   // pour ne pas bloquer le bouton par la barre de navigation
@@ -491,7 +622,7 @@ const styles = StyleSheet.create({
     color: "black",
     fontWeight: "bold",
     textAlign: "center",
-    fontSize: 32, // Supposant que la taille par défaut est 16, cela rendra le texte deux fois plus grand.
+    fontSize: 18, // Supposant que la taille par défaut est 16, cela rendra le texte deux fois plus grand.
   },
 
 // Assurez-vous que le style du modalView est correct et ne cause pas de texte blanc sur fond blanc

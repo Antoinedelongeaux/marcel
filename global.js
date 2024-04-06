@@ -132,12 +132,20 @@ export const globalStyles = StyleSheet.create({
 
   },
   title: {
-    fontSize: 20, // Taille de police plus grande pour le titre
+    fontSize: 30, // Taille de police plus grande pour le titre
     fontWeight: 'bold', // Gras pour le titre
     marginTop: 20, // Ajoute un peu d'espace au-dessus du titre
     marginBottom: 10, // Ajoute un peu d'espace en dessous du titre
-    // Vous pouvez ajouter d'autres propriétés de style selon vos besoins
-  },
+    textAlign: 'center', // Centre le texte horizontalement
+},
+title_chapter: {
+  fontSize: 20, // Taille de police plus grande pour le titre
+  fontWeight: 'bold', // Gras pour le titre
+  marginTop: 20, // Ajoute un peu d'espace au-dessus du titre
+  marginBottom: 10, // Ajoute un peu d'espace en dessous du titre
+
+},
+
 
 
   globalButton_tag: {

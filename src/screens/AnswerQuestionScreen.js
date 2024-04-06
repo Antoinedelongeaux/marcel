@@ -22,8 +22,6 @@ function ReadAnswersScreen({ route }) {
   const [isRecording, setIsRecording] = useState(false);
   const [recording, setRecording] = useState();
 
-  console.log("route.params : ",route.params)
-  console.log("id_question : ",id_question)
   
   // Fonction pour naviguer vers une nouvelle page
   const navigateToScreen = (screenName) => {

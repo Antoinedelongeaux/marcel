@@ -718,3 +718,39 @@ export async function delete_chapter(id_chapter) {
     Alert.alert('Erreur lors de la suppression', error.message);
   } 
 }
+
+
+export async function edit_chapter(id_chapter, titre) {
+  try {
+    const { data, error } = await supabase
+      .from('Memoires_chapters')
+      .update({ title: titre })
+      .eq('id', id_chapter);
+
+    if (error) throw error;
+
+    Alert.alert("Le chapitre a bien été mis à jour");
+  } catch (error) {
+    Alert.alert('Erreur lors de la mise à jour', error.message);
+  }
+}
+
+
+
+
+export async function delete_question(id_question) {
+  // Exemple de pseudo code, à adapter selon votre logique d'application
+  try {
+    const { data, error } = await supabase
+      .from('Memoires_questions')
+      .delete()
+      .match({ id: id_question }); 
+    
+    if (error) throw error;
+
+    Alert.alert("La question a bien été supprimée");
+
+  } catch (error) {
+    Alert.alert('Erreur lors de la suppression', error.message);
+  } 
+}
