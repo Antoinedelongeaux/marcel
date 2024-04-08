@@ -1,9 +1,14 @@
 import React from 'react';
 import { View, Text, Button, Linking, StyleSheet,TouchableOpacity  } from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons'; 
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import { useNavigation } from '@react-navigation/native';
 
 import { globalStyles } from '../../global';
 
 const AideScreen = () => {
+
+  const navigation = useNavigation();
   const phoneNumber = '+33669737164';
 
   const makeCall = () => {
@@ -14,8 +19,30 @@ const AideScreen = () => {
     Linking.openURL(`sms:${phoneNumber}`);
   };
 
+
+  const navigateToScreen = (screenName, params) => {
+    navigation.navigate(screenName, params);
+  };
+
+
   return (
     <View style={styles.container}>
+      
+      <View style={styles.navigationContainer}>
+      
+      <TouchableOpacity onPress={() => navigateToScreen('ReadAnswersScreen')} style={styles.navButton}>
+    <Ionicons name="book-outline" size={60} color="#0b2d52" />
+  </TouchableOpacity>
+  <TouchableOpacity onPress={() => navigateToScreen('ProfileScreen')} style={styles.navButton}>
+        <Ionicons name="person" size={60} color="#0b2d52" />
+      </TouchableOpacity>
+  <TouchableOpacity onPress={() => navigateToScreen('AideScreen')} style={styles.navButton}>
+        <Ionicons name="help-circle-outline" size={60} color="tomato" />
+      </TouchableOpacity>
+      <TouchableOpacity onPress={() => navigateToScreen('ManageBiographyScreen')} style={styles.navButton}>
+        <Ionicons name="settings-outline" size={60} color="#0b2d52" />
+      </TouchableOpacity>
+    </View>
         <Text></Text>
         <TouchableOpacity
           style={globalStyles.globalButton_wide}
@@ -56,6 +83,14 @@ const styles = StyleSheet.create({
     },
     text: {
       fontSize: 16, // Taille de la police pour une meilleure lisibilité
+    },
+    navigationContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingVertical: 10,
+    },
+    navButton: {
+      padding: 10,
     },
   
 });

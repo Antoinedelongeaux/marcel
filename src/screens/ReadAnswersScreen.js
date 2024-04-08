@@ -7,6 +7,7 @@ import { getActiveSubjectId } from '../components/local_storage';
 import { globalStyles } from '../../global';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import Ionicons from 'react-native-vector-icons/Ionicons'; 
 
 function ReadQuestionsScreen({ route }) {
   const navigation = useNavigation();
@@ -187,14 +188,18 @@ const refreshPage = async () => {
 <View style={{ flex: 1 }}>
     <ScrollView contentContainerStyle={styles.contentContainer}>
 <View style={styles.navigationContainer}>
-      <TouchableOpacity onPress={() => navigateToScreen('BiographyScreen')} style={styles.navButton}>
-        <FontAwesome name="arrow-left" size={28} color="black" />
-      </TouchableOpacity>
+      
       <TouchableOpacity onPress={refreshPage} style={styles.navButton}>
-    <FontAwesome name="refresh" size={28} color="black" />
+    <FontAwesome name="refresh" size={60} color="tomato" />
   </TouchableOpacity>
+  <TouchableOpacity onPress={() => navigateToScreen('ProfileScreen')} style={styles.navButton}>
+        <Ionicons name="person" size={60} color="#0b2d52" />
+      </TouchableOpacity>
+  <TouchableOpacity onPress={() => navigateToScreen('AideScreen')} style={styles.navButton}>
+        <Ionicons name="help-circle-outline" size={60} color="#0b2d52" />
+      </TouchableOpacity>
       <TouchableOpacity onPress={() => navigateToScreen('ManageBiographyScreen')} style={styles.navButton}>
-        <MaterialIcons name="menu" size={28} color="black" />
+        <Ionicons name="settings-outline" size={60} color="#0b2d52" />
       </TouchableOpacity>
     </View>
 

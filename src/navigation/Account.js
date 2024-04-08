@@ -1,8 +1,14 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import ProfileScreen from "../screens/ProfileScreen"
 import BiographyScreen from "../screens/BiographyScreen"
-import { supabase } from '../lib/supabase';
+import ReadAnswersScreen from "../screens/ReadAnswersScreen"
+import ManageBiographyScreen from "../screens/ManageBiography"
+import AskQuestionScreen from "../screens/AskQuestionScreen"
 import AideScreen from "../screens/AideScreen";
+
+
+import { supabase } from '../lib/supabase';
+
 import React, { useState, useEffect } from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons'; 
 
@@ -64,7 +70,7 @@ export default function Account({ route }) {
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
   
-          if (route.name === 'Biographie') {
+          if (route.name === 'Récit') {
             iconName = focused ? 'book' : 'book-outline';
           } else if (route.name === 'Aide') {
             iconName = focused ? 'help-circle' : 'help-circle-outline';
@@ -81,9 +87,11 @@ export default function Account({ route }) {
           paddingBottom: 5, // Ajustez cela si nécessaire pour centrer correctement les icônes/texte dans la nouvelle hauteur de barre
           paddingTop: 5, // Ajustement pour l'alignement vertical des icônes et du texte
         },
+        tabBarStyle: { display: 'none' },  // Masquer la barre de navigation inférieure
+        headerShown: false  // Masquer la barre de navigation supérieure
       })}
     >
-      <Tab.Screen name="Biographie" component={BiographyScreen} initialParams={{ session: session }} />
+      <Tab.Screen name="Récit" component={ReadAnswersScreen} initialParams={{ session: session }} />
       <Tab.Screen name="Aide" component={AideScreen} />
       <Tab.Screen name="Paramètres" component={ProfileScreen} initialParams={{ session: session }} />
  

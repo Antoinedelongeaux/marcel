@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useNavigation } from '@react-navigation/native';
 import { View, StyleSheet, Button, Text, Alert, Keyboard, TouchableWithoutFeedback, TextInput, TouchableOpacity } from 'react-native'
 import { globalStyles } from '../../global'
-import { listSubjects, joinSubject, getSubjects, get_project, create_project, get_project_contributors,validate_project_contributors, get_project_by_id } from '../components/data_handling';
+import { listSubjects, joinSubject, getSubjects, get_project, create_project, get_project_contributors,validate_project_contributors, get_project_by_id,getSubjects_pending} from '../components/data_handling';
 import { saveActiveSubjectId, getActiveSubjectId } from '../components/local_storage';
 import { Ionicons } from '@expo/vector-icons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -18,6 +18,8 @@ export default function ProfileScreen({ route }) {
 
     const [subjects, setSubjects] = useState([]);
     const [subjects_active, setSubjects_active] = useState([]);
+    
+    const [subjects_pending, setSubjects_pending] = useState([]);
     const [subject_active, setSubject_active] = useState({id:0});
     const [vision, setVision] = useState('Biographies');
     const [showProjects, setShowProjects] = useState(false);
@@ -41,7 +43,10 @@ export default function ProfileScreen({ route }) {
             getProfile();
             try {
                 const temp = await getSubjects(session.user.id);
+                const temp_bis = await getSubjects_pending(session.user.id);
                 setSubjects_active(temp);
+                setSubjects_pending(temp_bis);
+
 
                 // Si vous souhaitez également rafraîchir la liste des sujets disponibles à rejoindre
                 const temp2 = await listSubjects(session.user.id);
@@ -180,7 +185,7 @@ export default function ProfileScreen({ route }) {
 
             <View style={globalStyles.container}>
 <View style={styles.navigationContainer}>
-      <TouchableOpacity onPress={() => navigateToScreen('BiographyScreen')} style={styles.navButton}>
+      <TouchableOpacity onPress={() => navigateToScreen('ReadAnswersScreen')} style={styles.navButton}>
         <FontAwesome name="arrow-left" size={28} color="black" />
       </TouchableOpacity>
       
@@ -192,6 +197,13 @@ export default function ProfileScreen({ route }) {
                                     <TouchableOpacity key={subject.content_subject.id} style={[globalStyles.globalButton_tag, subject_active.id === subject.content_subject.id ? styles.SelectedTag : styles.unSelectedTag]} onPress={() => handleJoinSubject(subject.content_subject.id)}>
                                         <Text style={[globalStyles.buttonText, subject_active.id === subject.content_subject.id ? globalStyles.globalButtonText_active : globalStyles.globalButtonText]}>
                                             {subject.content_subject.title} {subject_active.id === subject.content_subject.id ? "(actif)" : ""}
+                                        </Text>
+                                    </TouchableOpacity>
+                                ))}
+                                {subjects_pending.map((subject) => (
+                                    <TouchableOpacity key={subject.content_subject.id} style={[globalStyles.globalButton_tag, subject_active.id === subject.content_subject.id ? styles.SelectedTag : styles.unSelectedTag]}>
+                                        <Text style={[globalStyles.buttonText, subject_active.id === subject.content_subject.id ? globalStyles.globalButtonText_active : globalStyles.globalButtonText]}>
+                                            {subject.content_subject.title} - accès en attente de validation
                                         </Text>
                                     </TouchableOpacity>
                                 ))}
@@ -294,7 +306,7 @@ export default function ProfileScreen({ route }) {
 
 
             </View>
-        //</TouchableWithoutFeedback>
+      
     )
 
 

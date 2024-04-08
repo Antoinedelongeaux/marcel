@@ -473,6 +473,39 @@ export async function getSubjects(id_user) {
   }
 }
 
+export async function getSubjects_pending(id_user) {
+
+  try {
+    const { data: list_subjects, error } = await supabase
+      .from('Memoires_contributors')
+      .select('*')
+      .eq('id_user', id_user)
+      .eq('authorized', "En attente");
+    if (error) throw error;
+
+
+    // Utilisez Promise.all pour attendre que toutes les requêtes soient terminées
+    const subjectsWithContent = await Promise.all(list_subjects.map(async (element) => {
+      const { data: content_subject, error: error_content } = await supabase
+        .from('Memoires_subjects')
+        .select('*')
+        .eq('id', element.id_subject);
+      if (error_content) throw error_content;
+
+      // Ajoutez content_subject au bon élément de list_subjects
+      // Assumant que content_subject est un tableau avec un seul élément
+      return { ...element, content_subject: content_subject[0] };
+    }));
+
+    return subjectsWithContent;
+  } catch (error) {
+    console.error("Error in getSubject:", error.message);
+    throw error; // Ou gérer l'erreur d'une manière qui a du sens pour votre application
+  }
+}
+
+
+
 export async function getSubject(id_subject) {
 
   try {

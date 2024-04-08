@@ -2,27 +2,27 @@
   "cli": {
     "version": ">= 7.3.0"
   },
+  
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal",
-      "android": {
-        "buildType": "apk"
-      }
+      "distribution": "internal"
     },
     "preview": {
-      "channel": "preview",  // Ajoutez cette ligne sous le profil concerné
       "android": {
-        "buildType": "apk"
+        "distribution": "internal"
+      },
+      "ios": {
+        "distribution": "internal"
       }
     },
     "production": {
-      "channel": "production",  // Assurez-vous que ce canal est configuré
-      "android": {
-        "buildType": "app-bundle"
-      }
+      "android": {},
+      "ios": {}
     }
   },
+  
+  
   "submit": {
     "production": {}
   }

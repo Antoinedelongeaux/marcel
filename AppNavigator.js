@@ -7,6 +7,7 @@ import BiographyScreen from './src/screens/BiographyScreen';
 import AskQuestionScreen from './src/screens/AskQuestionScreen';
 import AnswerQuestionScreen from './src/screens/AnswerQuestionScreen';
 import AideScreen from './src/screens/AideScreen';
+import ProfileScreen from './src/screens/ProfileScreen';
 import ReadAnswersScreen from './src/screens/ReadAnswersScreen';
 import ManageBiographyScreen from './src/screens/ManageBiography';
 
@@ -28,6 +29,7 @@ function AppNavigator({ session }) {
               <Stack.Screen name="Account" component={Account} initialParams={{ session }} />
               <Stack.Screen name="BiographyScreen" component={BiographyScreen} />
               <Stack.Screen name="AideScreen" component={AideScreen} />
+              <Stack.Screen name="ProfileScreen" component={ProfileScreen} initialParams={{ session: session }}/>
               <Stack.Screen name="ManageBiographyScreen" component={ManageBiographyScreen} initialParams={{ session }} />
               <Stack.Screen name="ReadAnswersScreen" component={ReadAnswersScreen} initialParams={{ session: session }}/>
               <Stack.Screen name="AskQuestionScreen" component={AskQuestionScreen} initialParams={{ session: session }}/>

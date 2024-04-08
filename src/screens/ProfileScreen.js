@@ -6,9 +6,11 @@ import { globalStyles } from '../../global'
 import { listSubjects, joinSubject, getSubjects, get_project } from '../components/data_handling';
 import { saveActiveSubjectId, getActiveSubjectId } from '../components/local_storage';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
 export default function ProfileScreen({ route }) {
     const session = route.params.session
+    const navigation = useNavigation();
     const [loading, setLoading] = useState(true)
     const [username, setUsername] = useState('')
     const [full_name, setFull_name] = useState('')
@@ -19,7 +21,9 @@ export default function ProfileScreen({ route }) {
     const [showProjects, setShowProjects] = useState(false);
     const [searchName, setSearchName] = useState('');
     const [searchResults, setSearchResults] = useState([]);
-    
+    const navigateToScreen = (screenName, params) => {
+        navigation.navigate(screenName, params);
+      };
 
     async function fetchSubjects() {
 
@@ -205,7 +209,21 @@ export default function ProfileScreen({ route }) {
 
             <View style={globalStyles.container}>
          
-
+         <View style={styles.navigationContainer}>
+      
+      <TouchableOpacity onPress={() => navigateToScreen('ReadAnswersScreen')} style={styles.navButton}>
+    <Ionicons name="book-outline" size={60} color="#0b2d52" />
+  </TouchableOpacity>
+  <TouchableOpacity onPress={() => navigateToScreen('ProfileScreen')} style={styles.navButton}>
+        <Ionicons name="person" size={60} color="tomato" />
+      </TouchableOpacity>
+  <TouchableOpacity onPress={() => navigateToScreen('AideScreen')} style={styles.navButton}>
+        <Ionicons name="help-circle-outline" size={60} color="#0b2d52" />
+      </TouchableOpacity>
+      <TouchableOpacity onPress={() => navigateToScreen('ManageBiographyScreen')} style={styles.navButton}>
+        <Ionicons name="settings-outline" size={60} color="#0b2d52" />
+      </TouchableOpacity>
+    </View>
 
 
 
@@ -283,6 +301,14 @@ const styles = StyleSheet.create({
       },
       icon: {
         marginLeft: 10,
+      },
+      navigationContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingVertical: 10,
+      },
+      navButton: {
+        padding: 10,
       },
 
 })
