@@ -1,4 +1,5 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import 'react-native-gesture-handler';
 import ProfileScreen from "../screens/ProfileScreen"
 import BiographyScreen from "../screens/BiographyScreen"
 import ReadAnswersScreen from "../screens/ReadAnswersScreen"

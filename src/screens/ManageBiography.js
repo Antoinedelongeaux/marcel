@@ -8,6 +8,7 @@ import { listSubjects, joinSubject, getSubjects, get_project, create_project, ge
 import { saveActiveSubjectId, getActiveSubjectId } from '../components/local_storage';
 import { Ionicons } from '@expo/vector-icons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 export default function ProfileScreen({ route }) {
     const session = route.params.session
@@ -66,8 +67,8 @@ export default function ProfileScreen({ route }) {
     }, [session]);
 
     useEffect(() => {
-
-        saveActiveSubjectId(subject_active.id);
+        console.log(subject_active.id)
+        saveActiveSubjectId(String(subject_active.id));
 
     }, [subject_active]);
 
@@ -235,7 +236,7 @@ export default function ProfileScreen({ route }) {
               onChangeText={(text) => setSearchName(text)}
             />
             <TouchableOpacity onPress={() => get_project(searchName, setLoading, setSearchResults)} style={styles.icon}>
-              <Ionicons name="ios-search" size={24} color="black" />
+              <MaterialIcons name="search" size={24} color="black" />
             </TouchableOpacity>
           </View>
 
@@ -268,7 +269,7 @@ export default function ProfileScreen({ route }) {
               value={newName}
               onChangeText={(text) => setNewName(text)}
             />
-            <TouchableOpacity onPress={async () => {await create_project(newName);await fetchSubjects();}} style={styles.icon}>
+            <TouchableOpacity onPress={async () => {await create_project(newName,session.user.id,"En attente");await fetchSubjects();}} style={styles.icon}>
               <Ionicons name="add-circle-outline" size={24} color="black" />
             </TouchableOpacity>
           </View>

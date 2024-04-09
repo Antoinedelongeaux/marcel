@@ -1,7 +1,7 @@
 
 import { Alert } from 'react-native';
 import { supabase } from '../lib/supabase';
-import { v4 as uuidv4 } from 'uuid'; // Importez la fonction v4 et renommez-la en uuidv4
+
 
 
 
@@ -405,9 +405,10 @@ export async function listSubjects(id_user) {
 
 
 
-export async function joinSubject(id_subject, id_user) {
+export async function joinSubject(id_subject, id_user,statut) {
   try {
     // Vérifier d'abord si l'enregistrement existe
+
     const { data: existing, error: fetchError } = await supabase
       .from('Memoires_contributors')
       .select('*')
@@ -427,7 +428,7 @@ export async function joinSubject(id_subject, id_user) {
     const { error: insertError } = await supabase
       .from('Memoires_contributors')
       .insert([
-        { id_subject: id_subject, id_user: id_user } // Assurez-vous d'inclure id_user dans l'insertion
+        { id_subject: id_subject, id_user: id_user,authorized : statut } // Assurez-vous d'inclure id_user dans l'insertion
       ]);
 
     if (insertError) throw insertError;
@@ -463,9 +464,11 @@ export async function getSubjects(id_user) {
 
       // Ajoutez content_subject au bon élément de list_subjects
       // Assumant que content_subject est un tableau avec un seul élément
+
       return { ...element, content_subject: content_subject[0] };
     }));
-
+   
+    
     return subjectsWithContent;
   } catch (error) {
     console.error("Error in getSubject:", error.message);
@@ -585,12 +588,13 @@ export async function get_project(name,setLoading, setSearchResults) {
   }
 }
 
-export async function create_project(name) {
+export async function create_project(name,id_user) {
   // Exemple de pseudo code, à adapter selon votre logique d'application
   try {
 
-    const id = uuidv4(); 
+    const id = customUUIDv4(); 
 
+    console.log("id : ",id)
 
     const { data, error } = await supabase
       .from('Memoires_subjects') // Remplacez 'projects' par le nom de votre table
@@ -598,7 +602,7 @@ export async function create_project(name) {
         { id: id , title: name}
       ]);
 
-    joinSubject(id)
+    joinSubject(id,id_user,"Oui")
     
     
     if (error) throw error;
@@ -608,6 +612,13 @@ export async function create_project(name) {
   } catch (error) {
     Alert.alert('Erreur lors de la création', error.message);
   } 
+}
+
+function customUUIDv4() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+  });
 }
 
 
