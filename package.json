@@ -9,7 +9,6 @@
     "web": "expo start --web"
   },
   "dependencies": {
-    "@expo/webpack-config": "^19.0.1",
     "@google-cloud/speech": "^6.5.0",
     "@react-native-async-storage/async-storage": "~1.23.1",
     "@react-native-async-storage/root": "github:react-native-async-storage/async-storage",
@@ -29,6 +28,7 @@
     "expo-status-bar": "~1.11.1",
     "expo-updates": "~0.24.12",
     "react": "18.2.0",
+    "react-dom": "18.2.0",
     "react-native": "0.73.6",
     "react-native-audio-recorder-player": "^3.6.7",
     "react-native-draggable-flatlist": "^4.0.1",
@@ -39,11 +39,13 @@
     "react-native-url-polyfill": "^2.0.0",
     "react-native-vector-icons": "^10.0.3",
     "react-native-web": "~0.19.10",
+    "stream-browserify": "^3.0.0",
     "uuid": "^9.0.1",
-    "react-dom": "18.2.0"
+    "vm-browserify": "^1.1.2"
   },
   "devDependencies": {
     "@babel/core": "^7.24.4",
+    "@expo/webpack-config": "^19.0.1",
     "expo-cli": "^6.3.12",
     "webpack": "^5.91.0",
     "webpack-cli": "^5.1.4",
