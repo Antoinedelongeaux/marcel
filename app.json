@@ -25,7 +25,8 @@
       "package": "com.antoine_delongeaux.Hestia"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
     },
     "extra": {
       "eas": {
