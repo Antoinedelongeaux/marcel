@@ -3,20 +3,31 @@ import { StyleSheet } from 'react-native';
 export const globalStyles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'flex-start',
-    paddingTop: 20,
+    //justifyContent: 'flex-start',
+    //paddingTop: 20,
     backgroundColor: "#E8FFF6",
-   
-    alignItems:"center",
+    //alignItems:"center",
+    padding: 20,
+    //paddingBottom: 100, 
   },
+
   container_center: {
     flex: 1,
     justifyContent: 'center',
+    //paddingTop: 20,
+    backgroundColor: "#E8FFF6",
+    alignItems:"center",
+    padding: 20,
+  },
+  container_spread: {
+    flex: 1,
+    justifyContent: 'space-around',
     paddingTop: 20,
     backgroundColor: "#E8FFF6",
-   
-    alignItems:"center",
+    //alignItems:"center",
   },
+
+
   form: {
     // backgroundColor: "purple",
     justifyContent: "space-between",
@@ -171,7 +182,15 @@ title_chapter: {
     fontWeight: 'bold',
   },
   
+  navigationContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+  },
 
+  navButton: {
+    padding: 10,
+  },
 
-
+ 
 })

@@ -78,21 +78,7 @@ export default function ProfileScreen({ route }) {
     };
 
 
-    const SearchBar = ({ searchName, setSearchName, onSearch }) => {
-        return (
-            <View style={styles.searchContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="Rechercher un projet"
-              value={searchName}
-              onChangeText={(text) => setSearchName(text)}
-            />
-            <TouchableOpacity onPress={onSearch} style={styles.icon}>
-              <Ionicons name="ios-search" size={24} color="black" />
-            </TouchableOpacity>
-          </View>
-        );
-      };
+   
     
 
 
@@ -193,15 +179,7 @@ export default function ProfileScreen({ route }) {
         }
     };
 
-    const handleSubjects = async () => {
-        try {
-            const subjectsList = await listSubjects(session.user.id); // Assurez-vous que cette fonction existe et fonctionne correctement
 
-            setSubjects(subjectsList);
-        } catch (error) {
-            Alert.alert("Erreur lors de la récupération des sujets", error.message);
-        }
-    };
 
 
     return (
@@ -209,18 +187,18 @@ export default function ProfileScreen({ route }) {
 
             <View style={globalStyles.container}>
          
-         <View style={styles.navigationContainer}>
+         <View style={globalStyles.navigationContainer}>
       
-      <TouchableOpacity onPress={() => navigateToScreen('ReadAnswersScreen')} style={styles.navButton}>
+      <TouchableOpacity onPress={() => navigateToScreen('ReadAnswersScreen')} style={globalStyles.navButton}>
     <Ionicons name="book-outline" size={60} color="#0b2d52" />
   </TouchableOpacity>
-  <TouchableOpacity onPress={() => navigateToScreen('ProfileScreen')} style={styles.navButton}>
+  <TouchableOpacity onPress={() => navigateToScreen('ProfileScreen')} style={globalStyles.navButton}>
         <Ionicons name="person" size={60} color="tomato" />
       </TouchableOpacity>
-  <TouchableOpacity onPress={() => navigateToScreen('AideScreen')} style={styles.navButton}>
+  <TouchableOpacity onPress={() => navigateToScreen('AideScreen')} style={globalStyles.navButton}>
         <Ionicons name="help-circle-outline" size={60} color="#0b2d52" />
       </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigateToScreen('ManageBiographyScreen')} style={styles.navButton}>
+      <TouchableOpacity onPress={() => navigateToScreen('ManageBiographyScreen')} style={globalStyles.navButton}>
         <Ionicons name="settings-outline" size={60} color="#0b2d52" />
       </TouchableOpacity>
     </View>
@@ -302,14 +280,8 @@ const styles = StyleSheet.create({
       icon: {
         marginLeft: 10,
       },
-      navigationContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        paddingVertical: 10,
-      },
-      navButton: {
-        padding: 10,
-      },
+
+     
 
 })
 

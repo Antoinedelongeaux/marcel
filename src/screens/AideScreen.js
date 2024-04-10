@@ -3,7 +3,6 @@ import { View, Text, Button, Linking, StyleSheet,TouchableOpacity  } from 'react
 import Ionicons from 'react-native-vector-icons/Ionicons'; 
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useNavigation } from '@react-navigation/native';
-
 import { globalStyles } from '../../global';
 
 const AideScreen = () => {
@@ -26,20 +25,20 @@ const AideScreen = () => {
 
 
   return (
-    <View style={styles.container}>
+    <View style={globalStyles.container_spread}>
       
-      <View style={styles.navigationContainer}>
+      <View style={globalStyles.navigationContainer}>
       
-      <TouchableOpacity onPress={() => navigateToScreen('ReadAnswersScreen')} style={styles.navButton}>
+      <TouchableOpacity onPress={() => navigateToScreen('ReadAnswersScreen')} style={globalStyles.navButton}>
     <Ionicons name="book-outline" size={60} color="#0b2d52" />
   </TouchableOpacity>
-  <TouchableOpacity onPress={() => navigateToScreen('ProfileScreen')} style={styles.navButton}>
+  <TouchableOpacity onPress={() => navigateToScreen('ProfileScreen')} style={globalStyles.navButton}>
         <Ionicons name="person" size={60} color="#0b2d52" />
       </TouchableOpacity>
-  <TouchableOpacity onPress={() => navigateToScreen('AideScreen')} style={styles.navButton}>
+  <TouchableOpacity onPress={() => navigateToScreen('AideScreen')} style={globalStyles.navButton}>
         <Ionicons name="help-circle-outline" size={60} color="tomato" />
       </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigateToScreen('ManageBiographyScreen')} style={styles.navButton}>
+      <TouchableOpacity onPress={() => navigateToScreen('ManageBiographyScreen')} style={globalStyles.navButton}>
         <Ionicons name="settings-outline" size={60} color="#0b2d52" />
       </TouchableOpacity>
     </View>
@@ -84,14 +83,7 @@ const styles = StyleSheet.create({
     text: {
       fontSize: 16, // Taille de la police pour une meilleure lisibilité
     },
-    navigationContainer: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      paddingVertical: 10,
-    },
-    navButton: {
-      padding: 10,
-    },
+ 
   
 });
 

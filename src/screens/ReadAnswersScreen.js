@@ -186,8 +186,8 @@ const refreshPage = async () => {
     <>
 
 <View style={{ flex: 1 }}>
-    <ScrollView contentContainerStyle={styles.contentContainer}>
-<View style={styles.navigationContainer}>
+    <ScrollView contentContainerStyle={globalStyles.container}>
+<View style={globalStyles.navigationContainer}>
       
       <TouchableOpacity onPress={refreshPage} style={styles.navButton}>
     <FontAwesome name="refresh" size={60} color="tomato" />
@@ -503,7 +503,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     padding: 10,
     borderRadius: 5,
-    backgroundColor: 'lightgrey',
+    //backgroundColor: 'lightgrey',
   },
   questionText: {
     fontSize: 16,
