@@ -185,7 +185,7 @@ const refreshPage = async () => {
   return (
     <>
 
-<View style={{ flex: 1 }}>
+<View style={{ flex: 1, backgroundColor: "#E8FFF6" }}>
     <ScrollView contentContainerStyle={globalStyles.container}>
 <View style={globalStyles.navigationContainer}>
       
@@ -348,7 +348,7 @@ const refreshPage = async () => {
 
 <Text></Text>
 
-    </View>
+    
     <Modal
   animationType="slide"
   transparent={true}
@@ -464,7 +464,7 @@ const refreshPage = async () => {
 </Modal>
 
 
-
+</View>
 
     </>
   );

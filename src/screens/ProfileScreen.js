@@ -183,7 +183,7 @@ export default function ProfileScreen({ route }) {
 
 
     return (
-
+<View style={{ flex: 1, backgroundColor: "#E8FFF6" }}>
 
             <View style={globalStyles.container}>
          
@@ -252,6 +252,7 @@ export default function ProfileScreen({ route }) {
 
                     </View>
                
+            </View>
             </View>
         //</TouchableWithoutFeedback>
     )

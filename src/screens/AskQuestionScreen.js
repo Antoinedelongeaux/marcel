@@ -91,6 +91,7 @@ function AskQuestionScreen({ route }) {
   
 
   return (
+    <View style={{ flex: 1, backgroundColor: "#E8FFF6" }}>
     <ScrollView contentContainerStyle={styles.contentContainer}>
       <View style={styles.navigationContainer}>
       <TouchableOpacity onPress={() => navigateToScreen('ReadAnswersScreen')} style={styles.navButton}>
@@ -164,7 +165,7 @@ function AskQuestionScreen({ route }) {
 
     </ScrollView>
 
-    
+    </View>
   );
 }
 

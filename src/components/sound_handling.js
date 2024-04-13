@@ -1,3 +1,4 @@
+{/* 
 import { Audio, InterruptionModeAndroid, InterruptionModeIOS } from 'expo-av';
 import * as FileSystem from 'expo-file-system';
 import { supabase } from '../lib/supabase';
@@ -274,62 +275,64 @@ const saveBlobToFileSystem = async (blob, fileName) => {
 
 
 
+*/}
 
 
-{/* 
 
 import { Audio, InterruptionModeAndroid, InterruptionModeIOS } from 'expo-av';
 import * as FileSystem from 'expo-file-system';
 import { supabase } from '../lib/supabase';
 import { Buffer } from 'buffer';
-import { decode } from 'base64-arraybuffer'
+import { decode } from 'base64-arraybuffer';
 import { Recording, RecordingOptionsPresets } from 'expo-av';
 
-
-
 global.Buffer = Buffer; 
-
-
 
 import { Platform } from 'react-native';
 
 
 export const save_audio = async (audioFile, name) => {
   try {
-    const fileName = name;
-    let base64; // Variable to hold base64 encoding
+    const fileName = `${name}.mp3`; // Nom du fichier avec extension MP3
 
-    // Check if the platform is web and convert Blob/File to base64
+    // Conversion pour la plateforme web
     if (Platform.OS === 'web') {
       if (!(audioFile instanceof Blob || audioFile instanceof File)) {
-        throw new Error('The audioFile must be a Blob or File on web platforms.');
+        throw new Error('Expected audio file to be a Blob or File');
       }
-      // Read blob as base64
-      base64 = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result.split(',')[1]);
-        reader.onerror = error => reject(error);
-        reader.readAsDataURL(audioFile);
+      
+      const audioBlob = new Blob([audioFile], { type: 'audio/mp3' });
+      const reader = new FileReader();
+      reader.readAsDataURL(audioBlob); // Convertit Blob en Base64
+      
+      await new Promise((resolve) => {
+        reader.onloadend = () => {
+          const base64audio = reader.result.split(',')[1]; // Isoler la chaîne base64
+          // Téléversement du fichier en format MP3
+          supabase.storage.from('audio').upload(fileName, decode(base64audio), {
+            contentType: 'audio/mp3', // Définir explicitement le type MIME en MP3
+            cacheControl: '3600',
+            upsert: false
+          }).then(({ error }) => {
+            if (error) throw error;
+            console.log(`File uploaded and accessible at: ${fileName}`);
+            resolve();
+          });
+        };
       });
     } else {
-      // On mobile, read file URI as base64 directly
-      base64 = await FileSystem.readAsStringAsync(audioFile, { encoding: FileSystem.EncodingType.Base64 });
+      // Traitement pour les plateformes mobiles, pas de changement
+      const base64 = await FileSystem.readAsStringAsync(audioFile, { encoding: FileSystem.EncodingType.Base64 });
+      const { error: uploadError } = await supabase.storage.from('audio').upload(fileName, decode(base64), {
+        contentType: 'audio/mp3',
+        cacheControl: '3600',
+        upsert: false
+      });
+
+      if (uploadError) throw uploadError;
+      console.log(`File uploaded and accessible at: ${fileName}`);
     }
-
-    // Upload base64 audio content
-    const { error: uploadError } = await supabase.storage.from('audio').upload(fileName, decode(base64), {
-      contentType: 'audio/mp3',
-      cacheControl: '3600',
-      upsert: false,
-    });
-
-    if (uploadError) {
-      throw uploadError;
-    }
-
-    const publicURL = `https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/audio/${fileName}`;
-    console.log(`File uploaded and accessible at: ${publicURL}`);
-    return publicURL;
+    return fileName;
   } catch (error) {
     console.error('Error in save_audio:', error);
     return null;
@@ -391,10 +394,10 @@ export const stopRecording = async (recording, name) => {
     if (Platform.OS === 'web') {
       const response = await fetch(uri);
       const blob = await response.blob();
-      return convertAndUpload(blob, name + '.mp4');
+      return convertAndUpload(blob, name);
     } else {
       // Supposer ici que le fichier est déjà au format correct; ajuster si nécessaire
-      return convertAndUpload(uri, name + '.mp4');
+      return convertAndUpload(uri, name);
     }
   } catch (error) {
     console.error('Error stopping recording or uploading:', error);
@@ -586,4 +589,27 @@ const saveBlobToFileSystem = async (blob, fileName) => {
   await FileSystem.writeAsStringAsync(uri, base64, { encoding: FileSystem.EncodingType.Base64 });
   return uri;
 };
-*/}
+
+async function adjustSampleRate(originalBlob) {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)({
+        sampleRate: 48000, // Le taux d'échantillonnage source
+    });
+
+    const response = await fetch(URL.createObjectURL(originalBlob));
+    const arrayBuffer = await response.arrayBuffer();
+    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+    const targetSampleRate = 8000; // Le taux d'échantillonnage cible pour la transcription
+    const offlineContext = new OfflineAudioContext(audioBuffer.numberOfChannels, audioBuffer.length, targetSampleRate);
+    const bufferSource = offlineContext.createBufferSource();
+    bufferSource.buffer = audioBuffer;
+
+    bufferSource.connect(offlineContext.destination);
+    bufferSource.start(0);
+    const renderedBuffer = await offlineContext.startRendering();
+
+    const wav = audioBufferToWav(renderedBuffer); // Convertir AudioBuffer rendu en WAV
+    const blob = new Blob([wav], { type: 'audio/wav' });
+
+    return blob;
+}

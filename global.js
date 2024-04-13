@@ -2,13 +2,13 @@ import { StyleSheet } from 'react-native';
 
 export const globalStyles = StyleSheet.create({
   container: {
-    flex: 1,
+    //flex: 1,
     //justifyContent: 'flex-start',
     //paddingTop: 20,
     backgroundColor: "#E8FFF6",
     //alignItems:"center",
     padding: 20,
-    //paddingBottom: 100, 
+    //paddingBottom: 10, 
   },
 
   container_center: {

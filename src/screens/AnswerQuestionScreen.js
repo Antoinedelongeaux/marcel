@@ -145,6 +145,7 @@ function ReadAnswersScreen({ route }) {
 
 
   return (
+    <View style={{ flex: 1, backgroundColor: "#E8FFF6" }}>
     <ScrollView contentContainerStyle={styles.contentContainer}>
 
 <View style={styles.navigationContainer}>
@@ -283,6 +284,7 @@ function ReadAnswersScreen({ route }) {
       <Text></Text>
       <Text></Text>
     </ScrollView>
+    </View>
   );
 }
 

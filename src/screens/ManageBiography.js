@@ -183,7 +183,7 @@ export default function ProfileScreen({ route }) {
 
     return (
 
-
+<View style={{ flex: 1, backgroundColor: "#E8FFF6" }}>
             <View style={globalStyles.container}>
 <View style={styles.navigationContainer}>
       <TouchableOpacity onPress={() => navigateToScreen('ReadAnswersScreen')} style={styles.navButton}>
@@ -307,7 +307,7 @@ export default function ProfileScreen({ route }) {
 
 
             </View>
-      
+            </View>
     )
 
 
