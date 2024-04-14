@@ -208,7 +208,7 @@ export const transcribeAudio = async (audioFileName) => {
       name: audioFileName,
     });
 
-    const serverUrl = 'http://91.108.112.18:3000/transcript';
+    const serverUrl = 'https://91.108.112.18:3000/transcript';
     const response = await fetch(serverUrl, {
       method: 'POST',
       headers: {
@@ -462,38 +462,51 @@ export const playRecording_fromURI = async (uri) => {
 
 export const playRecording_fromAudioFile = async (publicURL, fileName) => {
   try {
-    // Construire l'URL du fichier sur Supabase
-    console.log("publicURL : ", publicURL)
-    console.log("fileName : ", fileName)
-
-    // Télécharger le fichier audio dans le système de fichiers local
-    const uri = FileSystem.cacheDirectory + fileName;
-    const downloadResponse = await FileSystem.downloadAsync(publicURL, uri);
-
-    if (downloadResponse.status !== 200) {
-      throw new Error('Failed to download file');
-    }
-
-    // Lire le fichier audio téléchargé
-    const { sound } = await Audio.Sound.createAsync(
-      { uri: downloadResponse.uri },
-      { shouldPlay: true }
-    );
-
-    sound.setOnPlaybackStatusUpdate((playbackStatus) => {
-      if (!playbackStatus.isLoaded) {
-        // Gestion des erreurs
-        console.log(playbackStatus.error);
-      } else {
-        if (playbackStatus.didJustFinish && !playbackStatus.isLooping) {
+    // Sur les plateformes Web, créer un URL Object et le jouer
+    if (Platform.OS === 'web') {
+      const { sound } = await Audio.Sound.createAsync(
+        { uri: publicURL },
+        { shouldPlay: true }
+      );
+  
+      sound.setOnPlaybackStatusUpdate((playbackStatus) => {
+        if (!playbackStatus.isLoaded) {
+          console.error("Playback status: ", playbackStatus.error);
+        } else if (playbackStatus.didJustFinish && !playbackStatus.isLooping) {
           sound.unloadAsync(); // Décharger le son de la mémoire une fois la lecture terminée
         }
+      });
+    } else {
+      // Télécharger le fichier audio dans le système de fichiers local
+      const uri = FileSystem.cacheDirectory + fileName;
+      const downloadResponse = await FileSystem.downloadAsync(publicURL, uri);
+
+      if (downloadResponse.status !== 200) {
+        throw new Error('Failed to download file');
       }
-    });
+
+      // Lire le fichier audio téléchargé
+      const { sound } = await Audio.Sound.createAsync(
+        { uri: downloadResponse.uri },
+        { shouldPlay: true }
+      );
+
+      sound.setOnPlaybackStatusUpdate((playbackStatus) => {
+        if (!playbackStatus.isLoaded) {
+          // Gestion des erreurs
+          console.log(playbackStatus.error);
+        } else {
+          if (playbackStatus.didJustFinish && !playbackStatus.isLooping) {
+            sound.unloadAsync(); // Décharger le son de la mémoire une fois la lecture terminée
+          }
+        }
+      });
+    }
   } catch (error) {
     console.error('Error playing recording from Supabase file', error);
   }
 };
+
 
 
 
@@ -510,32 +523,35 @@ const downloadFileToLocalFileSystem = async (fileUri) => {
 
 export const transcribeAudio = async (audioFileName) => {
   try {
-    const publicURL = "https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/audio/" + audioFileName;
+    const publicURL = `https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/audio/${audioFileName}`;
 
-    // Création de l'objet FormData
-    const formData = new FormData();
-    formData.append('audio', {
-      uri: publicURL,
-      type: 'audio/mp3', // Google Cloud Speech-to-Text peut gérer d'autres types, mais il est préférable de convertir à LINEAR16 si nécessaire.
-      name: audioFileName,
-    });
+    const serverUrl = 'https://91.108.112.18:3000/transcript';
+    let formData = new FormData();
 
-    const serverUrl = 'http://91.108.112.18:3000/transcript';
+    if (Platform.OS === 'web') {
+      // Pour les navigateurs web, récupérez le Blob et utilisez-le directement
+      const responseBlob = await fetch(publicURL);
+      const audioBlob = await responseBlob.blob();
+      formData.append('audio', audioBlob, audioFileName);
+    } else {
+      // Sur mobile, utilisez l'URL directement ou ajustez selon votre gestion de fichier sur mobile
+      formData.append('audio', {
+        uri: publicURL,
+        type: 'audio/mp3', // Assurez-vous que le type est correct
+        name: audioFileName,
+      });
+    }
+
     const response = await fetch(serverUrl, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
       body: formData,
     });
 
     if (!response.ok) {
       const errorResponse = await response.text();
-      console.error('Error during transcription:', errorResponse);
       throw new Error(`Server responded with an error: ${errorResponse}`);
     }
 
-    // Traitement de la réponse
     const transcriptionResult = await response.json();
     console.log('Transcription:', transcriptionResult.transcription);
     return transcriptionResult.transcription;
@@ -544,6 +560,8 @@ export const transcribeAudio = async (audioFileName) => {
     return null;
   }
 };
+
+
 
 
 

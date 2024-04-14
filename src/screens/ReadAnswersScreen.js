@@ -9,6 +9,10 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons'; 
 
+
+
+
+
 function ReadQuestionsScreen({ route }) {
   const navigation = useNavigation();
   const session = route.params.session;
@@ -31,6 +35,9 @@ function ReadQuestionsScreen({ route }) {
 
  const [subject, setSubject] = useState([]);
 
+
+
+ 
   useFocusEffect(
     React.useCallback(() => {
       const fetchActiveSubjectId = async () => {
