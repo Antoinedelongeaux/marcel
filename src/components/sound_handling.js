@@ -293,6 +293,17 @@ import { Platform } from 'react-native';
 
 export const save_audio = async (audioFile, name) => {
   try {
+
+// Appel à l'API /test pour vérifier la connectivité
+const testUrl = 'http://91.108.112.18:3000/test';
+
+  const testResponse = await fetch(testUrl);
+  const testResult = await testResponse.json();
+  console.log("Coucou ! ")
+  console.log('Test API Response:', testResult);
+
+
+
     const fileName = `${name}.mp3`; // Nom du fichier avec extension MP3
 
     // Conversion pour la plateforme web
@@ -525,7 +536,7 @@ export const transcribeAudio = async (audioFileName) => {
   try {
     const publicURL = `https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/audio/${audioFileName}`;
 
-    const serverUrl = 'https://91.108.112.18:3000/transcript';
+    const serverUrl = 'http://91.108.112.18:3000/transcript';
     let formData = new FormData();
 
     if (Platform.OS === 'web') {
