@@ -200,6 +200,7 @@ export const transcribeAudio = async (audioFileName) => {
   try {
     const publicURL = "https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/audio/" + audioFileName;
 
+
     // Création de l'objet FormData
     const formData = new FormData();
     formData.append('audio', {
@@ -207,6 +208,11 @@ export const transcribeAudio = async (audioFileName) => {
       type: 'audio/mp3', // Google Cloud Speech-to-Text peut gérer d'autres types, mais il est préférable de convertir à LINEAR16 si nécessaire.
       name: audioFileName,
     });
+
+    const testUrl = 'https://91.108.112.18:3000/test';
+    const testResponse = await fetch(testUrl);
+    const testResult = await testResponse.text();
+    console.log('Test API response:', testResult);
 
     const serverUrl = 'https://91.108.112.18:3000/transcript';
     const response = await fetch(serverUrl, {
@@ -294,13 +300,19 @@ import { Platform } from 'react-native';
 export const save_audio = async (audioFile, name) => {
   try {
 
-// Appel à l'API /test pour vérifier la connectivité
-const testUrl = 'http://91.108.112.18:3000/test';
-
-  const testResponse = await fetch(testUrl);
-  const testResult = await testResponse.json();
-  console.log("Coucou ! ")
-  console.log('Test API Response:', testResult);
+    console.log("Coucou !");
+    console.log("Envoi de la requête à l'API test");
+    const testUrl = 'https://91.108.112.18.cloud:3000/test';
+    try {
+        const testResponse = await fetch(testUrl);
+        console.log("Requête API envoyée");
+        const testResult = await testResponse.text();  // Handle plain text response
+        console.log('Test API Response:', testResult);
+    } catch (error) {
+        console.error('Fetch error:', error);
+    }
+    
+    
 
 
 
@@ -535,8 +547,23 @@ const downloadFileToLocalFileSystem = async (fileUri) => {
 export const transcribeAudio = async (audioFileName) => {
   try {
     const publicURL = `https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/audio/${audioFileName}`;
+  
+  
+  
+    console.log("Coucou !");
+console.log("Envoi de la requête à l'API test");
+const testUrl = 'https://srv495286.hstgr.cloud:3000/test';
+const testResponse = await fetch(testUrl);
+console.log("Requête API envoyée");
 
-    const serverUrl = 'https://91.108.112.18:3000/transcript';
+// Assure-toi d'utiliser la méthode .text() pour extraire le texte de la réponse
+const testResult = await testResponse.text(); // Utilise .text() pour extraire le texte de l'objet Response
+console.log('Test API Response:', testResult);
+
+
+
+
+    const serverUrl = 'https://srv495286.hstgr.cloud/transcript';
     let formData = new FormData();
 
     if (Platform.OS === 'web') {
@@ -557,6 +584,8 @@ export const transcribeAudio = async (audioFileName) => {
       method: 'POST',
       body: formData,
     });
+
+    
 
     if (!response.ok) {
       const errorResponse = await response.text();
