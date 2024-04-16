@@ -536,7 +536,7 @@ export const transcribeAudio = async (audioFileName) => {
   try {
     const publicURL = `https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/audio/${audioFileName}`;
 
-    const serverUrl = 'http://91.108.112.18:3000/transcript';
+    const serverUrl = 'https://91.108.112.18:3000/transcript';
     let formData = new FormData();
 
     if (Platform.OS === 'web') {
