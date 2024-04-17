@@ -302,7 +302,7 @@ export const save_audio = async (audioFile, name) => {
 
     console.log("Coucou !");
     console.log("Envoi de la requête à l'API test");
-    const testUrl = 'https://91.108.112.18.cloud:3000/test';
+    const testUrl = 'https://91.108.112.18:3000/test';
     try {
         const testResponse = await fetch(testUrl);
         console.log("Requête API envoyée");
