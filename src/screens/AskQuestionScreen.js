@@ -7,6 +7,7 @@ import { saveActiveSubjectId, getActiveSubjectId } from '../components/local_sto
 import { useFocusEffect } from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import ArrowLeftIcon from '../../assets/icons/arrow-left-solid.svg';
 
 function AskQuestionScreen({ route }) {
   const navigation = useNavigation();
@@ -95,7 +96,8 @@ function AskQuestionScreen({ route }) {
     <ScrollView contentContainerStyle={styles.contentContainer}>
       <View style={styles.navigationContainer}>
       <TouchableOpacity onPress={() => navigateToScreen('ReadAnswersScreen')} style={styles.navButton}>
-        <FontAwesome name="arrow-left" size={28} color="black" />
+
+      <Text>Retour</Text>
       </TouchableOpacity>
       <Text></Text>
     </View>

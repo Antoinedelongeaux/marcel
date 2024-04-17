@@ -156,7 +156,7 @@ function ReadAnswersScreen({ route }) {
     <FontAwesome name="refresh" size={28} color="black" />
   </TouchableOpacity>
   <TouchableOpacity onPress={() => navigateToScreen('AskQuestionScreen')} style={styles.navButton}>
-    <MaterialIcons name="question-answer" size={28} color="black" />
+    <MaterialIcons name="question-answer" size={28} color="black" />;
   </TouchableOpacity>
 </View>
 
