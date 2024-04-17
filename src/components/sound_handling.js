@@ -551,7 +551,9 @@ export const transcribeAudio = async (audioFileName) => {
   
   
     console.log("Coucou !");
-console.log("Envoi de la requête à l'API test");
+    const testPostUrl = 'https://srv495286.hstgr.cloud:3000/test-post';
+
+
 const testUrl = 'https://srv495286.hstgr.cloud:3000/test';
 const testResponse = await fetch(testUrl);
 console.log("Requête API envoyée");
@@ -580,10 +582,30 @@ console.log('Test API Response:', testResult);
       });
     }
 
+
+     // Envoyer le fichier audio à l'API /test-post et recevoir la taille du fichier
+     const testPostResponse = await fetch(testPostUrl, {
+      method: 'POST',
+      body: formData, // Envoyer le formData contenant le fichier audio
+    });
+
+    if (!testPostResponse.ok) {
+      const errorTestResponse = await testPostResponse.text();
+      console.error(`Error in test-post API call: ${errorTestResponse}`);
+    } else {
+      const testPostResult = await testPostResponse.json(); // Extraction du résultat en format JSON
+      console.log("testPostResponse : ", testPostResult.transcription);
+      return testPostResult.transcription; 
+    }
+
+
+/*
     const response = await fetch(serverUrl, {
       method: 'POST',
       body: formData,
     });
+
+  
 
     
 
@@ -591,10 +613,8 @@ console.log('Test API Response:', testResult);
       const errorResponse = await response.text();
       throw new Error(`Server responded with an error: ${errorResponse}`);
     }
+*/
 
-    const transcriptionResult = await response.json();
-    console.log('Transcription:', transcriptionResult.transcription);
-    return transcriptionResult.transcription;
   } catch (error) {
     console.error('Error in transcribeAudio:', error.message);
     return null;
