@@ -2,13 +2,14 @@ import React from 'react'
 import { supabase } from '../lib/supabase'
 import { useState, useEffect } from 'react'
 import { useNavigation } from '@react-navigation/native';
-import { View, StyleSheet, Button, Text, Alert, Keyboard, TouchableWithoutFeedback, TextInput, TouchableOpacity } from 'react-native'
+import { Image, View, StyleSheet, Button, Text, Alert, Keyboard, TouchableWithoutFeedback, TextInput, TouchableOpacity } from 'react-native'
 import { globalStyles } from '../../global'
 import { listSubjects, joinSubject, getSubjects, get_project, create_project, get_project_contributors,validate_project_contributors, get_project_by_id,getSubjects_pending} from '../components/data_handling';
 import { saveActiveSubjectId, getActiveSubjectId } from '../components/local_storage';
 import { Ionicons } from '@expo/vector-icons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import ArrowLeftIcon from '../../assets/icons/arrow-left-solid.svg';
 
 export default function ProfileScreen({ route }) {
     const session = route.params.session
@@ -270,7 +271,7 @@ export default function ProfileScreen({ route }) {
               onChangeText={(text) => setNewName(text)}
             />
             <TouchableOpacity onPress={async () => {await create_project(newName,session.user.id,"En attente");await fetchSubjects();}} style={styles.icon}>
-              <Ionicons name="add-circle-outline" size={24} color="black" />
+            <Image source={ArrowLeftIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
             </TouchableOpacity>
           </View>
 

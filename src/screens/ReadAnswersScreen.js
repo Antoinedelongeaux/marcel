@@ -213,7 +213,7 @@ const refreshPage = async () => {
       
       <TouchableOpacity onPress={refreshPage} style={styles.navButton}>
     {/* <FontAwesome name="refresh" size={60} color="tomato" /> */}
-    <Image source={refresh} style={{ width: 60, height: 60, opacity: 0.5 }} />
+    <Image source={refresh} style={{ width: 80, height: 80, opacity: 0.9 }} />
   </TouchableOpacity>
   <TouchableOpacity onPress={() => navigateToScreen('ProfileScreen')} style={styles.navButton}>
 

@@ -95,7 +95,8 @@ function AskQuestionScreen({ route }) {
       <View style={styles.navigationContainer}>
       <TouchableOpacity onPress={() => navigateToScreen('ReadAnswersScreen')} style={styles.navButton}>
       <View>
-  <ArrowLeftIcon width="24" height="24" />
+      <Image source={ArrowLeftIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
+
 </View>
       </TouchableOpacity>
       <Text></Text>

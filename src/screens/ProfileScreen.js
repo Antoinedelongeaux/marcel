@@ -1,12 +1,24 @@
 import React from 'react'
 import { supabase } from '../lib/supabase'
 import { useState, useEffect } from 'react'
-import { View, StyleSheet, Button, Text, Alert, Keyboard, TouchableWithoutFeedback, TextInput, TouchableOpacity } from 'react-native'
+import { Image,View, StyleSheet, Button, Text, Alert, Keyboard, TouchableWithoutFeedback, TextInput, TouchableOpacity } from 'react-native'
 import { globalStyles } from '../../global'
 import { listSubjects, joinSubject, getSubjects, get_project } from '../components/data_handling';
 import { saveActiveSubjectId, getActiveSubjectId } from '../components/local_storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+//import ArrowLeftIcon from '../../assets/icons/arrow-left-solid.svg';
+import refresh from '../../assets/icons/refresh_black_24dp.svg';
+import PersonIcon from '../../assets/icons/person.svg';
+import BookIcon from '../../assets/icons/book.svg';
+import HelpIcon from '../../assets/icons/help-circle.svg';
+import trash from '../../assets/icons/baseline_delete_outline_black_24dp.png';
+import SettingsIcon from '../../assets/icons/settings.svg';
+import LinkIcon from '../../assets/icons/link-solid.svg';
+import expand_more from '../../assets/icons/expand_more_black_24dp.svg';
+import expand_less from '../../assets/icons/expand_less_black_24dp.svg';
+import edit from '../../assets/icons/pen-to-square-regular.svg';
+import Svg, { Path } from 'react-native-svg';
 
 export default function ProfileScreen({ route }) {
     const session = route.params.session
@@ -183,23 +195,23 @@ export default function ProfileScreen({ route }) {
 
 
     return (
-<View style={{ flex: 1, backgroundColor: "#E8FFF6" }}>
+        <View style={{ flex: 1, backgroundColor: "#E8FFF6" }}>
 
-            <View style={globalStyles.container}>
-         
-         <View style={globalStyles.navigationContainer}>
+        <View style={globalStyles.navigationContainer}>
+
+
       
       <TouchableOpacity onPress={() => navigateToScreen('ReadAnswersScreen')} style={globalStyles.navButton}>
-    <Ionicons name="book-outline" size={60} color="#0b2d52" />
+      <Image source={BookIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
   </TouchableOpacity>
   <TouchableOpacity onPress={() => navigateToScreen('ProfileScreen')} style={globalStyles.navButton}>
-        <Ionicons name="person" size={60} color="tomato" />
+  <Image source={PersonIcon} style={{ width: 80, height: 80, opacity: 1 }} />
       </TouchableOpacity>
   <TouchableOpacity onPress={() => navigateToScreen('AideScreen')} style={globalStyles.navButton}>
-        <Ionicons name="help-circle-outline" size={60} color="#0b2d52" />
+  <Image source={HelpIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
       </TouchableOpacity>
       <TouchableOpacity onPress={() => navigateToScreen('ManageBiographyScreen')} style={globalStyles.navButton}>
-        <Ionicons name="settings-outline" size={60} color="#0b2d52" />
+      <Image source={SettingsIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
       </TouchableOpacity>
     </View>
 
@@ -253,7 +265,7 @@ export default function ProfileScreen({ route }) {
                     </View>
                
             </View>
-            </View>
+        
         //</TouchableWithoutFeedback>
     )
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
+import { Image, View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import { globalStyles } from '../../global';
 import { getMemories_Question_by_id,getMemories_Question, submitMemories_Answer, deleteMemories_Answer, get_user_name,update_answer_text } from '../components/data_handling'; // Assurez-vous d'implémenter deleteMemories_Answer
 import { record_answer, playRecording_fromAudioFile, delete_audio, startRecording, stopRecording,transcribeAudio } from '../components/sound_handling';
@@ -8,6 +8,20 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { saveActiveSubjectId, getActiveSubjectId } from '../components/local_storage';
 import { useFocusEffect } from '@react-navigation/native';
+import ArrowLeftIcon from '../../assets/icons/arrow-left-solid.svg';
+import refresh from '../../assets/icons/refresh_black_24dp.svg';
+import PersonIcon from '../../assets/icons/person.svg';
+import BookIcon from '../../assets/icons/book.svg';
+import HelpIcon from '../../assets/icons/help-circle.svg';
+import trash from '../../assets/icons/baseline_delete_outline_black_24dp.png';
+import SettingsIcon from '../../assets/icons/settings.svg';
+import LinkIcon from '../../assets/icons/link-solid.svg';
+import expand_more from '../../assets/icons/expand_more_black_24dp.svg';
+import expand_less from '../../assets/icons/expand_less_black_24dp.svg';
+import edit from '../../assets/icons/pen-to-square-regular.svg';
+import MicroIcon from '../../assets/icons/microphone-lines-solid.svg';
+
+import Svg, { Path } from 'react-native-svg';
 
 
 function ReadAnswersScreen({ route }) {
@@ -150,14 +164,12 @@ function ReadAnswersScreen({ route }) {
 
 <View style={styles.navigationContainer}>
   <TouchableOpacity onPress={() => navigateToScreen('ReadAnswersScreen')} style={styles.navButton}>
-    <FontAwesome name="arrow-left" size={28} color="black" />
+  <Image source={ArrowLeftIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
   </TouchableOpacity>
   <TouchableOpacity onPress={refreshAnswers} style={styles.navButton}>
-    <FontAwesome name="refresh" size={28} color="black" />
+  <Image source={refresh} style={{ width: 60, height: 60, opacity: 0.5 }} />
   </TouchableOpacity>
-  <TouchableOpacity onPress={() => navigateToScreen('AskQuestionScreen')} style={styles.navButton}>
-    <MaterialIcons name="question-answer" size={28} color="black" />;
-  </TouchableOpacity>
+
 </View>
 
       
@@ -194,18 +206,22 @@ function ReadAnswersScreen({ route }) {
 
         */}
 <View style={{ paddingVertical: 20 }}>
-  <TouchableOpacity
-    style={[
-      globalStyles.globalButton,
-      isRecording ? styles.recordingButton : {}, 
-      { marginTop: 10, marginBottom: 10 }, 
-    ]}
-    onPress={handleRecording}>
+<TouchableOpacity
+  style={[
+    globalStyles.globalButton,
+    isRecording ? styles.recordingButton : {},
+    { marginTop: 10, marginBottom: 10, backgroundColor: isRecording ? "red" : '#b1b3b5' },  // Corrected the color assignment here
+  ]}
+  onPress={handleRecording}
+>
+  <View style={{ flexDirection: 'row', alignItems: 'center' }}>  
+    <Image source={MicroIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
     <Text style={globalStyles.globalButtonText}>
-      <MaterialIcons name="mic" size={36} color={isRecording ? "red" : "black"} />
-      <Text> {isRecording ? "Arrêter l'enregistrement" : "Répondre"} </Text>
+      {isRecording ? "   Arrêter l'enregistrement" : "   Répondre"}
     </Text>
-  </TouchableOpacity>
+  </View>
+</TouchableOpacity>
+
 
 
 
