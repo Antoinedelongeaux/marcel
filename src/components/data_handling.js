@@ -158,10 +158,10 @@ export async function getMemories_Question_by_id(id_question,setQuestion, setAns
 
 export async function getMemories_Questions(subject_active, setQuestions, tags, personal) {
   try {
-
+    console.log("tags :",tags)
     setQuestions([])
     const orCondition = tags.length > 0 ? tags.map(tag => `tags.cs.{"${tag}"}`).join(',') : 'true';
-
+    
     // Préparer la requête de base pour récupérer les questions
     let query = supabase
       .from('Memoires_questions')
@@ -556,6 +556,7 @@ export async function get_user_name(id_user) {
 export async function update_answer_text(id_answer,answer) {
   try {
 
+    console.log("id_answer,answer",id_answer,answer)
 
     const { data, error: errorUpdating } = await supabase
       .from('Memoires_answers')

@@ -14,7 +14,7 @@ import PersonIcon from '../../assets/icons/person.svg';
 import help from '../../assets/icons/help-circle.svg';
 import trash from '../../assets/icons/baseline_delete_outline_black_24dp.png';
 import settings from '../../assets/icons/settings.svg';
-import LinkIcon from '../../assets/icons/link-solid.svg';
+import LinkIcon from '../../assets/icons/link.png';
 import expand_more from '../../assets/icons/expand_more_black_24dp.svg';
 import expand_less from '../../assets/icons/expand_less_black_24dp.svg';
 import edit from '../../assets/icons/pen-to-square-regular.svg';
@@ -30,7 +30,7 @@ function ReadQuestionsScreen({ route }) {
   const [questions, setQuestions] = useState([]);
   const [subject_active, setSubject_active] = useState(null);
   // Assurez-vous que "posée par un proche" est un choix possible dès le départ si nécessaire
-  const [tags, setTags] = useState(["Famille", "Vie professionnelle", "Vie personnelle", "Hobbies & passions", "Valeurs", "Voyages", "Autre"]);
+  const [tags, setTags] = useState(["Famille", "Vie professionnelle", "Vie personnelle", "Hobbies & passions", "Valeurs", "Voyages", "Autre",""]);
   const allTags = ["Famille", "Vie professionnelle", "Vie personnelle", "Hobbies & passions", "Valeurs", "Voyages", "Autre"];
   const [personal, setPersonal] = useState(false);
   const [activeQuestionAnswers, setActiveQuestionAnswers] = useState({});
@@ -43,6 +43,9 @@ function ReadQuestionsScreen({ route }) {
  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
  const [editChapterId, setEditChapterId] = useState(null);
  const [editChapterTitle, setEditChapterTitle] = useState('');
+ const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+const [deletionDetails, setDeletionDetails] = useState({ id: null, isChapter: true });
+
 
  const [subject, setSubject] = useState([]);
 
@@ -162,31 +165,10 @@ const toggleAnswersDisplay = async (questionId) => {
 
 
 const confirmDeletion = (id, isChapter = true) => {
-  Alert.alert(
-    "Confirmation de suppression",
-    `Êtes-vous sûr de vouloir supprimer ce ${isChapter ? 'chapitre' : 'question'}? Cette action est irréversible.`,
-    [
-      {
-        text: "Annuler",
-        style: "cancel"
-      },
-      {
-        text: "Supprimer",
-        onPress: () => {
-          if (isChapter) {
-            delete_chapter(id);
-            get_chapters(subject_active, setChapters);
-          } else {
-            delete_question(id);
-            getMemories_Questions(subject_active, setQuestions, tags, personal);
-          }
-          Alert.alert("Suppression", `Le ${isChapter ? 'chapitre' : 'question'} a été supprimé.`);
-        },
-        style: "destructive"
-      }
-    ]
-  );
+  setDeletionDetails({ id: id, isChapter: isChapter });
+  setDeleteModalVisible(true);
 };
+
 
 const refreshPage = async () => {
   if (subject_active != null) {
@@ -293,9 +275,7 @@ const refreshPage = async () => {
     {question.answers_count} réponses
   </Text>
   <TouchableOpacity onPress={() => handleAssociateQuestion(question.id)} style={styles.associateButton}>
-  <View>
-
-</View>
+  <Image source={LinkIcon} style={{ width: 18, height: 18, opacity: 0.5 }} />
   </TouchableOpacity>
   <TouchableOpacity
   onPress={() => confirmDeletion(question.id, false)} // false pour spécifier qu'il s'agit d'une question
@@ -317,15 +297,7 @@ const refreshPage = async () => {
     </TouchableOpacity>
                {activeQuestionAnswers[question.id] && activeQuestionAnswers[question.id].map((answer, answerIndex) => (
                  <View key={answerIndex} style={styles.answerContainer}>
-                   <Text style={styles.answerDateText}>
-              Répondu le : {new Date(answer.created_at).toLocaleDateString('fr-FR', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-              })}
-            </Text>
+          
             <Text style={styles.answerText}>{answer.answer}</Text>
             {answerIndex < activeQuestionAnswers[question.id]?.length - 1 && (
               <View style={styles.separator} />
@@ -484,6 +456,44 @@ const refreshPage = async () => {
         onPress={() => {
           setIsEditModalVisible(false);
           setEditChapterTitle('');
+        }}
+      >
+        <Text style={globalStyles.globalButtonText}>Annuler</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</Modal>
+
+<Modal
+  animationType="slide"
+  transparent={true}
+  visible={deleteModalVisible}
+  onRequestClose={() => {
+    setDeleteModalVisible(!deleteModalVisible);
+  }}
+>
+  <View style={styles.centeredView}>
+    <View style={styles.modalView}>
+      <Text style={styles.modalText}>Êtes-vous sûr de vouloir supprimer ce {deletionDetails.isChapter ? 'chapitre' : 'question'}? Cette action est irréversible.</Text>
+      <TouchableOpacity
+        style={[globalStyles.globalButton_wide]}
+        onPress={() => {
+          if (deletionDetails.isChapter) {
+            delete_chapter(deletionDetails.id);
+            get_chapters(subject_active, setChapters);
+          } else {
+            delete_question(deletionDetails.id);
+            getMemories_Questions(subject_active, setQuestions, tags, personal);
+          }
+          setDeleteModalVisible(false);
+        }}
+      >
+        <Text style={globalStyles.globalButtonText}>Supprimer</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[globalStyles.globalButton_wide]}
+        onPress={() => {
+          setDeleteModalVisible(false);
         }}
       >
         <Text style={globalStyles.globalButtonText}>Annuler</Text>

@@ -10,6 +10,10 @@ import { Ionicons } from '@expo/vector-icons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import ArrowLeftIcon from '../../assets/icons/arrow-left-solid.svg';
+import SearchIcon from '../../assets/icons/search_black_24dp.svg';
+import AddIcon from '../../assets/icons/add_circle_black_24dp.svg';
+
+
 
 export default function ProfileScreen({ route }) {
     const session = route.params.session
@@ -44,6 +48,7 @@ export default function ProfileScreen({ route }) {
         if (session) {
             getProfile();
             try {
+                console.log("session.user",session.user)
                 const temp = await getSubjects(session.user.id);
                 const temp_bis = await getSubjects_pending(session.user.id);
                 setSubjects_active(temp);
@@ -51,6 +56,7 @@ export default function ProfileScreen({ route }) {
 
 
                 // Si vous souhaitez également rafraîchir la liste des sujets disponibles à rejoindre
+                console.log("session.user_bis",session.user)
                 const temp2 = await listSubjects(session.user.id);
                 setSubjects(temp2);
 
@@ -59,7 +65,7 @@ export default function ProfileScreen({ route }) {
                 console.error("Error fetching subjects:", error);
             }
         }
-        console.log("Coucou !")
+  
     }
 
     useEffect(() => {
@@ -68,7 +74,8 @@ export default function ProfileScreen({ route }) {
     }, [session]);
 
     useEffect(() => {
-        console.log(subject_active.id)
+        console.log("subject_active")
+        console.log(subject_active)
         saveActiveSubjectId(String(subject_active.id));
 
     }, [subject_active]);
@@ -106,6 +113,8 @@ export default function ProfileScreen({ route }) {
     const fetchContributors = async () => {
       if(subject_active) {
           try {
+            console.log("subject_active_bis")
+            console.log(subject_active)
               const result = await get_project_contributors(subject_active.id);
               if(result.error) {
                   throw result.error;
@@ -136,6 +145,8 @@ export default function ProfileScreen({ route }) {
     }
 
     try {
+        console.log("subject_active_ter")
+        console.log(subject_active)
         await validate_project_contributors(subject_active.id, contributor.id_user, newAuthorization);
         // Après la validation, rafraîchir la liste des contributeurs pour afficher la mise à jour
         await fetchContributors();
@@ -144,6 +155,33 @@ export default function ProfileScreen({ route }) {
         Alert.alert("Erreur", "Impossible de mettre à jour l'autorisation du contributeur.");
     }
 };
+
+const handleCreateProject = () => {
+    if (!newName.trim()) {
+        Alert.alert("Validation Error", "Please enter a valid project name.");
+        return;
+    }
+    setLoading(true);
+
+    create_project(newName, session.user.id)
+        .then(creationResult => {
+            if (creationResult.success) {
+                return fetchSubjects();  // Continuer avec la récupération des sujets si la création est réussie
+            } else {
+                throw new Error(creationResult.error.message); // Lancer une erreur si la création a échoué
+            }
+        })
+        .then(() => {
+            setNewName(''); // Réinitialiser le nom du projet après le rafraîchissement des sujets
+        })
+        .catch(error => {
+            Alert.alert("Failed to create project", error.message || "An unknown error occurred."); // Gérer les erreurs de création ou de récupération des sujets
+        })
+        .finally(() => {
+            setLoading(false); // Arrêter l'indicateur de chargement peu importe le résultat
+        });
+};
+
 
 
 
@@ -165,8 +203,10 @@ export default function ProfileScreen({ route }) {
             if (data) {
                 setUsername(data.username)
                 setFull_name(data.full_name)
+                if(data.active_biography != null){
                 const temp = await get_project_by_id(data.active_biography)
                 setSubject_active(temp)
+            }
             }
         } catch (error) {
             if (error instanceof Error) {
@@ -188,7 +228,7 @@ export default function ProfileScreen({ route }) {
             <View style={globalStyles.container}>
 <View style={styles.navigationContainer}>
       <TouchableOpacity onPress={() => navigateToScreen('ReadAnswersScreen')} style={styles.navButton}>
-        <FontAwesome name="arrow-left" size={28} color="black" />
+      <Image source={ArrowLeftIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
       </TouchableOpacity>
       
     </View>
@@ -196,7 +236,7 @@ export default function ProfileScreen({ route }) {
                             <>
                                 <Text style={globalStyles.title}>Biographies auxquelles vous contribuez</Text>
                                 {subjects_active.map((subject) => (
-                                    <TouchableOpacity key={subject.content_subject.id} style={[globalStyles.globalButton_tag, subject_active.id === subject.content_subject.id ? styles.SelectedTag : styles.unSelectedTag]} onPress={() => handleJoinSubject(subject.content_subject.id)}>
+                                    <TouchableOpacity key={subject.content_subject.id} style={[globalStyles.globalButton_tag, subject_active === subject.content_subject.id ? styles.SelectedTag : styles.unSelectedTag]} onPress={() => handleJoinSubject(subject.content_subject.id)}>
                                         <Text style={[globalStyles.buttonText, subject_active.id === subject.content_subject.id ? globalStyles.globalButtonText_active : globalStyles.globalButtonText]}>
                                             {subject.content_subject.title} {subject_active.id === subject.content_subject.id ? "(actif)" : ""}
                                         </Text>
@@ -237,7 +277,7 @@ export default function ProfileScreen({ route }) {
               onChangeText={(text) => setSearchName(text)}
             />
             <TouchableOpacity onPress={() => get_project(searchName, setLoading, setSearchResults)} style={styles.icon}>
-              <MaterialIcons name="search" size={24} color="black" />
+            <Image source={SearchIcon} style={{ width: 24, height: 24, opacity: 0.5 }} />
             </TouchableOpacity>
           </View>
 
@@ -270,8 +310,8 @@ export default function ProfileScreen({ route }) {
               value={newName}
               onChangeText={(text) => setNewName(text)}
             />
-            <TouchableOpacity onPress={async () => {await create_project(newName,session.user.id,"En attente");await fetchSubjects();}} style={styles.icon}>
-            <Image source={ArrowLeftIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
+            <TouchableOpacity onPress={handleCreateProject} style={styles.icon}>
+            <Image source={AddIcon} style={{ width: 26, height: 26, opacity: 0.5 }} />
             </TouchableOpacity>
           </View>
 
