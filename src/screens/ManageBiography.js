@@ -12,6 +12,17 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import ArrowLeftIcon from '../../assets/icons/arrow-left-solid.svg';
 import SearchIcon from '../../assets/icons/search_black_24dp.svg';
 import AddIcon from '../../assets/icons/add_circle_black_24dp.svg';
+import refresh from '../../assets/icons/refresh_black_24dp.svg';
+import PersonIcon from '../../assets/icons/person.svg';
+import help from '../../assets/icons/help-circle.svg';
+import trash from '../../assets/icons/baseline_delete_outline_black_24dp.png';
+import settings from '../../assets/icons/settings.svg';
+import LinkIcon from '../../assets/icons/link.png';
+import expand_more from '../../assets/icons/expand_more_black_24dp.svg';
+import expand_less from '../../assets/icons/expand_less_black_24dp.svg';
+import edit from '../../assets/icons/pen-to-square-regular.svg';
+import Svg, { Path } from 'react-native-svg';
+
 
 
 
@@ -226,12 +237,25 @@ const handleCreateProject = () => {
 
 <View style={{ flex: 1, backgroundColor: "#E8FFF6" }}>
             <View style={globalStyles.container}>
-<View style={styles.navigationContainer}>
-      <TouchableOpacity onPress={() => navigateToScreen('ReadAnswersScreen')} style={styles.navButton}>
+            <View style={globalStyles.navigationContainer}>
+      
+            <TouchableOpacity onPress={() => navigateToScreen('ReadAnswersScreen')} style={styles.navButton}>
       <Image source={ArrowLeftIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
       </TouchableOpacity>
-      
+  <TouchableOpacity onPress={() => navigateToScreen('ProfileScreen')} style={styles.navButton}>
+
+  <Image source={PersonIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
+
+      </TouchableOpacity>
+  <TouchableOpacity onPress={() => navigateToScreen('AideScreen')} style={styles.navButton}>
+  <Image source={help} style={{ width: 60, height: 60, opacity: 0.5 }} />
+      </TouchableOpacity>
+      <TouchableOpacity onPress={() => navigateToScreen('ManageBiographyScreen')} style={styles.navButton}>
+      <Image source={settings} style={{ width: 80, height: 80, opacity: 1 }} />
+      </TouchableOpacity>
     </View>
+
+
                         {subjects_active.length > 0 ? (
                             <>
                                 <Text style={globalStyles.title}>Biographies auxquelles vous contribuez</Text>
