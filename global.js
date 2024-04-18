@@ -192,5 +192,11 @@ title_chapter: {
     padding: 10,
   },
 
+  iconStyle : {
+    width: 60, // La largeur de l'icône
+    height: 60, // La hauteur de l'icône
+    color:"#0b2d52",
+}
+
  
 })

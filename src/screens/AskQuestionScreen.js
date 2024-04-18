@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import {  Image,View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { globalStyles } from '../../global'; // Assurez-vous que le chemin est correct
 import { getMemories_Question,save_question,getMemories_Questions_by_tags } from '../components/data_handling';
 import { saveActiveSubjectId, getActiveSubjectId } from '../components/local_storage';
 import { useFocusEffect } from '@react-navigation/native';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import ArrowLeftIcon from '../../assets/icons/arrow-left-solid.svg';
 
 function AskQuestionScreen({ route }) {
@@ -96,8 +94,9 @@ function AskQuestionScreen({ route }) {
     <ScrollView contentContainerStyle={styles.contentContainer}>
       <View style={styles.navigationContainer}>
       <TouchableOpacity onPress={() => navigateToScreen('ReadAnswersScreen')} style={styles.navButton}>
-
-      <Text>Retour</Text>
+      <View>
+  <ArrowLeftIcon width="24" height="24" />
+</View>
       </TouchableOpacity>
       <Text></Text>
     </View>
