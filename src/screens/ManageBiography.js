@@ -22,6 +22,7 @@ import expand_more from '../../assets/icons/expand_more_black_24dp.svg';
 import expand_less from '../../assets/icons/expand_less_black_24dp.svg';
 import edit from '../../assets/icons/pen-to-square-regular.svg';
 import Svg, { Path } from 'react-native-svg';
+import BookIcon from '../../assets/icons/book.svg';
 
 
 
@@ -46,6 +47,7 @@ export default function ProfileScreen({ route }) {
     const [searchResults, setSearchResults] = useState([]);
     const [contributors, setContributors] = useState([]);
     const [showContributors, setShowContributors] = useState(false);
+    const [showChangeProject, setShowChangeProject] = useState(false);
 
 
 
@@ -240,7 +242,7 @@ const handleCreateProject = () => {
             <View style={globalStyles.navigationContainer}>
       
             <TouchableOpacity onPress={() => navigateToScreen('ReadAnswersScreen')} style={styles.navButton}>
-      <Image source={ArrowLeftIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
+      <Image source={BookIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
       </TouchableOpacity>
   <TouchableOpacity onPress={() => navigateToScreen('ProfileScreen')} style={styles.navButton}>
 
@@ -256,101 +258,36 @@ const handleCreateProject = () => {
     </View>
 
 
-                        {subjects_active.length > 0 ? (
-                            <>
-                                <Text style={globalStyles.title}>Biographies auxquelles vous contribuez</Text>
-                                {subjects_active.map((subject) => (
-                                    <TouchableOpacity key={subject.content_subject.id} style={[globalStyles.globalButton_tag, subject_active === subject.content_subject.id ? styles.SelectedTag : styles.unSelectedTag]} onPress={() => handleJoinSubject(subject.content_subject.id)}>
-                                        <Text style={[globalStyles.buttonText, subject_active.id === subject.content_subject.id ? globalStyles.globalButtonText_active : globalStyles.globalButtonText]}>
-                                            {subject.content_subject.title} {subject_active.id === subject.content_subject.id ? "(actif)" : ""}
-                                        </Text>
-                                    </TouchableOpacity>
-                                ))}
-                                {subjects_pending.map((subject) => (
-                                    <TouchableOpacity key={subject.content_subject.id} style={[globalStyles.globalButton_tag, subject_active.id === subject.content_subject.id ? styles.SelectedTag : styles.unSelectedTag]}>
-                                        <Text style={[globalStyles.buttonText, subject_active.id === subject.content_subject.id ? globalStyles.globalButtonText_active : globalStyles.globalButtonText]}>
-                                            {subject.content_subject.title} - accès en attente de validation
-                                        </Text>
-                                    </TouchableOpacity>
-                                ))}
-                            </>
-                        ) : (
-                            <Text>Vous ne contribuez à aucune biographie actuellement.</Text>
-                        )}
-
-                        <Text></Text>
-                        <Text></Text>
-                        <Text></Text>
-                        <Text></Text>
-                        <Text></Text>
 
 
-                        <Text style={globalStyles.title}>Vous souhaitez contribuer à une autre projet ? </Text>
-                        <TouchableOpacity style={showProjects ? globalStyles.globalButton : globalStyles.globalButton_active} onPress={() => setShowProjects(!showProjects)}>
-                            <Text style={globalStyles.globalButtonText}>{showProjects ? "Masquer les projets" : "Rejoindre un nouveau projet biographique"}</Text>
-                        </TouchableOpacity>
+                     
+                                <Text style={globalStyles.title}>Vous travaillez actuellement sur le projet : {subject_active && ` ${subject_active.title}`}</Text>
 
-                        {showProjects && (
-  <>
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 10 }}>
 
-<View style={styles.searchContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="Rechercher un projet"
-              value={searchName}
-              onChangeText={(text) => setSearchName(text)}
-            />
-            <TouchableOpacity onPress={() => get_project(searchName, setLoading, setSearchResults)} style={styles.icon}>
-            <Image source={SearchIcon} style={{ width: 24, height: 24, opacity: 0.5 }} />
-            </TouchableOpacity>
-          </View>
-
-    {searchResults.map((result) => (
-      <TouchableOpacity
-        key={result.id}
-        style={[globalStyles.globalButton_tag, styles.unSelectedTag]}
-        onPress={async () => {
-          await joinSubject(result.id,session.user.id);
-          fetchSubjects();
-        }}
-      >
-        <Text style={globalStyles.globalButtonText_tag}>{result.title}</Text>
-      </TouchableOpacity>
-    ))}
-  </>
-)}
-
-        
-<TouchableOpacity style={showNewProject? globalStyles.globalButton : globalStyles.globalButton_active} onPress={() => setShowNewProject(!showNewProject)}>
-                            <Text style={globalStyles.globalButtonText}>{showNewProject ? "Abandonner la création" : "Créer un nouveau projet"}</Text>
-                        </TouchableOpacity>
-                        {showNewProject && (
-  <>
-
-<View style={styles.searchContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="Nom du nouveau projet"
-              value={newName}
-              onChangeText={(text) => setNewName(text)}
-            />
-            <TouchableOpacity onPress={handleCreateProject} style={styles.icon}>
-            <Image source={AddIcon} style={{ width: 26, height: 26, opacity: 0.5 }} />
-            </TouchableOpacity>
-          </View>
-
-    
-  </>
-)}
 <TouchableOpacity
-    style={showContributors ? globalStyles.globalButton : globalStyles.globalButton_active}
+    style={showContributors ?  globalStyles.globalButton_active : globalStyles.globalButton_narrow}
     onPress={() => {
+        setShowChangeProject(false);
         setShowContributors(!showContributors);
         fetchContributors();
     }}
 >
-    <Text style={globalStyles.globalButtonText}>Gestion des accès au projet {subject_active && `: ${subject_active.title}`}</Text>
+    <Text style={globalStyles.globalButtonText}>Gérer les droits d'accès au projet </Text>
 </TouchableOpacity>
+
+<TouchableOpacity
+    style={showChangeProject ? globalStyles.globalButton_active : globalStyles.globalButton_narrow}
+    onPress={() => {
+        setShowContributors(false);
+        setShowChangeProject(!showChangeProject);
+   
+    }}
+>
+    <Text style={globalStyles.globalButtonText}>Changer le projet </Text>
+</TouchableOpacity>
+</View>
+
 
 {showContributors && (
     <View>
@@ -368,6 +305,126 @@ const handleCreateProject = () => {
         )}
     </View>
 )}
+
+
+
+{showChangeProject && (
+
+<> 
+{subjects_active.length > 0 ? (
+                            <>
+
+
+                                <Text style={globalStyles.title}>Projets auxquels vous contribuez</Text>
+                                {subjects_active.map((subject) => (
+    <TouchableOpacity key={subject.content_subject.id} 
+        style={[globalStyles.globalButton_tag, subject_active === subject.content_subject.id ? styles.SelectedTag : styles.unSelectedTag]} 
+        onPress={() => handleJoinSubject(subject.content_subject.id)}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'transparent' }}>
+           
+            <Text style={[
+                globalStyles.buttonText, 
+                subject_active.id === subject.content_subject.id ? globalStyles.globalButtonText_active : globalStyles.globalButtonText, 
+                { color: 'black' }]}>
+
+                {subject.content_subject.title} {subject_active.id === subject.content_subject.id ? "(actif)" : ""}
+            </Text>
+        </View>
+    </TouchableOpacity>
+))}
+
+            
+{subjects_pending.map((subject) => (
+    <TouchableOpacity 
+        key={subject.content_subject.id} 
+        style={[
+            globalStyles.globalButton_tag, 
+            subject_active.id === subject.content_subject.id ? styles.SelectedTag : styles.unSelectedTag
+        ]}>
+        <Text style={[
+            globalStyles.buttonText, 
+            subject_active.id === subject.content_subject.id ? globalStyles.globalButtonText_active : globalStyles.globalButtonText,
+            { color: 'black' }]}>
+            {subject.content_subject.title} - accès en attente de validation
+        </Text>
+    </TouchableOpacity>
+))}
+
+ </>
+                        ) : (
+                            <Text>Vous ne contribuez à aucune biographie actuellement.</Text>
+                        )}
+                                
+                        <Text style={globalStyles.title}>Vous souhaitez contribuer à une autre projet ? </Text>
+
+<View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 10 }}>
+<TouchableOpacity style={showProjects ? globalStyles.globalButton_narrow : globalStyles.globalButton_active} onPress={() => {setShowProjects(!showProjects),setShowNewProjects(false)}}>
+    <Text style={globalStyles.globalButtonText}>{showProjects ? "Masquer les projets" : "Rejoindre un projet existant"}</Text>
+</TouchableOpacity>
+<TouchableOpacity style={showNewProject? globalStyles.globalButton_narrow : globalStyles.globalButton_active} onPress={() => {setShowNewProject(!showNewProject),setShowProjects(false)}}>
+    <Text style={globalStyles.globalButtonText}>{showNewProject ? "Abandonner la création" : "Créer un nouveau projet"}</Text>
+</TouchableOpacity>
+</View>
+{showProjects && (
+<>
+
+<View style={styles.searchContainer}>
+<TextInput
+style={styles.input}
+placeholder="Rechercher un projet"
+value={searchName}
+onChangeText={(text) => setSearchName(text)}
+/>
+<TouchableOpacity onPress={() => get_project(searchName, setLoading, setSearchResults)} style={styles.icon}>
+<Image source={SearchIcon} style={{ width: 24, height: 24, opacity: 0.5 }} />
+</TouchableOpacity>
+</View>
+
+{searchResults.map((result) => (
+<TouchableOpacity
+key={result.id}
+style={[globalStyles.globalButton_tag, styles.unSelectedTag]}
+onPress={async () => {
+await joinSubject(result.id,session.user.id);
+fetchSubjects();
+}}
+>
+<Text style={globalStyles.globalButtonText_tag}>{result.title}</Text>
+</TouchableOpacity>
+))}
+</>
+)}
+
+
+
+{showNewProject && (
+<>
+
+<View style={styles.searchContainer}>
+<TextInput
+style={styles.input}
+placeholder="Nom du nouveau projet"
+value={newName}
+onChangeText={(text) => setNewName(text)}
+/>
+<TouchableOpacity onPress={handleCreateProject} style={styles.icon}>
+<Image source={AddIcon} style={{ width: 26, height: 26, opacity: 0.5 }} />
+</TouchableOpacity>
+</View>
+
+
+</>
+)}
+
+</>)}
+
+                            
+
+                      
+
+
+
+
 
 
 
@@ -418,24 +475,21 @@ const styles = StyleSheet.create({
         marginLeft: 10,
       },
       unSelectedTag: {
-        backgroundColor: '#b1b3b5', // Couleur de fond plus douce pour les tags non sélectionnés
+        backgroundColor: 'transparent', // Couleur de fond plus douce pour les tags non sélectionnés
         marginVertical: 5, // Ajoute un peu d'espace verticalement autour de chaque tag
         borderRadius: 5, // Bords arrondis pour les tags
         borderWidth: 0.5, // Légère bordure pour définir les tags
-        borderColor: '#d0d0d0', // Couleur de la bordure
+        borderColor: 'transparent', // Couleur de la bordure
         padding: 10, // Espace intérieur pour rendre le tag plus grand
     },
     SelectedTag: {
-        backgroundColor: '#0b2d52',// Couleur de fond plus douce pour les tags non sélectionnés
+        backgroundColor: 'transparent',// Couleur de fond plus douce pour les tags non sélectionnés
         marginVertical: 5, // Ajoute un peu d'espace verticalement autour de chaque tag
         borderRadius: 5, // Bords arrondis pour les tags
         borderWidth: 0.5, // Légère bordure pour définir les tags
-        borderColor: '#d0d0d0', // Couleur de la bordure
+        borderColor: 'transparent', // Couleur de la bordure
         padding: 10, // Espace intérieur pour rendre le tag plus grand
-        shadowColor: '#000', // Ombre pour iOS
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
+
     },
     
 

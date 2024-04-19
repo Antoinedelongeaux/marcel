@@ -66,7 +66,7 @@ export const globalStyles = StyleSheet.create({
     shadowRadius: 3.84,
   },
   globalButton_active: {
-    width: '90%', // Adaptation de la largeur
+    width: '45%', // Adaptation de la largeur
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#0b2d52', // Couleur du fond
