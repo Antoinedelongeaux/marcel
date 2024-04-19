@@ -167,6 +167,7 @@ const toggleAnswersDisplay = async (questionId) => {
 const confirmDeletion = (id, isChapter = true) => {
   setDeletionDetails({ id: id, isChapter: isChapter });
   setDeleteModalVisible(true);
+  
 };
 
 
@@ -215,7 +216,7 @@ const refreshPage = async () => {
       
 
       <View style={styles.questionsContainer}>
-      {questions?.length > 0 ? 
+     
        <>
   
        {[{ id: null, title: "Non classé" }, ...chapters].map((chapter) => (
@@ -321,7 +322,7 @@ const refreshPage = async () => {
        ))}
      </>
       
-      : <Text>Aucune question trouvée.</Text>}
+      
 
       </View>
       
@@ -408,7 +409,8 @@ const refreshPage = async () => {
           create_chapter(newChapterTitle, subject_active);
           setIsModalVisible(!isModalVisible);
           setNewChapterTitle(''); 
-          get_chapters(subject_active, setChapters);
+          //get_chapters(subject_active, setChapters);
+          refreshPage()
         }}
       >
         <Text style={globalStyles.globalButtonText}>Créer</Text>
@@ -480,10 +482,10 @@ const refreshPage = async () => {
         onPress={() => {
           if (deletionDetails.isChapter) {
             delete_chapter(deletionDetails.id);
-            get_chapters(subject_active, setChapters);
+            refreshPage()
           } else {
             delete_question(deletionDetails.id);
-            getMemories_Questions(subject_active, setQuestions, tags, personal);
+            refreshPage()
           }
           setDeleteModalVisible(false);
         }}

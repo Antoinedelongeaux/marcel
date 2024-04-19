@@ -279,32 +279,37 @@ const handleCreateProject = () => {
             </Modal>
 
                      
-                                <Text style={globalStyles.title}>Vous travaillez actuellement sur le projet : {subject_active && ` ${subject_active.title}`}</Text>
+            <Text style={globalStyles.title}>
+  {subject_active && subject_active.title ? `Vous travaillez actuellement sur le projet : ${subject_active.title}` : "Veuillez sélectionner un projet afin de pouvoir y contribuer activement."}
+</Text>
 
-                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 10 }}>
 
-<TouchableOpacity
-    style={showContributors ?  globalStyles.globalButton_active : globalStyles.globalButton_narrow}
-    onPress={() => {
-        setShowChangeProject(false);
-        setShowContributors(!showContributors);
-        fetchContributors();
-    }}
->
-    <Text style={globalStyles.globalButtonText}>Gérer les droits d'accès au projet </Text>
-</TouchableOpacity>
+<View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 10 }}>
+
+{subject_active && subject_active.title && (
+    <TouchableOpacity
+        style={showContributors ?  globalStyles.globalButton_active : globalStyles.globalButton_narrow}
+        onPress={() => {
+            setShowChangeProject(false);
+            setShowContributors(!showContributors);
+            fetchContributors();
+        }}
+    >
+        <Text style={globalStyles.globalButtonText}>Gérer les droits d'accès au projet </Text>
+    </TouchableOpacity>
+)}
 
 <TouchableOpacity
     style={showChangeProject ? globalStyles.globalButton_active : globalStyles.globalButton_narrow}
     onPress={() => {
         setShowContributors(false);
         setShowChangeProject(!showChangeProject);
-   
     }}
 >
-    <Text style={globalStyles.globalButtonText}>Changer le projet </Text>
+    <Text style={globalStyles.globalButtonText}>{subject_active && subject_active.title ? "Changer le projet" : "Sélectionner un projet"} </Text>
 </TouchableOpacity>
 </View>
+
 
 
 {showContributors && (
