@@ -265,6 +265,7 @@ function ReadAnswersScreen({ route }) {
         value={editingText}
         onChangeText={setEditingText}
         multiline={true}
+        numberOfLines={10}
       />
     ) : (
       <Text style={styles.answerText}>{ans.answer}</Text>
