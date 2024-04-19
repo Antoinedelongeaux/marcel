@@ -2,7 +2,7 @@ import React from 'react'
 import { supabase } from '../lib/supabase'
 import { useState, useEffect } from 'react'
 import { useNavigation } from '@react-navigation/native';
-import { Image, View, StyleSheet, Button, Text, Alert, Keyboard, TouchableWithoutFeedback, TextInput, TouchableOpacity } from 'react-native'
+import { Modal, Image, View, StyleSheet, Button, Text, Alert, Keyboard, TouchableWithoutFeedback, TextInput, TouchableOpacity } from 'react-native'
 import { globalStyles } from '../../global'
 import { listSubjects, joinSubject, getSubjects, get_project, create_project, get_project_contributors,validate_project_contributors, get_project_by_id,getSubjects_pending} from '../components/data_handling';
 import { saveActiveSubjectId, getActiveSubjectId } from '../components/local_storage';
@@ -48,6 +48,7 @@ export default function ProfileScreen({ route }) {
     const [contributors, setContributors] = useState([]);
     const [showContributors, setShowContributors] = useState(false);
     const [showChangeProject, setShowChangeProject] = useState(false);
+    const [showModal, setShowModal] = useState(false); 
 
 
 
@@ -178,14 +179,10 @@ const handleCreateProject = () => {
 
     create_project(newName, session.user.id)
         .then(creationResult => {
-            if (creationResult.success) {
+            
+                setShowModal(true);  // Afficher la modal
                 return fetchSubjects();  // Continuer avec la récupération des sujets si la création est réussie
-            } else {
-                throw new Error(creationResult.error.message); // Lancer une erreur si la création a échoué
-            }
-        })
-        .then(() => {
-            setNewName(''); // Réinitialiser le nom du projet après le rafraîchissement des sujets
+       
         })
         .catch(error => {
             Alert.alert("Failed to create project", error.message || "An unknown error occurred."); // Gérer les erreurs de création ou de récupération des sujets
@@ -258,7 +255,28 @@ const handleCreateProject = () => {
     </View>
 
 
-
+    <Modal
+                animationType="slide"
+                transparent={true}
+                visible={showModal}
+                onRequestClose={() => {
+                    Alert.alert("Modal has been closed.");
+                    setShowModal(!showModal);
+                }}
+            >
+                <View style={styles.centeredView}>
+                    <View style={styles.modalView}>
+                        <Text style={styles.modalText}>Le projet a bien été créé!</Text>
+                        <Button
+                            title="OK"
+                            onPress={() => {
+                                setShowModal(!showModal);
+                                fetchSubjects();
+                            }}
+                        />
+                    </View>
+                </View>
+            </Modal>
 
                      
                                 <Text style={globalStyles.title}>Vous travaillez actuellement sur le projet : {subject_active && ` ${subject_active.title}`}</Text>
@@ -358,7 +376,7 @@ const handleCreateProject = () => {
                         <Text style={globalStyles.title}>Vous souhaitez contribuer à une autre projet ? </Text>
 
 <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 10 }}>
-<TouchableOpacity style={showProjects ? globalStyles.globalButton_narrow : globalStyles.globalButton_active} onPress={() => {setShowProjects(!showProjects),setShowNewProjects(false)}}>
+<TouchableOpacity style={showProjects ? globalStyles.globalButton_narrow : globalStyles.globalButton_active} onPress={() => {setShowProjects(!showProjects),setShowNewProject(false)}}>
     <Text style={globalStyles.globalButtonText}>{showProjects ? "Masquer les projets" : "Rejoindre un projet existant"}</Text>
 </TouchableOpacity>
 <TouchableOpacity style={showNewProject? globalStyles.globalButton_narrow : globalStyles.globalButton_active} onPress={() => {setShowNewProject(!showNewProject),setShowProjects(false)}}>
@@ -383,13 +401,15 @@ onChangeText={(text) => setSearchName(text)}
 {searchResults.map((result) => (
 <TouchableOpacity
 key={result.id}
-style={[globalStyles.globalButton_tag, styles.unSelectedTag]}
+style={[globalStyles.globalButton_tag, styles.unSelectedTag,
+    { color: 'black' }]}
 onPress={async () => {
-await joinSubject(result.id,session.user.id);
+await joinSubject(result.id,session.user.id,"En attente");
 fetchSubjects();
 }}
 >
-<Text style={globalStyles.globalButtonText_tag}>{result.title}</Text>
+<Text style={[globalStyles.globalButtonText_tag,
+            { color: 'black' }]}>{result.title}</Text>
 </TouchableOpacity>
 ))}
 </>
@@ -491,6 +511,25 @@ const styles = StyleSheet.create({
         padding: 10, // Espace intérieur pour rendre le tag plus grand
 
     },
+    centeredView: {
+        flex: 1, // Prend tout l'espace disponible
+        justifyContent: "center",
+        alignItems: "center",
+        width: '100%', // Couvre toute la largeur
+        height: '100%', // Couvre toute la hauteur
+        backgroundColor: 'rgba(0, 0, 0, 0.5)' // Ajoute un fond semi-transparent
+    },
+    modalView: {
+        width: '100%', // Utilise toute la largeur disponible
+        height: '100%', // Utilise toute la hauteur disponible
+        backgroundColor: "white",
+        padding: 35,
+        alignItems: "center",
+        justifyContent: "center" // Centre le contenu verticalement
+    },
+    modalText: {
+        textAlign: "center"
+    }
     
 
 
