@@ -2,13 +2,30 @@ import React from 'react'
 import { supabase } from '../lib/supabase'
 import { useState, useEffect } from 'react'
 import { useNavigation } from '@react-navigation/native';
-import { View, StyleSheet, Button, Text, Alert, Keyboard, TouchableWithoutFeedback, TextInput, TouchableOpacity } from 'react-native'
+import { Modal, Image, View, StyleSheet, Button, Text, Alert, Keyboard, TouchableWithoutFeedback, TextInput, TouchableOpacity } from 'react-native'
 import { globalStyles } from '../../global'
 import { listSubjects, joinSubject, getSubjects, get_project, create_project, get_project_contributors,validate_project_contributors, get_project_by_id,getSubjects_pending} from '../components/data_handling';
 import { saveActiveSubjectId, getActiveSubjectId } from '../components/local_storage';
 import { Ionicons } from '@expo/vector-icons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import ArrowLeftIcon from '../../assets/icons/arrow-left-solid.svg';
+import SearchIcon from '../../assets/icons/search_black_24dp.svg';
+import AddIcon from '../../assets/icons/add_circle_black_24dp.svg';
+import refresh from '../../assets/icons/refresh_black_24dp.svg';
+import PersonIcon from '../../assets/icons/person.svg';
+import help from '../../assets/icons/help-circle.svg';
+import trash from '../../assets/icons/baseline_delete_outline_black_24dp.png';
+import settings from '../../assets/icons/settings.svg';
+import LinkIcon from '../../assets/icons/link.png';
+import expand_more from '../../assets/icons/expand_more_black_24dp.svg';
+import expand_less from '../../assets/icons/expand_less_black_24dp.svg';
+import edit from '../../assets/icons/pen-to-square-regular.svg';
+import Svg, { Path } from 'react-native-svg';
+import BookIcon from '../../assets/icons/book.svg';
+
+
+
 
 export default function ProfileScreen({ route }) {
     const session = route.params.session
@@ -30,6 +47,8 @@ export default function ProfileScreen({ route }) {
     const [searchResults, setSearchResults] = useState([]);
     const [contributors, setContributors] = useState([]);
     const [showContributors, setShowContributors] = useState(false);
+    const [showChangeProject, setShowChangeProject] = useState(false);
+    const [showModal, setShowModal] = useState(false); 
 
 
 
@@ -43,6 +62,7 @@ export default function ProfileScreen({ route }) {
         if (session) {
             getProfile();
             try {
+                console.log("session.user",session.user)
                 const temp = await getSubjects(session.user.id);
                 const temp_bis = await getSubjects_pending(session.user.id);
                 setSubjects_active(temp);
@@ -50,6 +70,7 @@ export default function ProfileScreen({ route }) {
 
 
                 // Si vous souhaitez également rafraîchir la liste des sujets disponibles à rejoindre
+                console.log("session.user_bis",session.user)
                 const temp2 = await listSubjects(session.user.id);
                 setSubjects(temp2);
 
@@ -58,7 +79,7 @@ export default function ProfileScreen({ route }) {
                 console.error("Error fetching subjects:", error);
             }
         }
-        console.log("Coucou !")
+  
     }
 
     useEffect(() => {
@@ -67,7 +88,8 @@ export default function ProfileScreen({ route }) {
     }, [session]);
 
     useEffect(() => {
-        console.log(subject_active.id)
+        console.log("subject_active")
+        console.log(subject_active)
         saveActiveSubjectId(String(subject_active.id));
 
     }, [subject_active]);
@@ -105,6 +127,8 @@ export default function ProfileScreen({ route }) {
     const fetchContributors = async () => {
       if(subject_active) {
           try {
+            console.log("subject_active_bis")
+            console.log(subject_active)
               const result = await get_project_contributors(subject_active.id);
               if(result.error) {
                   throw result.error;
@@ -135,6 +159,8 @@ export default function ProfileScreen({ route }) {
     }
 
     try {
+        console.log("subject_active_ter")
+        console.log(subject_active)
         await validate_project_contributors(subject_active.id, contributor.id_user, newAuthorization);
         // Après la validation, rafraîchir la liste des contributeurs pour afficher la mise à jour
         await fetchContributors();
@@ -143,6 +169,29 @@ export default function ProfileScreen({ route }) {
         Alert.alert("Erreur", "Impossible de mettre à jour l'autorisation du contributeur.");
     }
 };
+
+const handleCreateProject = () => {
+    if (!newName.trim()) {
+        Alert.alert("Validation Error", "Please enter a valid project name.");
+        return;
+    }
+    setLoading(true);
+
+    create_project(newName, session.user.id)
+        .then(creationResult => {
+            
+                setShowModal(true);  // Afficher la modal
+                return fetchSubjects();  // Continuer avec la récupération des sujets si la création est réussie
+       
+        })
+        .catch(error => {
+            Alert.alert("Failed to create project", error.message || "An unknown error occurred."); // Gérer les erreurs de création ou de récupération des sujets
+        })
+        .finally(() => {
+            setLoading(false); // Arrêter l'indicateur de chargement peu importe le résultat
+        });
+};
+
 
 
 
@@ -164,8 +213,10 @@ export default function ProfileScreen({ route }) {
             if (data) {
                 setUsername(data.username)
                 setFull_name(data.full_name)
+                if(data.active_biography != null){
                 const temp = await get_project_by_id(data.active_biography)
                 setSubject_active(temp)
+            }
             }
         } catch (error) {
             if (error instanceof Error) {
@@ -185,107 +236,81 @@ export default function ProfileScreen({ route }) {
 
 <View style={{ flex: 1, backgroundColor: "#E8FFF6" }}>
             <View style={globalStyles.container}>
-<View style={styles.navigationContainer}>
-      <TouchableOpacity onPress={() => navigateToScreen('ReadAnswersScreen')} style={styles.navButton}>
-        <FontAwesome name="arrow-left" size={28} color="black" />
-      </TouchableOpacity>
+            <View style={globalStyles.navigationContainer}>
       
-    </View>
-                        {subjects_active.length > 0 ? (
-                            <>
-                                <Text style={globalStyles.title}>Biographies auxquelles vous contribuez</Text>
-                                {subjects_active.map((subject) => (
-                                    <TouchableOpacity key={subject.content_subject.id} style={[globalStyles.globalButton_tag, subject_active.id === subject.content_subject.id ? styles.SelectedTag : styles.unSelectedTag]} onPress={() => handleJoinSubject(subject.content_subject.id)}>
-                                        <Text style={[globalStyles.buttonText, subject_active.id === subject.content_subject.id ? globalStyles.globalButtonText_active : globalStyles.globalButtonText]}>
-                                            {subject.content_subject.title} {subject_active.id === subject.content_subject.id ? "(actif)" : ""}
-                                        </Text>
-                                    </TouchableOpacity>
-                                ))}
-                                {subjects_pending.map((subject) => (
-                                    <TouchableOpacity key={subject.content_subject.id} style={[globalStyles.globalButton_tag, subject_active.id === subject.content_subject.id ? styles.SelectedTag : styles.unSelectedTag]}>
-                                        <Text style={[globalStyles.buttonText, subject_active.id === subject.content_subject.id ? globalStyles.globalButtonText_active : globalStyles.globalButtonText]}>
-                                            {subject.content_subject.title} - accès en attente de validation
-                                        </Text>
-                                    </TouchableOpacity>
-                                ))}
-                            </>
-                        ) : (
-                            <Text>Vous ne contribuez à aucune biographie actuellement.</Text>
-                        )}
-
-                        <Text></Text>
-                        <Text></Text>
-                        <Text></Text>
-                        <Text></Text>
-                        <Text></Text>
-
-
-                        <Text style={globalStyles.title}>Vous souhaitez contribuer à une autre projet ? </Text>
-                        <TouchableOpacity style={showProjects ? globalStyles.globalButton : globalStyles.globalButton_active} onPress={() => setShowProjects(!showProjects)}>
-                            <Text style={globalStyles.globalButtonText}>{showProjects ? "Masquer les projets" : "Rejoindre un nouveau projet biographique"}</Text>
-                        </TouchableOpacity>
-
-                        {showProjects && (
-  <>
-
-<View style={styles.searchContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="Rechercher un projet"
-              value={searchName}
-              onChangeText={(text) => setSearchName(text)}
-            />
-            <TouchableOpacity onPress={() => get_project(searchName, setLoading, setSearchResults)} style={styles.icon}>
-              <MaterialIcons name="search" size={24} color="black" />
-            </TouchableOpacity>
-          </View>
-
-    {searchResults.map((result) => (
-      <TouchableOpacity
-        key={result.id}
-        style={[globalStyles.globalButton_tag, styles.unSelectedTag]}
-        onPress={async () => {
-          await joinSubject(result.id,session.user.id);
-          fetchSubjects();
-        }}
-      >
-        <Text style={globalStyles.globalButtonText_tag}>{result.title}</Text>
+            <TouchableOpacity onPress={() => navigateToScreen('ReadAnswersScreen')} style={styles.navButton}>
+      <Image source={BookIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
       </TouchableOpacity>
-    ))}
-  </>
+  <TouchableOpacity onPress={() => navigateToScreen('ProfileScreen')} style={styles.navButton}>
+
+  <Image source={PersonIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
+
+      </TouchableOpacity>
+  <TouchableOpacity onPress={() => navigateToScreen('AideScreen')} style={styles.navButton}>
+  <Image source={help} style={{ width: 60, height: 60, opacity: 0.5 }} />
+      </TouchableOpacity>
+      <TouchableOpacity onPress={() => navigateToScreen('ManageBiographyScreen')} style={styles.navButton}>
+      <Image source={settings} style={{ width: 80, height: 80, opacity: 1 }} />
+      </TouchableOpacity>
+    </View>
+
+
+    <Modal
+                animationType="slide"
+                transparent={true}
+                visible={showModal}
+                onRequestClose={() => {
+                    Alert.alert("Modal has been closed.");
+                    setShowModal(!showModal);
+                }}
+            >
+                <View style={styles.centeredView}>
+                    <View style={styles.modalView}>
+                        <Text style={styles.modalText}>Le projet a bien été créé!</Text>
+                        <Button
+                            title="OK"
+                            onPress={() => {
+                                setShowModal(!showModal);
+                                fetchSubjects();
+                            }}
+                        />
+                    </View>
+                </View>
+            </Modal>
+
+                     
+            <Text style={globalStyles.title}>
+  {subject_active && subject_active.title ? `Vous travaillez actuellement sur le projet : ${subject_active.title}` : "Veuillez sélectionner un projet afin de pouvoir y contribuer activement."}
+</Text>
+
+
+<View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 10 }}>
+
+{subject_active && subject_active.title && (
+    <TouchableOpacity
+        style={showContributors ?  globalStyles.globalButton_active : globalStyles.globalButton_narrow}
+        onPress={() => {
+            setShowChangeProject(false);
+            setShowContributors(!showContributors);
+            fetchContributors();
+        }}
+    >
+        <Text style={globalStyles.globalButtonText}>Gérer les droits d'accès au projet </Text>
+    </TouchableOpacity>
 )}
 
-        
-<TouchableOpacity style={showNewProject? globalStyles.globalButton : globalStyles.globalButton_active} onPress={() => setShowNewProject(!showNewProject)}>
-                            <Text style={globalStyles.globalButtonText}>{showNewProject ? "Abandonner la création" : "Créer un nouveau projet"}</Text>
-                        </TouchableOpacity>
-                        {showNewProject && (
-  <>
-
-<View style={styles.searchContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="Nom du nouveau projet"
-              value={newName}
-              onChangeText={(text) => setNewName(text)}
-            />
-            <TouchableOpacity onPress={async () => {await create_project(newName,session.user.id,"En attente");await fetchSubjects();}} style={styles.icon}>
-              <Ionicons name="add-circle-outline" size={24} color="black" />
-            </TouchableOpacity>
-          </View>
-
-    
-  </>
-)}
 <TouchableOpacity
-    style={showContributors ? globalStyles.globalButton : globalStyles.globalButton_active}
+    style={showChangeProject ? globalStyles.globalButton_active : globalStyles.globalButton_narrow}
     onPress={() => {
-        setShowContributors(!showContributors);
-        fetchContributors();
+        setShowContributors(false);
+        setShowChangeProject(!showChangeProject);
     }}
 >
-    <Text style={globalStyles.globalButtonText}>Gestion des accès au projet {subject_active && `: ${subject_active.title}`}</Text>
+    <Text style={globalStyles.globalButtonText}>{subject_active && subject_active.title ? "Changer le projet" : "Sélectionner un projet"} </Text>
 </TouchableOpacity>
+</View>
+
+
 
 {showContributors && (
     <View>
@@ -303,6 +328,128 @@ export default function ProfileScreen({ route }) {
         )}
     </View>
 )}
+
+
+
+{showChangeProject && (
+
+<> 
+{subjects_active.length > 0 ? (
+                            <>
+
+
+                                <Text style={globalStyles.title}>Projets auxquels vous contribuez</Text>
+                                {subjects_active.map((subject) => (
+    <TouchableOpacity key={subject.content_subject.id} 
+        style={[globalStyles.globalButton_tag, subject_active === subject.content_subject.id ? styles.SelectedTag : styles.unSelectedTag]} 
+        onPress={() => handleJoinSubject(subject.content_subject.id)}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'transparent' }}>
+           
+            <Text style={[
+                globalStyles.buttonText, 
+                subject_active.id === subject.content_subject.id ? globalStyles.globalButtonText_active : globalStyles.globalButtonText, 
+                { color: 'black' }]}>
+
+                {subject.content_subject.title} {subject_active.id === subject.content_subject.id ? "(actif)" : ""}
+            </Text>
+        </View>
+    </TouchableOpacity>
+))}
+
+            
+{subjects_pending.map((subject) => (
+    <TouchableOpacity 
+        key={subject.content_subject.id} 
+        style={[
+            globalStyles.globalButton_tag, 
+            subject_active.id === subject.content_subject.id ? styles.SelectedTag : styles.unSelectedTag
+        ]}>
+        <Text style={[
+            globalStyles.buttonText, 
+            subject_active.id === subject.content_subject.id ? globalStyles.globalButtonText_active : globalStyles.globalButtonText,
+            { color: 'black' }]}>
+            {subject.content_subject.title} - accès en attente de validation
+        </Text>
+    </TouchableOpacity>
+))}
+
+ </>
+                        ) : (
+                            <Text>Vous ne contribuez à aucune biographie actuellement.</Text>
+                        )}
+                                
+                        <Text style={globalStyles.title}>Vous souhaitez contribuer à une autre projet ? </Text>
+
+<View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 10 }}>
+<TouchableOpacity style={showProjects ? globalStyles.globalButton_narrow : globalStyles.globalButton_active} onPress={() => {setShowProjects(!showProjects),setShowNewProject(false)}}>
+    <Text style={globalStyles.globalButtonText}>{showProjects ? "Masquer les projets" : "Rejoindre un projet existant"}</Text>
+</TouchableOpacity>
+<TouchableOpacity style={showNewProject? globalStyles.globalButton_narrow : globalStyles.globalButton_active} onPress={() => {setShowNewProject(!showNewProject),setShowProjects(false)}}>
+    <Text style={globalStyles.globalButtonText}>{showNewProject ? "Abandonner la création" : "Créer un nouveau projet"}</Text>
+</TouchableOpacity>
+</View>
+{showProjects && (
+<>
+
+<View style={styles.searchContainer}>
+<TextInput
+style={styles.input}
+placeholder="Rechercher un projet"
+value={searchName}
+onChangeText={(text) => setSearchName(text)}
+/>
+<TouchableOpacity onPress={() => get_project(searchName, setLoading, setSearchResults)} style={styles.icon}>
+<Image source={SearchIcon} style={{ width: 24, height: 24, opacity: 0.5 }} />
+</TouchableOpacity>
+</View>
+
+{searchResults.map((result) => (
+<TouchableOpacity
+key={result.id}
+style={[globalStyles.globalButton_tag, styles.unSelectedTag,
+    { color: 'black' }]}
+onPress={async () => {
+await joinSubject(result.id,session.user.id,"En attente");
+fetchSubjects();
+}}
+>
+<Text style={[globalStyles.globalButtonText_tag,
+            { color: 'black' }]}>{result.title}</Text>
+</TouchableOpacity>
+))}
+</>
+)}
+
+
+
+{showNewProject && (
+<>
+
+<View style={styles.searchContainer}>
+<TextInput
+style={styles.input}
+placeholder="Nom du nouveau projet"
+value={newName}
+onChangeText={(text) => setNewName(text)}
+/>
+<TouchableOpacity onPress={handleCreateProject} style={styles.icon}>
+<Image source={AddIcon} style={{ width: 26, height: 26, opacity: 0.5 }} />
+</TouchableOpacity>
+</View>
+
+
+</>
+)}
+
+</>)}
+
+                            
+
+                      
+
+
+
+
 
 
 
@@ -353,25 +500,41 @@ const styles = StyleSheet.create({
         marginLeft: 10,
       },
       unSelectedTag: {
-        backgroundColor: '#b1b3b5', // Couleur de fond plus douce pour les tags non sélectionnés
+        backgroundColor: 'transparent', // Couleur de fond plus douce pour les tags non sélectionnés
         marginVertical: 5, // Ajoute un peu d'espace verticalement autour de chaque tag
         borderRadius: 5, // Bords arrondis pour les tags
         borderWidth: 0.5, // Légère bordure pour définir les tags
-        borderColor: '#d0d0d0', // Couleur de la bordure
+        borderColor: 'transparent', // Couleur de la bordure
         padding: 10, // Espace intérieur pour rendre le tag plus grand
     },
     SelectedTag: {
-        backgroundColor: '#0b2d52',// Couleur de fond plus douce pour les tags non sélectionnés
+        backgroundColor: 'transparent',// Couleur de fond plus douce pour les tags non sélectionnés
         marginVertical: 5, // Ajoute un peu d'espace verticalement autour de chaque tag
         borderRadius: 5, // Bords arrondis pour les tags
         borderWidth: 0.5, // Légère bordure pour définir les tags
-        borderColor: '#d0d0d0', // Couleur de la bordure
+        borderColor: 'transparent', // Couleur de la bordure
         padding: 10, // Espace intérieur pour rendre le tag plus grand
-        shadowColor: '#000', // Ombre pour iOS
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
+
     },
+    centeredView: {
+        flex: 1, // Prend tout l'espace disponible
+        justifyContent: "center",
+        alignItems: "center",
+        width: '100%', // Couvre toute la largeur
+        height: '100%', // Couvre toute la hauteur
+        backgroundColor: 'rgba(0, 0, 0, 0.5)' // Ajoute un fond semi-transparent
+    },
+    modalView: {
+        width: '100%', // Utilise toute la largeur disponible
+        height: '100%', // Utilise toute la hauteur disponible
+        backgroundColor: "white",
+        padding: 35,
+        alignItems: "center",
+        justifyContent: "center" // Centre le contenu verticalement
+    },
+    modalText: {
+        textAlign: "center"
+    }
     
 
 

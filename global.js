@@ -66,7 +66,7 @@ export const globalStyles = StyleSheet.create({
     shadowRadius: 3.84,
   },
   globalButton_active: {
-    width: '90%', // Adaptation de la largeur
+    width: '45%', // Adaptation de la largeur
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#0b2d52', // Couleur du fond
@@ -191,6 +191,12 @@ title_chapter: {
   navButton: {
     padding: 10,
   },
+
+  iconStyle : {
+    width: 60, // La largeur de l'icône
+    height: 60, // La hauteur de l'icône
+    color:"#0b2d52",
+}
 
  
 })

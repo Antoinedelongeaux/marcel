@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import {  Modal, TextInput,Alert, View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { Image, Modal, TextInput,Alert, View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { getSubject ,getMemories_Questions,getMemories_Answers_to_Question ,get_chapters,join_question_to_chapter,create_chapter,delete_chapter,edit_chapter,delete_question} from '../components/data_handling';
 import { useFocusEffect } from '@react-navigation/native';
 import { getActiveSubjectId } from '../components/local_storage';
@@ -8,6 +8,17 @@ import { globalStyles } from '../../global';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons'; 
+//import ArrowLeftIcon from '../../assets/icons/arrow-left-solid.svg';
+import refresh from '../../assets/icons/refresh_black_24dp.svg';
+import PersonIcon from '../../assets/icons/person.svg';
+import help from '../../assets/icons/help-circle.svg';
+import trash from '../../assets/icons/baseline_delete_outline_black_24dp.png';
+import settings from '../../assets/icons/settings.svg';
+import LinkIcon from '../../assets/icons/link.png';
+import expand_more from '../../assets/icons/expand_more_black_24dp.svg';
+import expand_less from '../../assets/icons/expand_less_black_24dp.svg';
+import edit from '../../assets/icons/pen-to-square-regular.svg';
+import Svg, { Path } from 'react-native-svg';
 
 
 
@@ -19,7 +30,7 @@ function ReadQuestionsScreen({ route }) {
   const [questions, setQuestions] = useState([]);
   const [subject_active, setSubject_active] = useState(null);
   // Assurez-vous que "posée par un proche" est un choix possible dès le départ si nécessaire
-  const [tags, setTags] = useState(["Famille", "Vie professionnelle", "Vie personnelle", "Hobbies & passions", "Valeurs", "Voyages", "Autre"]);
+  const [tags, setTags] = useState(["Famille", "Vie professionnelle", "Vie personnelle", "Hobbies & passions", "Valeurs", "Voyages", "Autre",""]);
   const allTags = ["Famille", "Vie professionnelle", "Vie personnelle", "Hobbies & passions", "Valeurs", "Voyages", "Autre"];
   const [personal, setPersonal] = useState(false);
   const [activeQuestionAnswers, setActiveQuestionAnswers] = useState({});
@@ -32,10 +43,17 @@ function ReadQuestionsScreen({ route }) {
  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
  const [editChapterId, setEditChapterId] = useState(null);
  const [editChapterTitle, setEditChapterTitle] = useState('');
+ const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+const [deletionDetails, setDeletionDetails] = useState({ id: null, isChapter: true });
+
 
  const [subject, setSubject] = useState([]);
 
-
+ const Icon = ({ color }) => (
+  <Svg width="60" height="60" viewBox="0 0 24 24">
+    <Path fill={color} d="M12,2A10,10,0,1,0,22,12,10,10,0,0,0,12,2Zm0,18a8,8,0,1,1,8-8A8,8,0,0,1,12,20Z" />
+  </Svg>
+);
 
  
   useFocusEffect(
@@ -147,31 +165,11 @@ const toggleAnswersDisplay = async (questionId) => {
 
 
 const confirmDeletion = (id, isChapter = true) => {
-  Alert.alert(
-    "Confirmation de suppression",
-    `Êtes-vous sûr de vouloir supprimer ce ${isChapter ? 'chapitre' : 'question'}? Cette action est irréversible.`,
-    [
-      {
-        text: "Annuler",
-        style: "cancel"
-      },
-      {
-        text: "Supprimer",
-        onPress: () => {
-          if (isChapter) {
-            delete_chapter(id);
-            get_chapters(subject_active, setChapters);
-          } else {
-            delete_question(id);
-            getMemories_Questions(subject_active, setQuestions, tags, personal);
-          }
-          Alert.alert("Suppression", `Le ${isChapter ? 'chapitre' : 'question'} a été supprimé.`);
-        },
-        style: "destructive"
-      }
-    ]
-  );
+  setDeletionDetails({ id: id, isChapter: isChapter });
+  setDeleteModalVisible(true);
+  
 };
+
 
 const refreshPage = async () => {
   if (subject_active != null) {
@@ -197,16 +195,19 @@ const refreshPage = async () => {
 <View style={globalStyles.navigationContainer}>
       
       <TouchableOpacity onPress={refreshPage} style={styles.navButton}>
-    <FontAwesome name="refresh" size={60} color="tomato" />
+    {/* <FontAwesome name="refresh" size={60} color="tomato" /> */}
+    <Image source={refresh} style={{ width: 80, height: 80, opacity: 0.9 }} />
   </TouchableOpacity>
   <TouchableOpacity onPress={() => navigateToScreen('ProfileScreen')} style={styles.navButton}>
-        <Ionicons name="person" size={60} color="#0b2d52" />
+
+  <Image source={PersonIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
+
       </TouchableOpacity>
   <TouchableOpacity onPress={() => navigateToScreen('AideScreen')} style={styles.navButton}>
-        <Ionicons name="help-circle-outline" size={60} color="#0b2d52" />
+  <Image source={help} style={{ width: 60, height: 60, opacity: 0.5 }} />
       </TouchableOpacity>
       <TouchableOpacity onPress={() => navigateToScreen('ManageBiographyScreen')} style={styles.navButton}>
-        <Ionicons name="settings-outline" size={60} color="#0b2d52" />
+      <Image source={settings} style={{ width: 60, height: 60, opacity: 0.5 }} />
       </TouchableOpacity>
     </View>
 
@@ -215,7 +216,7 @@ const refreshPage = async () => {
       
 
       <View style={styles.questionsContainer}>
-      {questions?.length > 0 ? 
+     
        <>
   
        {[{ id: null, title: "Non classé" }, ...chapters].map((chapter) => (
@@ -245,7 +246,8 @@ const refreshPage = async () => {
                  }}
                 style={{ marginRight: 10 }} // Ajustez selon le besoin
               >
-                  <FontAwesome name="edit" size={24} color="black" />
+                <Image source={edit} style={{ width: 20, height: 20, opacity: 0.5 }} />
+                
               </TouchableOpacity>
 
 
@@ -254,7 +256,8 @@ const refreshPage = async () => {
   onPress={() => confirmDeletion(chapter.id, true)} // true pour spécifier qu'il s'agit d'un chapitre
   style={{ marginRight: 10 }}
 >
-  <FontAwesome name="trash" size={24} color="black" />
+<Image source={trash} style={{ width: 25, height: 25, opacity: 0.5 }} />
+
 </TouchableOpacity>
 
             </View>
@@ -273,13 +276,13 @@ const refreshPage = async () => {
     {question.answers_count} réponses
   </Text>
   <TouchableOpacity onPress={() => handleAssociateQuestion(question.id)} style={styles.associateButton}>
-    <FontAwesome name="link" size={24} color="black" />
+  <Image source={LinkIcon} style={{ width: 18, height: 18, opacity: 0.5 }} />
   </TouchableOpacity>
   <TouchableOpacity
   onPress={() => confirmDeletion(question.id, false)} // false pour spécifier qu'il s'agit d'une question
   style={styles.deleteButton}
 >
-  <FontAwesome name="trash" size={24} color="black" />
+<Image source={trash} style={{ width: 25, height: 25, opacity: 0.5 }} />
 </TouchableOpacity>
 
 </View>
@@ -291,19 +294,11 @@ const refreshPage = async () => {
       onPress={() => toggleAnswersDisplay(question.id)} 
       style={styles.toggleAnswersButton}
     >
-      <MaterialIcons name="expand-more" size={24} color="black" />
+      <Image source={expand_more} style={{ width: 25, height: 25, opacity: 0.5 }} />
     </TouchableOpacity>
                {activeQuestionAnswers[question.id] && activeQuestionAnswers[question.id].map((answer, answerIndex) => (
                  <View key={answerIndex} style={styles.answerContainer}>
-                   <Text style={styles.answerDateText}>
-              Répondu le : {new Date(answer.created_at).toLocaleDateString('fr-FR', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-              })}
-            </Text>
+          
             <Text style={styles.answerText}>{answer.answer}</Text>
             {answerIndex < activeQuestionAnswers[question.id]?.length - 1 && (
               <View style={styles.separator} />
@@ -327,7 +322,7 @@ const refreshPage = async () => {
        ))}
      </>
       
-      : <Text>Aucune question trouvée.</Text>}
+      
 
       </View>
       
@@ -414,7 +409,8 @@ const refreshPage = async () => {
           create_chapter(newChapterTitle, subject_active);
           setIsModalVisible(!isModalVisible);
           setNewChapterTitle(''); 
-          get_chapters(subject_active, setChapters);
+          //get_chapters(subject_active, setChapters);
+          refreshPage()
         }}
       >
         <Text style={globalStyles.globalButtonText}>Créer</Text>
@@ -462,6 +458,44 @@ const refreshPage = async () => {
         onPress={() => {
           setIsEditModalVisible(false);
           setEditChapterTitle('');
+        }}
+      >
+        <Text style={globalStyles.globalButtonText}>Annuler</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</Modal>
+
+<Modal
+  animationType="slide"
+  transparent={true}
+  visible={deleteModalVisible}
+  onRequestClose={() => {
+    setDeleteModalVisible(!deleteModalVisible);
+  }}
+>
+  <View style={styles.centeredView}>
+    <View style={styles.modalView}>
+      <Text style={styles.modalText}>Êtes-vous sûr de vouloir supprimer ce {deletionDetails.isChapter ? 'chapitre' : 'question'}? Cette action est irréversible.</Text>
+      <TouchableOpacity
+        style={[globalStyles.globalButton_wide]}
+        onPress={() => {
+          if (deletionDetails.isChapter) {
+            delete_chapter(deletionDetails.id);
+            refreshPage()
+          } else {
+            delete_question(deletionDetails.id);
+            refreshPage()
+          }
+          setDeleteModalVisible(false);
+        }}
+      >
+        <Text style={globalStyles.globalButtonText}>Supprimer</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[globalStyles.globalButton_wide]}
+        onPress={() => {
+          setDeleteModalVisible(false);
         }}
       >
         <Text style={globalStyles.globalButtonText}>Annuler</Text>

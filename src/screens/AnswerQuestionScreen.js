@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
+import { Image, View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import { globalStyles } from '../../global';
 import { getMemories_Question_by_id,getMemories_Question, submitMemories_Answer, deleteMemories_Answer, get_user_name,update_answer_text } from '../components/data_handling'; // Assurez-vous d'implémenter deleteMemories_Answer
 import { record_answer, playRecording_fromAudioFile, delete_audio, startRecording, stopRecording,transcribeAudio } from '../components/sound_handling';
@@ -8,6 +8,22 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { saveActiveSubjectId, getActiveSubjectId } from '../components/local_storage';
 import { useFocusEffect } from '@react-navigation/native';
+import ArrowLeftIcon from '../../assets/icons/arrow-left-solid.svg';
+import refresh from '../../assets/icons/refresh_black_24dp.svg';
+import PersonIcon from '../../assets/icons/person.svg';
+import BookIcon from '../../assets/icons/book.svg';
+import HelpIcon from '../../assets/icons/help-circle.svg';
+import trash from '../../assets/icons/baseline_delete_outline_black_24dp.png';
+import SettingsIcon from '../../assets/icons/settings.svg';
+import LinkIcon from '../../assets/icons/link-solid.svg';
+import expand_more from '../../assets/icons/expand_more_black_24dp.svg';
+import expand_less from '../../assets/icons/expand_less_black_24dp.svg';
+import edit from '../../assets/icons/pen-to-square-regular.svg';
+import MicroIcon from '../../assets/icons/microphone-lines-solid.svg';
+import VolumeIcon from '../../assets/icons/volume_up_black_24dp.svg';
+
+
+import Svg, { Path } from 'react-native-svg';
 
 
 function ReadAnswersScreen({ route }) {
@@ -21,6 +37,9 @@ function ReadAnswersScreen({ route }) {
   const [subject_active, setSubject_active] = useState(null);
   const [isRecording, setIsRecording] = useState(false);
   const [recording, setRecording] = useState();
+  const [editingAnswerId, setEditingAnswerId] = useState(null);
+  const [editingText, setEditingText] = useState('');
+
 
   
   // Fonction pour naviguer vers une nouvelle page
@@ -73,6 +92,23 @@ function ReadAnswersScreen({ route }) {
     }
   };
   
+  const handleUpdateAnswer = async (answerId, newText) => {
+    try {
+      const result = await update_answer_text(answerId, newText);
+      
+        await refreshAnswers(); // Mise à jour des réponses affichées
+        setEditingAnswerId(null); // Sortie du mode édition pour fermer le champ
+        setEditingText(''); // Réinitialiser le texte édité
+      
+      
+    } catch (error) {
+      Alert.alert("Erreur lors de la mise à jour", error.message);
+    }
+  };
+  
+  
+
+
   const handleTranscribe = async (answerId) => {
     const answerToUpdate = answers.find(ans => ans.id === answerId);
     if (answerToUpdate && answerToUpdate.audio) {
@@ -150,14 +186,12 @@ function ReadAnswersScreen({ route }) {
 
 <View style={styles.navigationContainer}>
   <TouchableOpacity onPress={() => navigateToScreen('ReadAnswersScreen')} style={styles.navButton}>
-    <FontAwesome name="arrow-left" size={28} color="black" />
+  <Image source={ArrowLeftIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
   </TouchableOpacity>
   <TouchableOpacity onPress={refreshAnswers} style={styles.navButton}>
-    <FontAwesome name="refresh" size={28} color="black" />
+  <Image source={refresh} style={{ width: 60, height: 60, opacity: 0.5 }} />
   </TouchableOpacity>
-  <TouchableOpacity onPress={() => navigateToScreen('AskQuestionScreen')} style={styles.navButton}>
-    <MaterialIcons name="question-answer" size={28} color="black" />
-  </TouchableOpacity>
+
 </View>
 
       
@@ -194,18 +228,22 @@ function ReadAnswersScreen({ route }) {
 
         */}
 <View style={{ paddingVertical: 20 }}>
-  <TouchableOpacity
-    style={[
-      globalStyles.globalButton,
-      isRecording ? styles.recordingButton : {}, 
-      { marginTop: 10, marginBottom: 10 }, 
-    ]}
-    onPress={handleRecording}>
+<TouchableOpacity
+  style={[
+    globalStyles.globalButton,
+    isRecording ? styles.recordingButton : {},
+    { marginTop: 10, marginBottom: 10, backgroundColor: isRecording ? "red" : '#b1b3b5' },  // Corrected the color assignment here
+  ]}
+  onPress={handleRecording}
+>
+  <View style={{ flexDirection: 'row', alignItems: 'center' }}>  
+    <Image source={MicroIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
     <Text style={globalStyles.globalButtonText}>
-      <MaterialIcons name="mic" size={36} color={isRecording ? "red" : "black"} />
-      <Text> {isRecording ? "Arrêter l'enregistrement" : "Répondre"} </Text>
+      {isRecording ? "   Arrêter l'enregistrement" : "   Répondre"}
     </Text>
-  </TouchableOpacity>
+  </View>
+</TouchableOpacity>
+
 
 
 
@@ -220,40 +258,56 @@ function ReadAnswersScreen({ route }) {
               */}
             </View>
             {Array.isArray(answers) && answers.map((ans) => (
-        <View key={ans.id} style={styles.answerCard}>
-        <Text style={styles.answerText}>{ans.answer}</Text>
-        {ans.audio && (
-  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-    <TouchableOpacity onPress={() => playRecording_fromAudioFile("https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/audio/" + ans.link_storage, ans.link_storage)} style={styles.playButton}>
-      <MaterialIcons name="volume-up" size={36} color="black" />
-    </TouchableOpacity>
-    {ans.answer === "audio pas encore converti en texte" && (
-      <TouchableOpacity onPress={() => handleTranscribe(ans.id)} style={styles.transcribeButton}>
-        <MaterialIcons name="edit" size={36} color="black" />
+  <View key={ans.id} style={styles.answerCard}>
+    {ans.id === editingAnswerId ? (
+      <TextInput
+        style={globalStyles.input}
+        value={editingText}
+        onChangeText={setEditingText}
+        multiline={true}
+        numberOfLines={10}
+      />
+    ) : (
+      <Text style={styles.answerText}>{ans.answer}</Text>
+    )}
+    <View style={styles.answerFooter}>
+      {ans.audio && (
+        <TouchableOpacity onPress={() => playRecording_fromAudioFile(ans.link_storage)} style={styles.playButton}>
+          <Image source={VolumeIcon} style={{ width: 36, height: 36, opacity: 0.5 }} />
+        </TouchableOpacity>
+      )}
+       {ans.answer === "audio pas encore converti en texte" && (
+        <TouchableOpacity onPress={() => handleTranscribe(ans.id)} style={styles.transcribeButton}>
+          <Image source={edit} style={{ width: 28, height: 28, opacity: 0.5 }} />
+        </TouchableOpacity>
+      )}
+      {ans.answer !== "audio pas encore converti en texte" && ans.id !== editingAnswerId && (
+        <TouchableOpacity
+          onPress={() => {
+            setEditingAnswerId(ans.id);
+            setEditingText(ans.answer);
+          }}
+          
+        >
+          <Image source={edit} style={{ width: 28, height: 28, opacity: 0.5 }} />
+        </TouchableOpacity>
+      )}
+      <TouchableOpacity onPress={() => handleDeleteAnswer(ans.id)} >
+        <Image source={trash} style={{ width: 36, height: 36, opacity: 0.5 }} />
+      </TouchableOpacity>
+    </View>
+    {ans.id === editingAnswerId && (
+      <TouchableOpacity
+        onPress={() => handleUpdateAnswer(ans.id, editingText)}
+        style={globalStyles.globalButton}
+      >
+        <Text style={globalStyles.globalButton_text}>Enregistrer</Text>
       </TouchableOpacity>
     )}
   </View>
-)}
-        <View style={styles.answerFooter}>
-          <Text style={styles.dateText}>
-            Répondu le : {
-              new Date(ans.created_at).toLocaleString('fr-FR', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false
-              })
-            }
-          </Text>
-          <TouchableOpacity onPress={() => handleDeleteAnswer(ans.id)} style={styles.iconButton}>
-            <FontAwesome name="trash-o" size={24} color="red" />
-          </TouchableOpacity>
-        </View>
-      </View>
-      
-      ))}
+))}
+
+
           </View>
         )}</>
       ) : (
@@ -355,7 +409,22 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
 
-  
+  saveButton: {
+    marginTop: 5,
+    backgroundColor: 'green',
+    padding: 10,
+    borderRadius: 5,
+  },
+  saveButtonText: {
+    color: 'white',
+    textAlign: 'center',
+  },
+  editButton: {
+    marginRight: 5,
+    backgroundColor: 'lightblue', // Style pour le bouton d'édition
+    padding: 5,
+    borderRadius: 5,
+  },
 
 });
 
