@@ -11,7 +11,8 @@ import AideScreen from "../screens/AideScreen";
 import { supabase } from '../lib/supabase';
 
 import React, { useState, useEffect } from 'react';
-import Ionicons from 'react-native-vector-icons/Ionicons'; 
+import Ionicons from 'react-native-vector-icons/Ionicons';
+// import { createMaterialTopTabNavigator } from 'react-navigation-tabs';
 
 
 
@@ -62,7 +63,7 @@ export default function Account({ route }) {
     }
   }, []);
 
-
+  console.log("hello")
   console.log(userGroups)
 
   return (
@@ -70,7 +71,7 @@ export default function Account({ route }) {
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
-  
+
           if (route.name === 'Récit') {
             iconName = focused ? 'book' : 'book-outline';
           } else if (route.name === 'Aide') {
@@ -78,16 +79,16 @@ export default function Account({ route }) {
           } else if (route.name === 'Paramètres') {
             iconName = focused ? 'settings' : 'settings-outline';
           }
-  
+
           return <Ionicons name={iconName} size={size * 2} color={color} />;
         },
-        tabBarActiveTintColor: 'tomato',
-        tabBarInactiveTintColor: 'gray',
-        tabBarStyle: {
-          height: 80, // Augmente la hauteur de la barre de navigation. Ajustez cette valeur selon vos besoins.
-          paddingBottom: 5, // Ajustez cela si nécessaire pour centrer correctement les icônes/texte dans la nouvelle hauteur de barre
-          paddingTop: 5, // Ajustement pour l'alignement vertical des icônes et du texte
-        },
+        // tabBarActiveTintColor: 'tomato',
+        // tabBarInactiveTintColor: 'gray',
+        // tabBarStyle: {
+        //   height: 80, // Augmente la hauteur de la barre de navigation. Ajustez cette valeur selon vos besoins.
+        //   paddingBottom: 5, // Ajustez cela si nécessaire pour centrer correctement les icônes/texte dans la nouvelle hauteur de barre
+        //   paddingTop: 5, // Ajustement pour l'alignement vertical des icônes et du texte
+        // },
         tabBarStyle: { display: 'none' },  // Masquer la barre de navigation inférieure
         headerShown: false  // Masquer la barre de navigation supérieure
       })}
@@ -95,10 +96,8 @@ export default function Account({ route }) {
       <Tab.Screen name="Récit" component={ReadAnswersScreen} initialParams={{ session: session }} />
       <Tab.Screen name="Aide" component={AideScreen} />
       <Tab.Screen name="Paramètres" component={ProfileScreen} initialParams={{ session: session }} />
- 
-     
     </Tab.Navigator>
   );
-  
+
 }
 

@@ -1,6 +1,6 @@
 import React from 'react';
-import { Image,View, Text, Button, Linking, StyleSheet,TouchableOpacity  } from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons'; 
+import { Image, View, Text, Button, Linking, StyleSheet, TouchableOpacity } from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useNavigation } from '@react-navigation/native';
 import { globalStyles } from '../../global';
@@ -40,41 +40,31 @@ const AideScreen = () => {
 
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#E8FFF6" }}>
-
-<View style={globalStyles.navigationContainer}>
-
-
-
-      
-      <TouchableOpacity onPress={() => navigateToScreen('ReadAnswersScreen')} style={globalStyles.navButton}>
-
-    <Image source={BookIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
-  </TouchableOpacity>
-  <TouchableOpacity onPress={() => navigateToScreen('ProfileScreen')} style={globalStyles.navButton}>
-        <Image source={PersonIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
-      </TouchableOpacity>
-  <TouchableOpacity onPress={() => navigateToScreen('AideScreen')} style={globalStyles.navButton}>
-  <Image source={HelpIcon} style={{ width: 90, height: 90, opacity: 1 }} />
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigateToScreen('ManageBiographyScreen')} style={globalStyles.navButton}>
-      <Image source={SettingsIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
-      </TouchableOpacity>
-    </View>
-        <Text></Text>
-        <TouchableOpacity
-          style={globalStyles.globalButton_wide}
-          onPress={makeCall} >
-          <Text style={globalStyles.globalButtonText}>Appeler le support</Text>
+    <View style={globalStyles.container}>
+      <View style={globalStyles.navigationContainer}>
+        <TouchableOpacity onPress={() => navigateToScreen('ReadAnswersScreen')} style={globalStyles.navButton}>
+          <Image source={BookIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
         </TouchableOpacity>
-        <TouchableOpacity
-          style={globalStyles.globalButton_wide}
-          onPress={sendSMS} >
-          <Text style={globalStyles.globalButtonText}>Envoyer un SMS au support</Text>
+        <TouchableOpacity onPress={() => navigateToScreen('ProfileScreen')} style={globalStyles.navButton}>
+          <Image source={PersonIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
         </TouchableOpacity>
-        <Text></Text>
-
-    
+        <TouchableOpacity onPress={() => navigateToScreen('AideScreen')} style={globalStyles.navButton}>
+          <Image source={HelpIcon} style={{ width: 60, height: 60, opacity: 1 }} />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigateToScreen('ManageBiographyScreen')} style={globalStyles.navButton}>
+          <Image source={SettingsIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
+        </TouchableOpacity>
+      </View>
+      <TouchableOpacity
+        style={globalStyles.globalButton_wide}
+        onPress={makeCall} >
+        <Text style={globalStyles.globalButtonText}>Appeler le support</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={globalStyles.globalButton_wide}
+        onPress={sendSMS} >
+        <Text style={globalStyles.globalButtonText}>Envoyer un SMS au support</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -82,28 +72,28 @@ const AideScreen = () => {
 const styles = StyleSheet.create({
 
 
-    container: {
-      flex: 1,
-      justifyContent: 'space-around', // Modifier pour espacer les sections uniformément
-      alignItems: 'center',
-      flex: 1,
-  
-      paddingTop: 20,
-      backgroundColor: "#E8FFF6",
-  
-    },
-    section: {
-      width: '80%', // Largeur des boutons pour une meilleure apparence
-      padding: 20, // Espacement interne pour un toucher facile
-      backgroundColor: '#f0f0f0', // Un léger fond pour distinguer les sections
-      alignItems: 'center',
-      borderRadius: 10, // Bordures arrondies pour l'esthétique
-    },
-    text: {
-      fontSize: 16, // Taille de la police pour une meilleure lisibilité
-    },
- 
-  
+  container: {
+    flex: 1,
+    justifyContent: 'space-around', // Modifier pour espacer les sections uniformément
+    alignItems: 'center',
+    flex: 1,
+
+    paddingTop: 20,
+    backgroundColor: "#E8FFF6",
+
+  },
+  section: {
+    width: '80%', // Largeur des boutons pour une meilleure apparence
+    padding: 20, // Espacement interne pour un toucher facile
+    backgroundColor: '#f0f0f0', // Un léger fond pour distinguer les sections
+    alignItems: 'center',
+    borderRadius: 10, // Bordures arrondies pour l'esthétique
+  },
+  text: {
+    fontSize: 16, // Taille de la police pour une meilleure lisibilité
+  },
+
+
 });
 
 export default AideScreen;

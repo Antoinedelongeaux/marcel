@@ -1,7 +1,7 @@
 import React from 'react'
 import { supabase } from '../lib/supabase'
 import { useState, useEffect } from 'react'
-import { Image,View, StyleSheet, Button, Text, Alert, Keyboard, TouchableWithoutFeedback, TextInput, TouchableOpacity } from 'react-native'
+import { Image, View, StyleSheet, Button, Text, Alert, Keyboard, TouchableWithoutFeedback, TextInput, TouchableOpacity } from 'react-native'
 import { globalStyles } from '../../global'
 import { listSubjects, joinSubject, getSubjects, get_project } from '../components/data_handling';
 import { saveActiveSubjectId, getActiveSubjectId } from '../components/local_storage';
@@ -35,7 +35,7 @@ export default function ProfileScreen({ route }) {
     const [searchResults, setSearchResults] = useState([]);
     const navigateToScreen = (screenName, params) => {
         navigation.navigate(screenName, params);
-      };
+    };
 
     async function fetchSubjects() {
 
@@ -90,8 +90,8 @@ export default function ProfileScreen({ route }) {
     };
 
 
-   
-    
+
+
 
 
 
@@ -195,77 +195,73 @@ export default function ProfileScreen({ route }) {
 
 
     return (
-        <View style={{ flex: 1, backgroundColor: "#E8FFF6" }}>
-
-        <View style={globalStyles.navigationContainer}>
-
-
-      
-      <TouchableOpacity onPress={() => navigateToScreen('ReadAnswersScreen')} style={globalStyles.navButton}>
-      <Image source={BookIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
-  </TouchableOpacity>
-  <TouchableOpacity onPress={() => navigateToScreen('ProfileScreen')} style={globalStyles.navButton}>
-  <Image source={PersonIcon} style={{ width: 80, height: 80, opacity: 1 }} />
-      </TouchableOpacity>
-  <TouchableOpacity onPress={() => navigateToScreen('AideScreen')} style={globalStyles.navButton}>
-  <Image source={HelpIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigateToScreen('ManageBiographyScreen')} style={globalStyles.navButton}>
-      <Image source={SettingsIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
-      </TouchableOpacity>
-    </View>
-
-
-
-    
-                    <Text></Text>
-                    <Text style={globalStyles.title}>Vos informations de profil</Text>
-                    <Text></Text>
-                    <View style={globalStyles.form}>
-                        <Text>Adresse email</Text>
-                        <TextInput
-                            style={globalStyles.input}
-                            value={session?.user?.email}
-                            editable={!session}
-                        />
-                        <Text>Nom affiché</Text>
-                        <TextInput
-                            style={globalStyles.input}
-                            value={username || ''}
-                            onChangeText={(text) => setUsername(text)}
-                        />
-
-                        <Text>Nom complet</Text>
-                        <TextInput
-                            style={globalStyles.input}
-                            value={full_name || ''}
-                            onChangeText={(text) => setUsername(text)}
-                        />
-
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-
-                            <TouchableOpacity style={globalStyles.globalButton_narrow} onPress={() => updateProfile({ username, full_name })} >
-                                <Text style={globalStyles.globalButtonText}>{loading ? 'Chargement ...' : 'Mettre à jour'}</Text>
-                            </TouchableOpacity>
+        <View style={globalStyles.container}>
+            <View style={globalStyles.navigationContainer}>
+                <TouchableOpacity onPress={() => navigateToScreen('ReadAnswersScreen')} style={globalStyles.navButton}>
+                    <Image source={BookIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => navigateToScreen('ProfileScreen')} style={globalStyles.navButton}>
+                    <Image source={PersonIcon} style={{ width: 60, height: 60, opacity: 1 }} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => navigateToScreen('AideScreen')} style={globalStyles.navButton}>
+                    <Image source={HelpIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => navigateToScreen('ManageBiographyScreen')} style={globalStyles.navButton}>
+                    <Image source={SettingsIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
+                </TouchableOpacity>
+            </View>
 
 
 
 
-                            <TouchableOpacity style={globalStyles.globalButton_narrow} onPress={() => supabase.auth.signOut()} >
-                                <Text style={globalStyles.globalButtonText}>Se déconnecter</Text>
-                            </TouchableOpacity>
+            <Text></Text>
+            <Text style={globalStyles.title}>Vos informations de profil</Text>
+            <Text></Text>
+            <View style={globalStyles.form}>
+                <Text>Adresse email</Text>
+                <TextInput
+                    style={globalStyles.input}
+                    value={session?.user?.email}
+                    editable={!session}
+                />
+                <Text>Nom affiché</Text>
+                <TextInput
+                    style={globalStyles.input}
+                    value={username || ''}
+                    onChangeText={(text) => setUsername(text)}
+                />
 
-                        </View>
-                        {/*}
+                <Text>Nom complet</Text>
+                <TextInput
+                    style={globalStyles.input}
+                    value={full_name || ''}
+                    onChangeText={(text) => setUsername(text)}
+                />
+
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+
+                    <TouchableOpacity style={globalStyles.globalButton_narrow} onPress={() => updateProfile({ username, full_name })} >
+                        <Text style={globalStyles.globalButtonText}>{loading ? 'Chargement ...' : 'Mettre à jour'}</Text>
+                    </TouchableOpacity>
+
+
+
+
+                    <TouchableOpacity style={globalStyles.globalButton_narrow} onPress={() => supabase.auth.signOut()} >
+                        <Text style={globalStyles.globalButtonText}>Se déconnecter</Text>
+                    </TouchableOpacity>
+
+                </View>
+                {/*}
                     <View style={globalStyles.buttonWrapper}>
                         <Button title="Rejoindre un groupe" onPress={() => joinGroup('582d1c79-bc29-4765-a5d1-755b82105029')} />
                     </View>
     */}
 
-                    </View>
-               
             </View>
-        
+
+        </View>
+
         //</TouchableWithoutFeedback>
     )
 
@@ -284,17 +280,17 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         paddingHorizontal: 10,
         marginBottom: 20,
-      },
-      input: {
+    },
+    input: {
         flex: 1,
         height: 40,
         padding: 10,
-      },
-      icon: {
+    },
+    icon: {
         marginLeft: 10,
-      },
+    },
 
-     
+
 
 })
 

@@ -2,12 +2,12 @@ import { StyleSheet } from 'react-native';
 
 export const globalStyles = StyleSheet.create({
   container: {
-    //flex: 1,
-    //justifyContent: 'flex-start',
+    flex: 1,
+    justifyContent: 'flex-start',
     //paddingTop: 20,
     backgroundColor: "#E8FFF6",
-    //alignItems:"center",
-    padding: 20,
+    alignItems:"stretch",
+    paddingHorizontal: 25,
     //paddingBottom: 10, 
   },
 
@@ -69,7 +69,7 @@ export const globalStyles = StyleSheet.create({
     width: '45%', // Adaptation de la largeur
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#0b2d52', // Couleur du fond
+    backgroundColor: '#7D94AF', // Couleur du fond
     margin: 10,
     borderRadius: 10,
     padding: 10,
@@ -80,24 +80,19 @@ export const globalStyles = StyleSheet.create({
     shadowRadius: 3.84,
   },
   globalButton_wide: {
-    width: '90%', // Adaptation de la largeur
-    justifyContent: 'center',
-    alignItems: 'center',
+    alignSelf: "center",
+    width: '90%',
     backgroundColor: '#0b2d52', // Couleur du fond
-    margin: 10,
+    marginVertical: 10,
     borderRadius: 10,
     padding: 10,
-    elevation: 5, // Ombre pour Android
-    shadowColor: '#000', // Ombre pour iOS
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    
   },
   globalButton_narrow: {
     width: '45%', // Adaptation de la largeur
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#b1b3b5', // Couleur du fond
+    backgroundColor: '#0b2d52', // Couleur du fond
     margin: 10,
     borderRadius: 10,
     padding: 10,
