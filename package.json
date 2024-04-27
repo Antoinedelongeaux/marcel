@@ -51,7 +51,7 @@
     "react-navigation-tabs": "^2.11.2",
     "stream-browserify": "^3.0.0",
     "uuid": "^9.0.1",
-    "vercel": "^33.7.0",
+    "vercel": "^34.1.1",
     "vm-browserify": "^1.1.2"
   },
   "devDependencies": {

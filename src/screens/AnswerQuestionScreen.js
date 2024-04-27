@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { Image, View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
+import { Image, View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { globalStyles } from '../../global';
 import { getMemories_Question_by_id,getMemories_Question, submitMemories_Answer, deleteMemories_Answer, get_user_name,update_answer_text } from '../components/data_handling'; // Assurez-vous d'implémenter deleteMemories_Answer
 import { record_answer, playRecording_fromAudioFile, delete_audio, startRecording, stopRecording,transcribeAudio } from '../components/sound_handling';
@@ -47,6 +47,13 @@ function ReadAnswersScreen({ route }) {
     navigation.navigate(screenName);
   };
 
+  useEffect(() => {
+    answers.forEach((answer) => {
+      if (answer.answer === "audio pas encore converti en texte" && answer.audio) {
+        handleTranscribe(answer.id);
+      }
+    });
+  }, [answers]);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -81,7 +88,7 @@ function ReadAnswersScreen({ route }) {
       submitMemories_Answer(transcribedText, question, session, true, name, async () => {
         setTimeout(async () => {
           await refreshAnswers();
-        }, 1000);
+        }, 100);
       });
       setIsRecording(false); // Réinitialiser l'état d'enregistrement
     } else {
@@ -277,9 +284,11 @@ function ReadAnswersScreen({ route }) {
         </TouchableOpacity>
       )}
        {ans.answer === "audio pas encore converti en texte" && (
-        <TouchableOpacity onPress={() => handleTranscribe(ans.id)} style={styles.transcribeButton}>
-          <Image source={edit} style={{ width: 28, height: 28, opacity: 0.5 }} />
-        </TouchableOpacity>
+      
+        <View style={styles.container}>
+      <ActivityIndicator size="large" color="#0b2d52" />
+    
+        </View>
       )}
       {ans.answer !== "audio pas encore converti en texte" && ans.id !== editingAnswerId && (
         <TouchableOpacity
@@ -425,6 +434,11 @@ const styles = StyleSheet.create({
     padding: 5,
     borderRadius: 5,
   },
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center'
+  }
 
 });
 
