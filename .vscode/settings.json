@@ -1,0 +1,7 @@
+{
+    "terminal.integrated.shellIntegration.decorationsEnabled": "both",
+    "terminal.integrated.shellIntegration.enabled": true,
+    "terminal.integrated.profiles.linux": {"bash": {"path": "/bin/bash"}},
+
+
+}
