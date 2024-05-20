@@ -1,7 +1,11 @@
 {
     "terminal.integrated.shellIntegration.decorationsEnabled": "both",
     "terminal.integrated.shellIntegration.enabled": true,
-    "terminal.integrated.profiles.linux": {"bash": {"path": "/bin/bash"}},
+    "terminal.integrated.profiles.linux": {"bash": {"path": "/home/antoine/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"}},
+    "terminal.integrated.env.linux": {
+        "PATH": "/home/antoine/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+    }
+    
 
 
 }
