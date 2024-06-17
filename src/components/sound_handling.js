@@ -3,50 +3,56 @@ import * as FileSystem from 'expo-file-system';
 import { supabase } from '../lib/supabase';
 import { Buffer } from 'buffer';
 import { decode } from 'base64-arraybuffer';
-import { Recording, RecordingOptionsPresets } from 'expo-av';
+import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg';
 
 global.Buffer = Buffer; 
 
 import { Platform } from 'react-native';
 
+async function setupFFmpeg() {
+    const ffmpeg = createFFmpeg({ log: true });
+    await ffmpeg.load();
+    console.log('FFmpeg is ready');
+}
+
+setupFFmpeg();
+
+
+
 
 export const save_audio = async (audioFile, name) => {
   try {
-
     console.log("Coucou !");
     console.log("Envoi de la requête à l'API test");
     const testUrl = 'https://91.108.112.18:3000/test';
     try {
-        const testResponse = await fetch(testUrl);
-        console.log("Requête API envoyée");
-        const testResult = await testResponse.text();  // Handle plain text response
-        console.log('Test API Response:', testResult);
+      const testResponse = await fetch(testUrl);
+      console.log("Requête API envoyée");
+      const testResult = await testResponse.text();  // Handle plain text response
+      console.log('Test API Response:', testResult);
     } catch (error) {
-        console.error('Fetch error:', error);
+      console.error('Fetch error:', error);
     }
-    
-    
 
-
-
-    const fileName = `${name}.mp3`; // Nom du fichier avec extension MP3
+    const fileName = `${name}.flac`; // Nom du fichier avec extension FLAC
 
     // Conversion pour la plateforme web
     if (Platform.OS === 'web') {
       if (!(audioFile instanceof Blob || audioFile instanceof File)) {
         throw new Error('Expected audio file to be a Blob or File');
       }
-      
+
       const audioBlob = new Blob([audioFile], { type: 'audio/mp3' });
+      const flacBlob = await convertBlobToFlac(audioBlob);
       const reader = new FileReader();
-      reader.readAsDataURL(audioBlob); // Convertit Blob en Base64
-      
+      reader.readAsDataURL(flacBlob); // Convertit Blob en Base64
+
       await new Promise((resolve) => {
         reader.onloadend = () => {
           const base64audio = reader.result.split(',')[1]; // Isoler la chaîne base64
-          // Téléversement du fichier en format MP3
+          // Téléversement du fichier en format FLAC
           supabase.storage.from('audio').upload(fileName, decode(base64audio), {
-            contentType: 'audio/mp3', // Définir explicitement le type MIME en MP3
+            contentType: 'audio/flac', // Définir explicitement le type MIME en FLAC
             cacheControl: '3600',
             upsert: false
           }).then(({ error }) => {
@@ -57,10 +63,13 @@ export const save_audio = async (audioFile, name) => {
         };
       });
     } else {
-      // Traitement pour les plateformes mobiles, pas de changement
+      // Traitement pour les plateformes mobiles, conversion en FLAC
       const base64 = await FileSystem.readAsStringAsync(audioFile, { encoding: FileSystem.EncodingType.Base64 });
-      const { error: uploadError } = await supabase.storage.from('audio').upload(fileName, decode(base64), {
-        contentType: 'audio/mp3',
+      const flacBlob = await convertBase64ToFlacBlob(base64);
+      const flacBase64 = await convertBlobToBase64(flacBlob);
+
+      const { error: uploadError } = await supabase.storage.from('audio').upload(fileName, decode(flacBase64), {
+        contentType: 'audio/flac',
         cacheControl: '3600',
         upsert: false
       });
@@ -375,6 +384,41 @@ const blobToBase64 = (blob) => {
     reader.readAsDataURL(blob);
   });
 };
+
+const convertBlobToBase64 = (blob) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+};
+
+const convertBase64ToFlacBlob = async (base64) => {
+  if (!ffmpeg.isLoaded()) {
+    await ffmpeg.load();
+  }
+
+  ffmpeg.FS('writeFile', 'input.mp3', await fetchFile(`data:audio/mp3;base64,${base64}`));
+  await ffmpeg.run('-i', 'input.mp3', 'output.flac');
+  const data = ffmpeg.FS('readFile', 'output.flac');
+
+  return new Blob([data.buffer], { type: 'audio/flac' });
+};
+
+// Fonction utilitaire pour convertir un Blob MP3 en FLAC
+const convertBlobToFlac = async (blob) => {
+  if (!ffmpeg.isLoaded()) {
+    await ffmpeg.load();
+  }
+
+  ffmpeg.FS('writeFile', 'input.mp3', await fetchFile(blob));
+  await ffmpeg.run('-i', 'input.mp3', 'output.flac');
+  const data = ffmpeg.FS('readFile', 'output.flac');
+
+  return new Blob([data.buffer], { type: 'audio/flac' });
+};
+
 
 const saveBlobToFileSystem = async (blob, fileName) => {
   const base64DataUrl = await blobToBase64(blob); // Cela retourne une Data URL
