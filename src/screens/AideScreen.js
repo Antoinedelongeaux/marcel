@@ -3,22 +3,11 @@ import { supabase } from '../lib/supabase'
 import { useState, useEffect } from 'react'
 import { Image, View, Platform, StyleSheet, Button, Text, Alert, Keyboard, TouchableWithoutFeedback, TextInput, TouchableOpacity } from 'react-native'
 import { globalStyles } from '../../global'
-import { listSubjects, joinSubject, getSubjects, get_project } from '../components/data_handling';
-import { saveActiveSubjectId, getActiveSubjectId } from '../components/local_storage';
-import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-//import ArrowLeftIcon from '../../assets/icons/arrow-left-solid.svg';
-import refresh from '../../assets/icons/refresh_black_24dp.svg';
 import PersonIcon from '../../assets/icons/person.svg';
 import BookIcon from '../../assets/icons/book.svg';
 import HelpIcon from '../../assets/icons/help-circle.svg';
-import trash from '../../assets/icons/baseline_delete_outline_black_24dp.png';
 import SettingsIcon from '../../assets/icons/settings.svg';
-import LinkIcon from '../../assets/icons/link-solid.svg';
-import expand_more from '../../assets/icons/expand_more_black_24dp.svg';
-import expand_less from '../../assets/icons/expand_less_black_24dp.svg';
-import edit from '../../assets/icons/pen-to-square-regular.svg';
-import Svg, { Path } from 'react-native-svg';
 import { RichEditor, RichToolbar } from 'react-native-pell-rich-editor';
 import ReactQuill from 'react-quill'; // Importer ReactQuill
 import 'react-quill/dist/quill.snow.css'; // Importer les styles CSS pour ReactQuill
@@ -76,40 +65,16 @@ export default function AideScreen({ route }) {
   }, []);
   
 
-  /*
-useEffect(() => {
-    const loadData = async () => {
-        const { data, error } = await supabase
-            .from('Memoires_questions')
-            .select('full_text')
-            .eq('id', "513151576162" )
-            .single();
-
-        if (error) {
-            console.error('Error loading data:', error);
-        } else if (data && data.full_text) {
-            // Supposons que `full_text` contient déjà du HTML pur
-            setContent(data.full_text);
-            console.log("test : ",data.full_text)
-        } else {
-            console.error("Data is not in the expected format:", data.full_text);
-        }
-    };
-
-    loadData();
-}, []);
-
-  */
+  
 
 
 
   useEffect(() => {
-    console.log("isEditorReady : ",isEditorReady)
+
       if (editor.current && isEditorReady) {
           // Assurez-vous que l'éditeur est prêt avant de tenter de mettre à jour son contenu
           if (Platform.OS === 'web') {
-            console.log("Coucou, on est tout frais ! ")
-            console.log("Content bis : ",content)
+
               editor.current.getEditor().setContents(content);
           } else {
               editor.current.setContent(content);
@@ -117,8 +82,6 @@ useEffect(() => {
       }
   }, [content, isEditorReady]);  // Dépend de `content` et `isEditorReady`
   
-
-
     const handleSaving = async () => {
       if (Platform.OS === 'web') {
         try {
@@ -175,14 +138,9 @@ useEffect(() => {
 
     const editor = React.useRef();
 
-    const handleEditorReady = () => {
-      setEditorReady(true);
-  };
 
     // Afficher RichEditor pour les plateformes mobiles et ReactQuill pour le web
-    const EditorComponent = Platform.OS === 'web' ? ReactQuill : RichEditor;
-    const ToolbarComponent = Platform.OS === 'web' ? () => null : RichToolbar; // Pas de barre d'outils pour ReactQuill dans cet exemple simple
-  
+   
     if (isLoading) {
       return <View style={globalStyles.container}><Text>Loading...</Text></View>; // Afficher un indicateur de chargement
   }

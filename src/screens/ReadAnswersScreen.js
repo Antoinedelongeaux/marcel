@@ -73,6 +73,10 @@ const useFetchData = (subjectActive, setQuestions, tags, personal, setChapters) 
   }, [subjectActive, tags, personal]);
 };
 
+
+
+
+
 function ReadQuestionsScreen({ route }) {
   const navigation = useNavigation();
   const session = route.params?.session;
@@ -104,6 +108,22 @@ function ReadQuestionsScreen({ route }) {
   const [subject, setSubject] = useState([]);
   const editor = useRef();
 
+  const quillModules = {
+    toolbar: {
+      container: [
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ header: '1' }, { header: '2' }, { font: [] }],
+        [{ list: 'ordered' }, { list: 'bullet' }],
+        ['link', 'image', 'video'],
+        ['clean'],
+        [{ color: [] }, { background: [] }],
+        ['save'],
+      ],
+      handlers: {
+        save: handleSaving,
+      },
+    },
+  };
   useFetchActiveSubjectId(setSubjectActive, setSubject, navigation);
   useFetchData(subjectActive, setQuestions, tags, personal, setChapters);
 
@@ -114,6 +134,10 @@ function ReadQuestionsScreen({ route }) {
     }));
   };
 
+  const navigateToScreen = (screenName, params) => {
+  //const navigation = useNavigation();
+  navigation.navigate(screenName, params);
+};
   const toggleTag = (tag) => {
     const updatedTags = tags.includes(tag) ? tags.filter((t) => t !== tag) : [...tags, tag];
     setTags(updatedTags);
@@ -230,22 +254,7 @@ function ReadQuestionsScreen({ route }) {
     }
   };
 
-  const quillModules = {
-    toolbar: {
-      container: [
-        ['bold', 'italic', 'underline', 'strike'],
-        [{ header: '1' }, { header: '2' }, { font: [] }],
-        [{ list: 'ordered' }, { list: 'bullet' }],
-        ['link', 'image', 'video'],
-        ['clean'],
-        [{ color: [] }, { background: [] }],
-        ['save'],
-      ],
-      handlers: {
-        save: handleSaving,
-      },
-    },
-  };
+  
 
   if (isLoading) {
     return (
@@ -279,13 +288,13 @@ function ReadQuestionsScreen({ route }) {
 
       <View style={isLargeScreen ? styles.largeScreenContainer : styles.smallScreenContainer}>
         <View style={isLargeScreen ? styles.leftPanel : styles.fullWidth}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 10 }}>
-            <TouchableOpacity style={globalStyles.globalButton_narrow} onPress={() => setIsModalVisible(true)}>
-              <Text style={globalStyles.globalButtonText}>Nouveau Chapitre</Text>
+          <View style={{ flexDirection: 'column', justifyContent: 'space-between', padding: 10 }}>
+            <TouchableOpacity style={globalStyles.globalButton_wide} onPress={() => setIsModalVisible(true)}>
+              <Text style={globalStyles.globalButtonText}>Nouvelle partie</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={globalStyles.globalButton_narrow} onPress={() => navigateToScreen('AskQuestionScreen')}>
-              <Text style={globalStyles.globalButtonText}>Nouvelle Note / question </Text>
+            <TouchableOpacity style={globalStyles.globalButton_wide} onPress={() => navigateToScreen('AskQuestionScreen')}>
+              <Text style={globalStyles.globalButtonText}>Nouveau chapitre </Text>
             </TouchableOpacity>
           </View>
           <ScrollView>
@@ -343,7 +352,10 @@ function ReadQuestionsScreen({ route }) {
                 <>
                   <div id="toolbar"></div>
                   <View style={styles.toolbarContainer}>
-                    <Button title="Save" onPress={handleSaving} style={styles.saveButton} />
+                    <TouchableOpacity style={globalStyles.globalButton_wide} onPress={handleSaving}>
+                      <Text style={globalStyles.globalButtonText}>Enregistrer le texte du chapitre </Text>
+                    </TouchableOpacity>
+                    
                     <ReactQuill ref={editor} theme="snow" modules={quillModules} bounds={'#toolbar'} value={content} />
                   </View>
                 </>

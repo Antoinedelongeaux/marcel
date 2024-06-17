@@ -5,20 +5,12 @@ import { Image, View, StyleSheet, Button, Text, Alert, Keyboard, TouchableWithou
 import { globalStyles } from '../../global'
 import { listSubjects, joinSubject, getSubjects, get_project } from '../components/data_handling';
 import { saveActiveSubjectId, getActiveSubjectId } from '../components/local_storage';
-import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-//import ArrowLeftIcon from '../../assets/icons/arrow-left-solid.svg';
-import refresh from '../../assets/icons/refresh_black_24dp.svg';
 import PersonIcon from '../../assets/icons/person.svg';
 import BookIcon from '../../assets/icons/book.svg';
 import HelpIcon from '../../assets/icons/help-circle.svg';
-import trash from '../../assets/icons/baseline_delete_outline_black_24dp.png';
 import SettingsIcon from '../../assets/icons/settings.svg';
-import LinkIcon from '../../assets/icons/link-solid.svg';
-import expand_more from '../../assets/icons/expand_more_black_24dp.svg';
-import expand_less from '../../assets/icons/expand_less_black_24dp.svg';
-import edit from '../../assets/icons/pen-to-square-regular.svg';
-import Svg, { Path } from 'react-native-svg';
+
 
 export default function ProfileScreen({ route }) {
     const session = route.params.session
@@ -27,12 +19,8 @@ export default function ProfileScreen({ route }) {
     const [username, setUsername] = useState('')
     const [full_name, setFull_name] = useState('')
 
-    const [subjects, setSubjects] = useState([]);
-    const [subjects_active, setSubjects_active] = useState([]);
     const [subject_active, setSubject_active] = useState(null);
-    const [showProjects, setShowProjects] = useState(false);
-    const [searchName, setSearchName] = useState('');
-    const [searchResults, setSearchResults] = useState([]);
+    
     const navigateToScreen = (screenName, params) => {
         navigation.navigate(screenName, params);
     };
