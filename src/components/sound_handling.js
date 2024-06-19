@@ -4,10 +4,11 @@ import { supabase } from '../lib/supabase';
 import { Buffer } from 'buffer';
 import { decode } from 'base64-arraybuffer';
 import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg';
+import { Platform } from 'react-native';
 
 global.Buffer = Buffer; 
 
-import { Platform } from 'react-native';
+
 
 async function setupFFmpeg() {
     const ffmpeg = createFFmpeg({ log: true });
@@ -22,7 +23,7 @@ setupFFmpeg();
 
 export const save_audio = async (audioFile, name) => {
   try {
-    console.log("Coucou !");
+
     console.log("Envoi de la requête à l'API test");
     const testUrl = 'https://91.108.112.18:3000/test';
     try {
@@ -280,7 +281,7 @@ export const transcribeAudio = async (audioFileName) => {
   
   
   
-    console.log("Coucou !");
+
     const testPostUrl = 'https://srv495286.hstgr.cloud:3000/test-post';
 
 
@@ -456,3 +457,91 @@ async function adjustSampleRate(originalBlob) {
 
     return blob;
 }
+
+
+    
+
+const isWeb = typeof window !== 'undefined' && typeof window.document !== 'undefined';
+/*
+export const uploadAudioToSupabase = async (uri, fileName) => {
+  try {
+    let base64;
+    console.log("Coco ...")
+    if (isWeb) {
+      // Utiliser fetch pour convertir Blob en base64 sur le web
+      const response = await fetch(uri);
+      const blob = await response.blob();
+      base64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    } else {
+      // Utiliser expo-file-system pour lire le fichier en tant que base64 sur mobile
+      base64 = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
+    }
+
+    // Vérifier si la base64 est valide
+    if (!base64) {
+      throw new Error("Failed to convert audio file to base64");
+    }
+
+    // Convertir la base64 en ArrayBuffer pour l'upload
+    const audioArrayBuffer = decode(base64);
+
+    // Uploader le fichier sur Supabase
+    const { error } = await supabase.storage.from('audio').upload(fileName, audioArrayBuffer, {
+      contentType: 'audio/mp3',  // Assurez-vous que le contentType correspond au format désiré
+      cacheControl: '3600',
+      upsert: false,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    console.log(`File uploaded and accessible at: ${fileName}`);
+    return fileName;
+  } catch (error) {
+    console.error('Error uploading audio to Supabase:', error);
+    return null;
+  }
+};
+*/
+export const uploadAudioToSupabase = async (uri, fileName) => {
+  try {
+    let flacBlob;
+    console.log("Coco ...")
+    if (Platform.OS === 'web') {
+      // Utiliser fetch pour convertir Blob en FLAC sur le web
+      const response = await fetch(uri);
+      const blob = await response.blob();
+      flacBlob = await convertBlobToFlac(blob); // Conversion en FLAC
+    } else {
+      // Utiliser expo-file-system pour lire le fichier en tant que base64 sur mobile
+      const base64 = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
+      flacBlob = await convertBase64ToFlacBlob(base64); // Conversion en FLAC
+    }
+
+    // Convertir la blob en Base64 pour l'upload
+    const flacBase64 = await convertBlobToBase64(flacBlob);
+
+    // Uploader le fichier sur Supabase
+    const { error } = await supabase.storage.from('audio').upload(fileName, decode(flacBase64), {
+      contentType: 'audio/flac',  // Assurez-vous que le contentType correspond au format FLAC
+      cacheControl: '3600',
+      upsert: false,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    console.log(`File uploaded and accessible at: ${fileName}`);
+    return fileName;
+  } catch (error) {
+    console.error('Error uploading audio to Supabase:', error);
+    return null;
+  }
+};

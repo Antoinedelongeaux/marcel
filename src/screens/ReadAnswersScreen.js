@@ -43,6 +43,7 @@ import { RichEditor, RichToolbar } from 'react-native-pell-rich-editor';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { QuillDeltaToHtmlConverter } from 'quill-delta-to-html';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const windowWidth = Dimensions.get('window').width;
 
@@ -111,8 +112,9 @@ function ReadQuestionsScreen({ route }) {
   const [middlePanelWidth, setMiddlePanelWidth] = useState(windowWidth * 0.6);
 const [isDragging, setIsDragging] = useState(false);
 
+
 const handleMouseDown = () => {
-  console.log('Et ça tire !')
+
   setIsDragging(true);
 };
 
@@ -121,7 +123,7 @@ const handleMouseMove = (e) => {
   const newWidth = e.clientX;
   if (newWidth > 100 && newWidth < windowWidth - 100) {
     setMiddlePanelWidth(newWidth);
-    console.log("nouvelle largeur : ",newWidth)
+
   }
 };
 
@@ -237,9 +239,9 @@ const toggleLeftPanel = () => {
 
     
     if (Object.keys(activeQuestionAnswers)[0]) {
-      console.log("Coucou !!!");
+  
       const loadData = async () => {
-        console.log("ID question in :", Object.keys(activeQuestionAnswers)[0]);
+
 
         const { data, error } = await supabase
           .from('Memoires_questions')
@@ -272,8 +274,6 @@ const toggleLeftPanel = () => {
       try {
         const quillInstance = editor.current.getEditor();
         const content = quillInstance.getContents();
-        console.log('Saving content:', content);
-        console.log("ID question out :",Object.keys(activeQuestionAnswers)[0])
 
         const { error: errorUpdating } = await supabase
           .from('Memoires_questions')
@@ -297,7 +297,7 @@ const toggleLeftPanel = () => {
 
   useEffect(() => {
     if (isDragging) {
-      console.log("toujours")
+
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', handleMouseUp);
     } else {
@@ -344,6 +344,7 @@ const toggleLeftPanel = () => {
       <View style={isLargeScreen ? styles.largeScreenContainer : styles.smallScreenContainer}>
   {isLeftPanelVisible && (
     <View style={isLargeScreen ? styles.leftPanel : styles.fullWidth}>
+      <Text style={styles.panelTitle}>Structure</Text> 
       <View style={{ flexDirection: 'column', justifyContent: 'space-between', padding: 10 }}>
         <TouchableOpacity style={globalStyles.globalButton_wide} onPress={() => setIsModalVisible(true)}>
           <Text style={globalStyles.globalButtonText}>Nouvelle partie</Text>
@@ -403,11 +404,19 @@ const toggleLeftPanel = () => {
       </ScrollView>
     </View>
   )}
-  <TouchableOpacity onPress={toggleLeftPanel} style={styles.togglePanelButton}>
-    <Text style={styles.togglePanelButtonText}>{isLeftPanelVisible ? '←' : '→'}</Text>
-  </TouchableOpacity>
+  <TouchableOpacity onPress={toggleLeftPanel} style={{
+  ...styles.togglePanelButton, 
+  left: isLeftPanelVisible ? (350 - 22) : 0, 
+  top: 40 
+}}>
+
+
+  <Icon name={isLeftPanelVisible ? 'chevron-left' : 'chevron-right'} size={24} color="#fff" />
+</TouchableOpacity>
+
   {isLargeScreen && (
     <View style={{ ...styles.MiddlePanel, width: middlePanelWidth }}>
+      <Text style={styles.panelTitle}>Texte du chapitre </Text>
       <View style={styles.container}>
         {Platform.OS === 'web' ? (
           <>
@@ -453,8 +462,9 @@ const toggleLeftPanel = () => {
     style={styles.resizer}
     onMouseDown={handleMouseDown}
   />
-  {isLargeScreen && (
-    <View style={{ ...styles.rightPanel, width: windowWidth - middlePanelWidth - 30 }}>
+
+<View style={{ ...styles.rightPanel, width: isLargeScreen ? (windowWidth - middlePanelWidth - 30) : '100%' }}>
+<Text style={styles.panelTitle}>Notes</Text>
       <ScrollView>
         <>
           {Object.keys(activeQuestionAnswers).map((questionId) => (
@@ -478,7 +488,7 @@ const toggleLeftPanel = () => {
         </>
       </ScrollView>
     </View>
-  )}
+  
 </View>
 
 
@@ -603,6 +613,10 @@ const toggleLeftPanel = () => {
       </Modal>
     </View>
   );
+
+
+
+
 }
 
 const styles = StyleSheet.create({
@@ -617,7 +631,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   leftPanel: {
-  
+    width: 350,
     padding: 10,
     borderRightWidth: 1,
     borderColor: '#ccc',
@@ -777,6 +791,32 @@ const styles = StyleSheet.create({
     cursor: 'col-resize',
     backgroundColor: '#ccc',
     zIndex: 1,
+  },
+  togglePanelButton: {
+    position: 'absolute',
+    top: 20,
+    //left: isLeftPanelVisible ? 200 : 0, // Adjust based on the sidebar width
+    zIndex: 1000,
+    backgroundColor: '#007BFF',
+    borderRadius: 25,
+    padding: 10,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  togglePanelButtonText: {
+    color: '#fff',
+    fontSize: 18,
+  },
+  panelTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
   },
   
 });

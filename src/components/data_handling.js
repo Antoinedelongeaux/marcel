@@ -266,6 +266,7 @@ export async function deleteMemories_Answer(answerId) {
 
 export async function submitMemories_Answer(answer, question, session, audio, name, resetAnswerAndFetchQuestion) {
   try {
+    console.log("test 2")
     const response = audio ? answer : (answer.trim() === '' ? 'Réponse vide' : answer);
     const { error } = await supabase
       .from('Memoires_answers')
