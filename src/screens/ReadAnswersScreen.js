@@ -112,7 +112,9 @@ function ReadQuestionsScreen({ route }) {
   const [subject, setSubject] = useState([]);
   const editor = useRef();
   const [isLeftPanelVisible, setIsLeftPanelVisible] = useState(true);
-  const [middlePanelWidth, setMiddlePanelWidth] = useState(windowWidth * 0.6);
+  const [middlePanelWidth, setMiddlePanelWidth] = useState(0.6*windowWidth )
+  const [rightPanelWidth, setRightPanelWidth] = useState(windowWidth - middlePanelWidth);
+
 const [isDragging, setIsDragging] = useState(false);
 const [expandedAnswers, setExpandedAnswers] = useState({});
 
@@ -141,6 +143,15 @@ const handleMouseMove = (e) => {
 const handleMouseUp = () => {
   setIsDragging(false);
 };
+
+useEffect(() => {
+  if (!isLeftPanelVisible){
+    setRightPanelWidth(windowWidth - middlePanelWidth);
+  }
+  if (isLeftPanelVisible){
+    setRightPanelWidth(windowWidth - middlePanelWidth-350);
+  }
+}, [middlePanelWidth,isLeftPanelVisible ]);
 
 
 const toggleLeftPanel = () => {
@@ -420,9 +431,10 @@ const copyToClipboard = (text) => {
     </View>
   )}
 <View
-  style={[styles.resizer, { left: middlePanelWidth }]}
+  style={[styles.resizer, { right: rightPanelWidth -10 }]}
   onMouseDown={handleMouseDown}
 >
+
   <Text style={styles.resizerText}>{'< >'}</Text>
 </View>
 
@@ -479,7 +491,7 @@ const copyToClipboard = (text) => {
 
 
 
-<View style={[styles.rightPanel, { width: isLargeScreen ? windowWidth - middlePanelWidth - 20 : '100%' }]}>
+<View style={[styles.rightPanel, { width: rightPanelWidth }]}>
 
 <Text style={styles.panelTitle}>Notes</Text>
       <ScrollView>
@@ -670,9 +682,10 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
   },
   rightPanel: {
-    flex: 1,
+    //flex: 1,
     padding: 10,
     marginRight: 5, // Ajoutez cette ligne pour la marge à droite
+
   },
   
   fullWidth: {
@@ -817,7 +830,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     bottom: 0,
-    width: 10,
+    //width: 10,
     cursor: 'col-resize',
     backgroundColor: '#ccc',
     justifyContent: 'center',

@@ -7,7 +7,7 @@ export const globalStyles = StyleSheet.create({
     //paddingTop: 20,
     backgroundColor: "#E8FFF6",
     alignItems:"stretch",
-    paddingHorizontal: 25,
+    //paddingHorizontal: 25,
     //paddingBottom: 10, 
   },
 
