@@ -435,7 +435,8 @@ const copyToClipboard = (text) => {
   onMouseDown={handleMouseDown}
 >
 
-  <Text style={styles.resizerText}>{'< >'}</Text>
+<Text style={[styles.resizerText, { userSelect: 'none' }]}>{'< >'}</Text>
+
 </View>
 
   {isLargeScreen && (
@@ -775,6 +776,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.23,
     shadowRadius: 2.62,
     elevation: 4,
+    width: '90%',
+    alignSelf: 'center', 
+  
   },
   unSelectedTag: {
     backgroundColor: '#b1b3b5',
