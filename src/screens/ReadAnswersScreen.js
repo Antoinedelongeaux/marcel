@@ -44,6 +44,9 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { QuillDeltaToHtmlConverter } from 'quill-delta-to-html';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import Clipboard from '@react-native-clipboard/clipboard';
+import copyIcon from '../../assets/icons/paste.png';
+
 
 const windowWidth = Dimensions.get('window').width;
 
@@ -111,6 +114,14 @@ function ReadQuestionsScreen({ route }) {
   const [isLeftPanelVisible, setIsLeftPanelVisible] = useState(true);
   const [middlePanelWidth, setMiddlePanelWidth] = useState(windowWidth * 0.6);
 const [isDragging, setIsDragging] = useState(false);
+const [expandedAnswers, setExpandedAnswers] = useState({});
+
+const toggleAnswerExpansion = (index) => {
+  setExpandedAnswers((prev) => ({
+    ...prev,
+    [index]: !prev[index],
+  }));
+};
 
 
 const handleMouseDown = () => {
@@ -136,6 +147,10 @@ const toggleLeftPanel = () => {
   setIsLeftPanelVisible(!isLeftPanelVisible);
 };
 
+const copyToClipboard = (text) => {
+  Clipboard.setString(text);
+  Alert.alert('Copié dans le presse-papier', text);
+};
 
   const quillModules = {
     toolbar: {
@@ -404,66 +419,68 @@ const toggleLeftPanel = () => {
       </ScrollView>
     </View>
   )}
-  <TouchableOpacity onPress={toggleLeftPanel} style={{
-  ...styles.togglePanelButton, 
-  left: isLeftPanelVisible ? (350 - 22) : 0, 
-  top: 40 
-}}>
-
-
-  <Icon name={isLeftPanelVisible ? 'chevron-left' : 'chevron-right'} size={24} color="#fff" />
-</TouchableOpacity>
+<View
+  style={[styles.resizer, { left: middlePanelWidth }]}
+  onMouseDown={handleMouseDown}
+>
+  <Text style={styles.resizerText}>{'< >'}</Text>
+</View>
 
   {isLargeScreen && (
-    <View style={{ ...styles.MiddlePanel, width: middlePanelWidth }}>
-      <Text style={styles.panelTitle}>Texte du chapitre </Text>
-      <View style={styles.container}>
-        {Platform.OS === 'web' ? (
-          <>
-            <div id="toolbar"></div>
-            <View style={styles.toolbarContainer}>
-              <TouchableOpacity style={globalStyles.globalButton_wide} onPress={handleSaving}>
-                <Text style={globalStyles.globalButtonText}>Enregistrer le texte du chapitre </Text>
-              </TouchableOpacity>
-              
-              <ReactQuill ref={editor} theme="snow" modules={quillModules} bounds={'#toolbar'} value={content} />
-            </View>
-          </>
-        ) : (
-          <>
-            <RichEditor ref={editor} style={styles.editor} initialContentHTML={content} />
-            <RichToolbar
-              editor={editor}
-              style={styles.toolbar}
-              iconTint="#000000"
-              selectedIconTint="#209cee"
-              selectedButtonStyle={{ backgroundColor: 'transparent' }}
-              actions={[
-                'bold',
-                'italic',
-                'underline',
-                'unorderedList',
-                'orderedList',
-                'insertLink',
-                'insertImage',
-                'blockQuote',
-                'undo',
-                'redo',
-                'save',
-              ]}
-              onSave={handleSaving}
-            />
-          </>
-        )}
-      </View>
-    </View>
+   <View style={isLargeScreen ? styles.middlePanelContainer : styles.fullWidth}>
+   <TouchableOpacity onPress={toggleLeftPanel} style={styles.toggleLine}>
+     <Text style={styles.toggleLineText}>{isLeftPanelVisible ? '<' : '>'}</Text>
+   </TouchableOpacity>
+   <View style={{ ...styles.MiddlePanel, width: middlePanelWidth }}>
+     <Text style={styles.panelTitle}>Texte du chapitre </Text>
+     <View style={styles.container}>
+       {Platform.OS === 'web' ? (
+         <>
+           <div id="toolbar"></div>
+           <View style={styles.toolbarContainer}>
+             <TouchableOpacity style={globalStyles.globalButton_wide} onPress={handleSaving}>
+               <Text style={globalStyles.globalButtonText}>Enregistrer le texte du chapitre </Text>
+             </TouchableOpacity>
+ 
+             <ReactQuill ref={editor} theme="snow" modules={quillModules} bounds={'#toolbar'} value={content} />
+           </View>
+         </>
+       ) : (
+         <>
+           <RichEditor ref={editor} style={styles.editor} initialContentHTML={content} />
+           <RichToolbar
+             editor={editor}
+             style={styles.toolbar}
+             iconTint="#000000"
+             selectedIconTint="#209cee"
+             selectedButtonStyle={{ backgroundColor: 'transparent' }}
+             actions={[
+               'bold',
+               'italic',
+               'underline',
+               'unorderedList',
+               'orderedList',
+               'insertLink',
+               'insertImage',
+               'blockQuote',
+               'undo',
+               'redo',
+               'save',
+             ]}
+             onSave={handleSaving}
+           />
+         </>
+       )}
+     </View>
+   </View>
+ </View>
+ 
   )}
-<View
-    style={styles.resizer}
-    onMouseDown={handleMouseDown}
-  />
 
-<View style={{ ...styles.rightPanel, width: isLargeScreen ? (windowWidth - middlePanelWidth - 30) : '100%' }}>
+
+
+<View style={[styles.rightPanel, { width: isLargeScreen ? windowWidth - middlePanelWidth - 20 : '100%' }]}>
+
 <Text style={styles.panelTitle}>Notes</Text>
       <ScrollView>
         <>
@@ -478,13 +495,23 @@ const toggleLeftPanel = () => {
               <Text style={globalStyles.globalButtonText}>Répondre</Text>
             </TouchableOpacity>
           ))}
+
+          
           {Object.keys(activeQuestionAnswers).map((questionId) =>
-            activeQuestionAnswers[questionId]?.map((answer, index) => (
-              <View key={index} style={styles.answerCard}>
-                <Text style={styles.answerText}>{answer.answer}</Text>
-              </View>
-            ))
-          )}
+  activeQuestionAnswers[questionId]?.map((answer, index) => (
+    <View key={index} style={styles.answerCard}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 }}>
+        <Text>{new Date(answer.created_at).toLocaleDateString()} {new Date(answer.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
+        <TouchableOpacity onPress={() => copyToClipboard(answer.answer)}>
+          <Image source={copyIcon} style={{ width: 20, height: 20, opacity: 0.5 }} />
+        </TouchableOpacity>
+      </View>
+      <Text style={styles.answerText}>{answer.answer}</Text>
+    </View>
+  ))
+)}
+
+
         </>
       </ScrollView>
     </View>
@@ -787,11 +814,21 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   resizer: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
     width: 10,
     cursor: 'col-resize',
     backgroundColor: '#ccc',
+    justifyContent: 'center',
+    alignItems: 'center',
     zIndex: 1,
   },
+  resizerText: {
+    fontWeight: 'bold',
+    color: '#000', // Noir pour le contraste
+  },
+  
   togglePanelButton: {
     position: 'absolute',
     top: 20,
@@ -817,6 +854,21 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 10,
     textAlign: 'center',
+  },
+  toggleLine: {
+    width: 10,
+    backgroundColor: '#ccc', // Noir pour faire ressortir la ligne
+    justifyContent: 'center',
+    alignItems: 'center',
+    cursor: 'pointer',
+  },
+  toggleLineText: {
+    color: '#fff', // Blanc pour contraster avec la ligne noire
+    fontWeight: 'bold',
+  },
+  middlePanelContainer: {
+    flexDirection: 'row',
+    flex: 1,
   },
   
 });
