@@ -111,7 +111,10 @@ function NoteScreen({ route }) {
     const answerDate = new Date(answer.created_at);
     const beforeDate = dateBefore ? new Date(dateBefore) : null;
     const afterDate = dateAfter ? new Date(dateAfter) : null;
-    const question = questions.find(q => q.id === answer.id_question);
+    
+    // Ajout de logs pour vérifier les valeurs de selectedQuestion et answer.id_question
+    console.log('selectedQuestion:', selectedQuestion);
+    console.log('answer.id_question:', answer.id_question);
     
     return (
       (!textFilter || answer.answer.includes(textFilter)) &&
@@ -119,9 +122,11 @@ function NoteScreen({ route }) {
       (!afterDate || answerDate > afterDate) &&
       (selectedQuestion === '' || 
        (selectedQuestion === 'none' && answer.id_question === null) ||
-       (selectedQuestion === answer.id_question))
+       (selectedQuestion === answer.id_question.toString())) // Assurez-vous que les types sont cohérents pour la comparaison
     );
   });
+  
+  
 
   if (isLoading) {
     return (
@@ -220,8 +225,8 @@ function NoteScreen({ route }) {
       value={selectedQuestion}
       onChange={(e) => setSelectedQuestion(e.target.value)}
     >
-      <option value="">Toutes les questions</option>
-      <option value="none">Aucune question</option>
+      <option value="">Tous les chapitres</option>
+      <option value="none">Aucun chapitre </option>
       {questions.map((question, index) => (
         <option key={index} value={question.id}>{question.question}</option>
       ))}
@@ -230,26 +235,30 @@ function NoteScreen({ route }) {
 </View>
 
 
-      <ScrollView>
-        <>
-        {filteredAnswers.length > 0 && filteredAnswers.map((answer, index) => {
-  const question = questions.find(q => q.id === answer.id_question);
-  return (
-    <View key={index} style={styles.answerCard}>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 }}>
-        <Text>{new Date(answer.created_at).toLocaleDateString()} {new Date(answer.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
-        <Text>{question ? question.question : ''}</Text>
-        <TouchableOpacity onPress={() => { copyToClipboard(answer.answer); integration(answer.id); refreshPage(); }}>
-          <Image source={copyIcon} style={{ width: 20, height: 20, opacity: 0.5 }} />
-        </TouchableOpacity>
-      </View>
-      <Text style={styles.answerText}>{answer.answer}</Text>
-    </View>
-  );
-})}
+<ScrollView>
+    {filteredAnswers.length > 0 ? filteredAnswers.map((answer, index) => {
+      const question = questions.find(q => q.id === answer.id_question);
+      return (
+        <View key={index} style={styles.answerCard}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 }}>
+  <Text style={{ fontWeight: 'bold' }}>
+    {new Date(answer.created_at).toLocaleDateString()} {new Date(answer.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+  </Text>
+  <Text style={{ fontWeight: 'bold' }}>
+    {question ? "Chapitre : " + question.question : 'Réponse incluse dans aucun chapitre'}
+  </Text>
+  <TouchableOpacity onPress={() => { copyToClipboard(answer.answer); integration(answer.id); refreshPage(); }}>
+    <Image source={copyIcon} style={{ width: 20, height: 20, opacity: 0.5 }} />
+  </TouchableOpacity>
+</View>
 
-        </>
-      </ScrollView>
+          <Text style={styles.answerText}>{answer.answer}</Text>
+        </View>
+      );
+    }) : (
+      <Text>Aucune réponse trouvée</Text>
+    )}
+  </ScrollView>
     </View>
   );
 }
