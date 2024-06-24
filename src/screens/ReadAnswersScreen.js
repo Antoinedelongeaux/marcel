@@ -502,7 +502,7 @@ const copyToClipboard = (text) => {
     </View>
   )}
 <View
-  style={[styles.resizer, { right: rightPanelWidth -10 }]}
+  style={[styles.resizer, { right: rightPanelWidth }]}
   onMouseDown={handleMouseDown}
 >
 
