@@ -187,7 +187,8 @@ export async function getMemories_Question_by_id(id_question,setQuestion, setAns
 export async function getMemories_Questions(subject_active, setQuestions, tags, personal) {
   try {
 
-    console.log("Paramètres : ",tags, personal)
+    console.log("Tags : ",tags)
+    console.log("Personnel : ", personal)
     console.log("subject_active : ",subject_active)
     setQuestions([])
     const orCondition = tags.length > 0 ? tags.map(tag => `tags.cs.{"${tag}"}`).join(',') : 'true';
@@ -210,8 +211,8 @@ export async function getMemories_Questions(subject_active, setQuestions, tags, 
 
     // Exécuter la requête pour récupérer les questions
     const { data: questions, error: errorQuestions } = await query;
-
-    console.log("questions 1 : ", questions)
+    console.log("query : ",query)
+    console.log("questions : ", questions)
 
     if (errorQuestions) throw errorQuestions;
 

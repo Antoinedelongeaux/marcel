@@ -117,7 +117,7 @@ function ReadQuestionsScreen({ route }) {
   const [subject, setSubject] = useState([]);
   const editor = useRef();
   const [isLeftPanelVisible, setIsLeftPanelVisible] = useState(true);
-  const [middlePanelWidth, setMiddlePanelWidth] = useState(0.6*windowWidth )
+  const [middlePanelWidth, setMiddlePanelWidth] = useState(0.5*windowWidth )
   const [rightPanelWidth, setRightPanelWidth] = useState(windowWidth - middlePanelWidth);
   const [initialMouseX, setInitialMouseX] = useState(null);
   const [initialMiddlePanelWidth, setInitialMiddlePanelWidth] = useState(middlePanelWidth);
@@ -915,7 +915,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    padding: 10,
+    padding: 0,
   },
   editor: {
     flex: 1,

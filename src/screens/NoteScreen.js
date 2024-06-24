@@ -68,7 +68,7 @@ function NoteScreen({ route }) {
   const [showDateBeforePicker, setShowDateBeforePicker] = useState(false);
   const [showDateAfterPicker, setShowDateAfterPicker] = useState(false);
   const [questions, setQuestions] = useState([]);
-  const [personal, setPersonal] = useState('False');
+  const [personal, setPersonal] = useState(false);
   const [chapters,setChapters] = useState([]);
   const [tags, setTags] = useState([
     'Famille',
@@ -99,6 +99,15 @@ const [note, setNote] = useState(''); // Ajoutez cette ligne dans les états
 
     fetchAnswers();
   }, []);
+
+  useEffect(() => {
+    console.log("questions : ", questions)
+  }, [questions]);
+
+  useEffect(() => {
+    console.log("réponses : ", answers)
+  }, [answers]);
+
   useEffect(() => {
     const fetchQuestionsAndChapters = async () => {
       if (subjectActive != null) {
@@ -123,9 +132,6 @@ const [note, setNote] = useState(''); // Ajoutez cette ligne dans les états
     const beforeDate = dateBefore ? new Date(dateBefore) : null;
     const afterDate = dateAfter ? new Date(dateAfter) : null;
     
-    // Ajout de logs pour vérifier les valeurs de selectedQuestion et answer.id_question
-    console.log('selectedQuestion:', selectedQuestion);
-    console.log('answer.id_question:', answer.id_question);
     
     return (
       (!textFilter || answer.answer.includes(textFilter)) &&
