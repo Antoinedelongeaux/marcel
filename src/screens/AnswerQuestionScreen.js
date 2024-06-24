@@ -22,6 +22,7 @@ import expand_less from '../../assets/icons/expand_less_black_24dp.svg';
 import edit from '../../assets/icons/pen-to-square-regular.svg';
 import MicroIcon from '../../assets/icons/microphone-lines-solid.svg';
 import VolumeIcon from '../../assets/icons/volume_up_black_24dp.svg';
+import Upload from '../../assets/icons/upload.png';
 import Svg, { Path } from 'react-native-svg';
 import * as DocumentPicker from 'expo-document-picker';
 
@@ -110,20 +111,11 @@ function ReadAnswersScreen({ route }) {
   };
 
   const handleAnswerSubmit = async (name, audio, uri = null) => {
-    console.log("Test 1")
     const transcribedText = audio ? "audio pas encore converti en texte" : answer;
   
     if (audio && uri) {
-      // Vérifiez que l'URI est valide avant de procéder
-      if (!uri) {
-        console.error("Invalid URI: ", uri);
-        Alert.alert("Erreur", "URI du fichier audio invalide");
-        return;
-      }
-  
       const uploadedFileName = await uploadAudioToSupabase(uri, name);
       if (!uploadedFileName) {
-        console.error("Failed to upload audio file to Supabase");
         Alert.alert("Erreur", "Échec du téléchargement du fichier audio");
         return;
       }
@@ -131,12 +123,12 @@ function ReadAnswersScreen({ route }) {
   
     await submitMemories_Answer(transcribedText, question, session, audio, name, async () => {
       setAnswer('');
-      // Rafraîchir les réponses après l'ajout d'une nouvelle réponse
       setTimeout(async () => {
         await refreshAnswers();
       }, 1000);
     });
   };
+  
   
   
 
@@ -262,32 +254,57 @@ function ReadAnswersScreen({ route }) {
                 </Text>
                 <Text></Text>
                 <View style={{ paddingVertical: 20 }}>
-                  <TouchableOpacity
-                    style={[
-                      globalStyles.globalButton,
-                      isRecording ? styles.recordingButton : {},
-                      { marginTop: 10, marginBottom: 10, backgroundColor: isRecording ? "red" : '#b1b3b5' },
-                    ]}
-                    onPress={handleRecording}
-                  >
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                      <Image source={MicroIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
-                      <Text style={globalStyles.globalButtonText}>
-                        {isRecording ? "   Arrêter l'enregistrement" : "   Répondre"}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                  <View style={{ paddingVertical: 20 }}>
-                    <TouchableOpacity
-                      style={globalStyles.globalButton}
-                      onPress={handleUploadAudio}
-                    >
-                      <Text style={globalStyles.globalButtonText}>
-                        <FontAwesome name="upload" size={36} color="black" />
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
+  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
+    <TouchableOpacity
+      style={[
+        globalStyles.globalButton_wide,
+        isRecording ? styles.recordingButton : {},
+        { backgroundColor: isRecording ? "red" : '#b1b3b5', flex: 1, marginRight: 5 },
+      ]}
+      onPress={handleRecording}
+    >
+      <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+        <Image source={MicroIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
+        <Text style={globalStyles.globalButtonText}>
+          {isRecording ? "Arrêter l'enregistrement" : "Répondre"}
+        </Text>
+      </View>
+    </TouchableOpacity>
+    
+    {session.user.id === '8a3d731c-6d40-4400-9dc5-b5926e6d5bbd' && (
+  <TouchableOpacity
+    style={[globalStyles.globalButton_wide, { backgroundColor: '#b1b3b5', flex: 1, marginLeft: 5 }]}
+    onPress={handleUploadAudio}
+  >
+    <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+      <Image source={Upload} style={{ width: 60, height: 60, opacity: 0.5 }} />
+      <Text style={globalStyles.globalButtonText}>
+        Envoyer un enregistrement vocal
+      </Text>
+    </View>
+  </TouchableOpacity>
+)}
+
+  </View>
+
+  <TextInput
+    style={globalStyles.input}
+    value={answer}
+    onChangeText={setAnswer}
+    placeholder="Écrire une réponse..."
+    multiline={true}
+    numberOfLines={4}
+  />
+   <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
+  <TouchableOpacity
+    style={[globalStyles.globalButton_wide, { backgroundColor: '#b1b3b5' , flex: 1, marginRight: 5 }]}
+    onPress={() => handleAnswerSubmit('', false)}
+  >
+    <Text style={globalStyles.globalButtonText}>Envoyer la réponse écrite</Text>
+  </TouchableOpacity>
+  </View>
+</View>
+
 
                 {Array.isArray(answers) && answers.map((ans) => (
                   <View key={ans.id} style={styles.answerCard}>

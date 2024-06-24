@@ -1,6 +1,7 @@
 
 import { Alert } from 'react-native';
 import { supabase } from '../lib/supabase';
+import { getActiveSubjectId } from './local_storage';
 
 
 
@@ -114,6 +115,33 @@ export async function getMemories_Questions_by_tags(setQuestions, tags) {
   }
 }
 
+export async function get_Question_by_id(id_question, setQuestion) {
+  try {
+
+  
+
+    // Préparer la requête de base
+    let query = supabase
+      .from('Memoires_questions')
+      .select('*')
+      .eq('id', id_question)
+      .single();
+
+
+    // Exécuter la requête
+    const { data: question, error: errorQuestion } = await query;
+
+    if (errorQuestion) throw errorQuestion;
+
+
+
+    setQuestion(question);
+  } catch (error) {
+    console.error("Error", error.message);
+    setQuestion({ "question": "Error" });
+  }
+}
+
 
 export async function getMemories_Question_by_id(id_question,setQuestion, setAnswers, setOwner) {
   try {
@@ -158,7 +186,9 @@ export async function getMemories_Question_by_id(id_question,setQuestion, setAns
 
 export async function getMemories_Questions(subject_active, setQuestions, tags, personal) {
   try {
-    console.log("tags :",tags)
+
+    console.log("Paramètres : ",tags, personal)
+    console.log("subject_active : ",subject_active)
     setQuestions([])
     const orCondition = tags.length > 0 ? tags.map(tag => `tags.cs.{"${tag}"}`).join(',') : 'true';
     
@@ -174,11 +204,15 @@ export async function getMemories_Questions(subject_active, setQuestions, tags, 
     }
 
     if (personal) {
+      console.log("Personal")
       query = query.not('id_owner', 'is', null);
     }
 
     // Exécuter la requête pour récupérer les questions
     const { data: questions, error: errorQuestions } = await query;
+
+    console.log("questions 1 : ", questions)
+
     if (errorQuestions) throw errorQuestions;
 
     // Pour chaque question, compter le nombre de réponses et conditionnellement récupérer le nom d'utilisateur du propriétaire
@@ -205,7 +239,6 @@ export async function getMemories_Questions(subject_active, setQuestions, tags, 
         username: username, // Utiliser la variable username qui peut être "Marcel" par défaut ou un nom d'utilisateur récupéré
       };
     }));
-
 
     setQuestions(questionsWithDetails);
   } catch (error) {
@@ -241,6 +274,29 @@ export async function getMemories_Answers_to_Question(questionId) {
   }
 }
 
+export async function getMemories_Answers() {
+  try {
+    const id_subject = await getActiveSubjectId();
+    if (id_subject == null) {
+      console.log("ID subject is null or undefined.");
+      return []; // Retourner un tableau vide si l'ID de la question est null
+    }
+
+    const { data: answers, error } = await supabase
+      .from('Memoires_answers')
+      .select('*')
+      .eq('id_subject', id_subject);
+
+    if (error) {
+      throw error;
+    }
+    console.log("Answers : ",answers)
+    return answers || []; // Retourner les réponses ou un tableau vide si aucune réponse n'est trouvée
+  } catch (error) {
+    console.error("Error fetching answers:", error.message);
+    return []; // Retourner un tableau vide en cas d'erreur
+  }
+}
 
 
 export async function deleteMemories_Answer(answerId) {
@@ -266,12 +322,12 @@ export async function deleteMemories_Answer(answerId) {
 
 export async function submitMemories_Answer(answer, question, session, audio, name, resetAnswerAndFetchQuestion) {
   try {
-    console.log("test 2")
+    const id_subject = await getActiveSubjectId();
     const response = audio ? answer : (answer.trim() === '' ? 'Réponse vide' : answer);
     const { error } = await supabase
       .from('Memoires_answers')
       .insert([
-        { id_question: question.id, id_user: session?.user?.id, answer: response, audio: audio, link_storage: name }
+        { id_question: question.id, id_user: session?.user?.id,id_subject : id_subject, answer: response, audio: audio, link_storage: name }
       ]);
     if (error) throw error;
     // Notification de succès
@@ -799,4 +855,23 @@ export async function delete_question(id_question) {
   } catch (error) {
     Alert.alert('Erreur lors de la suppression', error.message);
   } 
+}
+
+
+
+export async function integration(id_answer) {
+  try {
+    const { error: errorUpdating } = await supabase
+        .from('Memoires_answers')
+        .update({ used: true })
+        .match({ id: id_answer});
+
+
+
+
+  }catch (errorUpdating ) {
+    Alert.alert('Erreur lors de la prise en compte de la copie : ', errorUpdating.message);
+  } 
+
+
 }

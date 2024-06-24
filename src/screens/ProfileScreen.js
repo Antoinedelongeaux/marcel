@@ -10,6 +10,7 @@ import PersonIcon from '../../assets/icons/person.svg';
 import BookIcon from '../../assets/icons/book.svg';
 import HelpIcon from '../../assets/icons/help-circle.svg';
 import SettingsIcon from '../../assets/icons/settings.svg';
+import note from '../../assets/icons/notes.png';
 
 
 export default function ProfileScreen({ route }) {
@@ -188,14 +189,16 @@ export default function ProfileScreen({ route }) {
                 <TouchableOpacity onPress={() => navigateToScreen('ReadAnswersScreen')} style={globalStyles.navButton}>
                     <Image source={BookIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => navigateToScreen('ProfileScreen')} style={globalStyles.navButton}>
-                    <Image source={PersonIcon} style={{ width: 60, height: 60, opacity: 1 }} />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => navigateToScreen('AideScreen')} style={globalStyles.navButton}>
-                    <Image source={HelpIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
-                </TouchableOpacity>
+                
+                <TouchableOpacity onPress={() => navigateToScreen('NoteScreen')} style={styles.navButton}>
+          <Image source={note} style={{ width: 60, height: 60, opacity: 0.5 }} />
+        </TouchableOpacity>
+                
                 <TouchableOpacity onPress={() => navigateToScreen('ManageBiographyScreen')} style={globalStyles.navButton}>
                     <Image source={SettingsIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => navigateToScreen('ProfileScreen')} style={globalStyles.navButton}>
+                    <Image source={PersonIcon} style={{ width: 60, height: 60, opacity: 1 }} />
                 </TouchableOpacity>
             </View>
 

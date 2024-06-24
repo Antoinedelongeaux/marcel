@@ -23,6 +23,7 @@ import expand_less from '../../assets/icons/expand_less_black_24dp.svg';
 import edit from '../../assets/icons/pen-to-square-regular.svg';
 import Svg, { Path } from 'react-native-svg';
 import BookIcon from '../../assets/icons/book.svg';
+import note from '../../assets/icons/notes.png';
 
 
 
@@ -49,6 +50,12 @@ export default function ProfileScreen({ route }) {
     const [showContributors, setShowContributors] = useState(false);
     const [showChangeProject, setShowChangeProject] = useState(false);
     const [showModal, setShowModal] = useState(false);
+    
+    const [showJoinModal, setShowJoinModal] = useState(false);
+    const [joinMessage, setJoinMessage] = useState("");
+    const [selectedSubject, setSelectedSubject] = useState(null);
+
+
 
 
 
@@ -62,15 +69,14 @@ export default function ProfileScreen({ route }) {
         if (session) {
             getProfile();
             try {
-                console.log("session.user", session.user)
+ 
                 const temp = await getSubjects(session.user.id);
                 const temp_bis = await getSubjects_pending(session.user.id);
                 setSubjects_active(temp);
                 setSubjects_pending(temp_bis);
 
 
-                // Si vous souhaitez également rafraîchir la liste des sujets disponibles à rejoindre
-                console.log("session.user_bis", session.user)
+
                 const temp2 = await listSubjects(session.user.id);
                 setSubjects(temp2);
 
@@ -104,6 +110,10 @@ export default function ProfileScreen({ route }) {
         });
 
 
+        
+    
+
+
         try {
             const { data, error } = await supabase
                 .from('profiles')
@@ -123,6 +133,11 @@ export default function ProfileScreen({ route }) {
         }
     };
 
+    const handleConnectSubject = (id) => {
+        setSelectedSubject(id);
+        setShowJoinModal(true); // Affiche la modale
+    };
+    
 
     const fetchContributors = async () => {
         if (subject_active) {
@@ -238,15 +253,20 @@ export default function ProfileScreen({ route }) {
                 <TouchableOpacity onPress={() => navigateToScreen('ReadAnswersScreen')} style={styles.navButton}>
                     <Image source={BookIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => navigateToScreen('ProfileScreen')} style={styles.navButton}>
-                    <Image source={PersonIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => navigateToScreen('AideScreen')} style={styles.navButton}>
-                    <Image source={help} style={{ width: 60, height: 60, opacity: 0.5 }} />
-                </TouchableOpacity>
+                <TouchableOpacity onPress={() => navigateToScreen('NoteScreen')} style={styles.navButton}>
+          <Image source={note} style={{ width: 60, height: 60, opacity: 0.5 }} />
+        </TouchableOpacity>
                 <TouchableOpacity onPress={() => navigateToScreen('ManageBiographyScreen')} style={styles.navButton}>
                     <Image source={settings} style={{ width: 60, height: 60, opacity: 1 }} />
                 </TouchableOpacity>
+                <TouchableOpacity onPress={() => navigateToScreen('ProfileScreen')} style={styles.navButton}>
+                    <Image source={PersonIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
+                </TouchableOpacity>
+   {/*             
+                <TouchableOpacity onPress={() => navigateToScreen('AideScreen')} style={styles.navButton}>
+                    <Image source={help} style={{ width: 60, height: 60, opacity: 0.5 }} />
+                </TouchableOpacity>
+*/}
             </View>
 
 
@@ -399,19 +419,15 @@ export default function ProfileScreen({ route }) {
                             </View>
 
                             {searchResults.map((result) => (
-                                <TouchableOpacity
-                                    key={result.id}
-                                    style={[globalStyles.globalButton_tag, styles.unSelectedTag,
-                                    { color: 'black' }]}
-                                    onPress={async () => {
-                                        await joinSubject(result.id, session.user.id, "En attente");
-                                        fetchSubjects();
-                                    }}
-                                >
-                                    <Text style={[globalStyles.globalButtonText_tag,
-                                    { color: 'black' }]}>{result.title}</Text>
-                                </TouchableOpacity>
-                            ))}
+    <TouchableOpacity
+        key={result.id}
+        style={[globalStyles.globalButton_tag, styles.unSelectedTag, { color: 'black' }]}
+        onPress={() => handleConnectSubject(result.id)}
+    >
+        <Text style={[globalStyles.globalButtonText_tag, { color: 'black' }]}>{result.title}</Text>
+    </TouchableOpacity>
+))}
+
                         </>
                     )}
 
@@ -437,6 +453,61 @@ export default function ProfileScreen({ route }) {
                     )}
 
                 </>)}
+                
+                <Modal
+    animationType="slide"
+    transparent={true}
+    visible={showJoinModal}
+    onRequestClose={() => setShowJoinModal(false)}
+>
+    <View style={styles.centeredView}>
+        <View style={styles.modalView}>
+            
+            <TouchableOpacity
+        style={[globalStyles.globalButton_wide]}
+        onPress={async () => {
+            setShowJoinModal(false);
+            await joinSubject(selectedSubject,session.user.id,"En attente");
+            setJoinMessage("Votre demande a bien été envoyés aux contributeurs du projet pour validation.")
+        }}
+    >
+        <Text style={[globalStyles.globalButtonText]}>Envoyer la demande d'accès au projet</Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+        style={[globalStyles.globalButton_wide]}
+        onPress={() => setShowJoinModal(false)}
+    >
+        <Text style={[globalStyles.globalButtonText]}>Abandonner</Text>
+    </TouchableOpacity>
+            
+ 
+        
+        </View>
+    </View>
+</Modal>
+
+<Modal
+    animationType="slide"
+    transparent={true}
+    visible={!!joinMessage}
+    onRequestClose={() => setJoinMessage("")}
+>
+    <View style={styles.centeredView}>
+        <View style={styles.modalView}>
+            <Text style={styles.modalText}>{joinMessage}</Text>
+            <TouchableOpacity
+        style={[globalStyles.globalButton_wide]}
+        onPress={() => setJoinMessage("")}
+    >
+        <Text style={[globalStyles.globalButtonText]}>Ok</Text>
+    </TouchableOpacity>
+            
+            
+        </View>
+    </View>
+</Modal>
+
+
         </View>
     )
 

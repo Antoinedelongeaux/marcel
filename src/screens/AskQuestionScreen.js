@@ -120,7 +120,7 @@ function AskQuestionScreen({ route }) {
 
           <TextInput
             style={[globalStyles.answer_input]}
-            placeholder={question.question ? question.question : "Définir le titre de votre note ici"}
+            placeholder={question.question ? question.question : "Définir le titre de votre chapitre ici"}
             value={userInput}
             onChangeText={text => setUserInput(text)}
             multiline={true}
@@ -136,15 +136,18 @@ function AskQuestionScreen({ route }) {
    <TouchableOpacity
         style={globalStyles.globalButton_wide}
         onPress={handleAction}>
-        <Text style={globalStyles.globalButtonText}>Enregistrer le titre de la note </Text>
+        <Text style={globalStyles.globalButtonText}>Enregistrer le titre du chapitre</Text>
       </TouchableOpacity>
     
 <Text></Text>
-<Text></Text>
-
-
-
+<Text> </Text>
+<View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+<Text> Quels thèmes seront abordés dans ce chapitre ?</Text>
+</View>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+     
+           
+            
             {allTags.map((tag, index) => (
               <TouchableOpacity
                 key={index}
