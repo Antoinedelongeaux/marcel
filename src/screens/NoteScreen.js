@@ -10,6 +10,7 @@ import {
   ScrollView,
   Button,
   Platform,
+  Alert,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import DatePicker from 'react-datepicker';
@@ -20,8 +21,12 @@ import {
   integration,
   getMemories_Questions,
   get_chapters,
+  submitMemories_Answer,
+  update_answer_text,
+  deleteMemories_Answer,
 
 } from '../components/data_handling';
+
 import { useFocusEffect } from '@react-navigation/native';
 import { getActiveSubjectId } from '../components/local_storage';
 import { globalStyles } from '../../global';
@@ -29,12 +34,14 @@ import BookIcon from '../../assets/icons/book.svg';
 import PersonIcon from '../../assets/icons/person.svg';
 import settings from '../../assets/icons/settings.svg';
 import copyIcon from '../../assets/icons/paste.png';
-import note from '../../assets/icons/notes.png';
+import noteIcon from '../../assets/icons/notes.png';
 import filterIcon from '../../assets/icons/filtre.png';
 import Modal from 'react-native-modal'; // Ajoutez cette ligne pour importer le composant Modal
-import { startRecording, stopRecording, uploadAudioToSupabase } from '../components/sound_handling'; // Ajoutez cette ligne
-import { submitMemories_Answer } from '../components/data_handling'; // Ajoutez cette ligne
-
+import { startRecording, stopRecording, uploadAudioToSupabase, delete_audio } from '../components/sound_handling'; // Ajoutez cette ligne
+import { transcribeAudio } from '../components/call_to_google';
+import MicroIcon from '../../assets/icons/microphone-lines-solid.svg';
+import VolumeIcon from '../../assets/icons/volume_up_black_24dp.svg';
+import trash from '../../assets/icons/baseline_delete_outline_black_24dp.png';
 
 
 const useFetchActiveSubjectId = (setSubjectActive, setSubject, navigation) => {
@@ -100,9 +107,11 @@ const [note, setNote] = useState(''); // Ajoutez cette ligne dans les états
     fetchAnswers();
   }, []);
 
-  useEffect(() => {
-    console.log("questions : ", questions)
-  }, [questions]);
+  const refreshAnswers = async () => {
+    const answers = await getMemories_Answers();
+      setAnswers(answers);
+      setIsLoading(false);
+  };
 
   useEffect(() => {
     console.log("réponses : ", answers)
@@ -123,37 +132,54 @@ const [note, setNote] = useState(''); // Ajoutez cette ligne dans les états
     navigation.navigate(screenName, params);
   };
 
-  const refreshPage = () => {
-    console.log("Coucou !");
+
+  const handleDeleteAnswer = async (answerId) => {
+    const answerToDelete = answers.find(ans => ans.id === answerId);
+    if (!answerToDelete) {
+      Alert.alert("Erreur", "La réponse n'a pas été trouvée.");
+      return;
+    }
+
+    if (answerToDelete.audio) {
+      try {
+        await delete_audio(answerToDelete.link_storage);
+      } catch (error) {
+        Alert.alert("Erreur lors de la suppression de l'audio", error.message);
+        return;
+      }
+    }
+
+    try {
+      const result = await deleteMemories_Answer(answerId);
+      if (result.success) {
+        const updatedAnswers = answers.filter(ans => ans.id !== answerId);
+        setAnswers(updatedAnswers);
+        Alert.alert("Réponse supprimée");
+      } else {
+        Alert.alert("Erreur", "La suppression de la réponse a échoué");
+      }
+    } catch (error) {
+      Alert.alert("Erreur", error.message);
+    }
   };
 
   const filteredAnswers = answers.filter(answer => {
     const answerDate = new Date(answer.created_at);
     const beforeDate = dateBefore ? new Date(dateBefore) : null;
     const afterDate = dateAfter ? new Date(dateAfter) : null;
-    
-    
+  
     return (
       (!textFilter || answer.answer.includes(textFilter)) &&
       (!beforeDate || answerDate < beforeDate) &&
       (!afterDate || answerDate > afterDate) &&
       (selectedQuestion === '' || 
        (selectedQuestion === 'none' && answer.id_question === null) ||
-       (selectedQuestion === answer.id_question.toString())) // Assurez-vous que les types sont cohérents pour la comparaison
+       (answer.id_question !== null && selectedQuestion === answer.id_question.toString())) // Assurez-vous que les types sont cohérents pour la comparaison
     );
   });
   
-  const handleRecording = async () => {
-    if (isRecording) {
-      const name = `${Date.now()}.mp3`;
-      await stopRecording(recording, name);
-      setIsRecording(false);
-    } else {
-      const temp = await startRecording();
-      setRecording(temp);
-      setIsRecording(true);
-    }
-  };
+  
+  
   
   const handleSaveNote = async () => {
     const audio = isRecording ? `${Date.now()}.mp3` : null;
@@ -170,6 +196,129 @@ const [note, setNote] = useState(''); // Ajoutez cette ligne dans les états
     // Rafraîchir les notes
   };
   
+  const handleRecording = async () => {
+    if (isRecording) {
+      const name = `${Date.now()}.mp3`;
+      await stopRecording(recording, name);
+      const transcribedText = "audio pas encore converti en texte";
+      submitMemories_Answer(transcribedText, selectedQuestion, session, true, name, async () => {
+        setTimeout(async () => {
+          await refreshAnswers();
+        }, 100);
+      });
+      setIsRecording(false);
+      setModalVisible(false)
+    } else {
+      const temp = await startRecording();
+      setRecording(temp);
+      setIsRecording(true);
+    }
+  };
+
+  const handleUpdateAnswer = async (answerId, newText) => {
+    try {
+      const result = await update_answer_text(answerId, newText);
+      await refreshAnswers();
+      setEditingAnswerId(null);
+      setEditingText('');
+    } catch (error) {
+      Alert.alert("Erreur lors de la mise à jour", error.message);
+    }
+  };
+
+  const handleTranscribe = async (answerId) => {
+    const answerToUpdate = answers.find(ans => ans.id === answerId);
+    if (answerToUpdate && answerToUpdate.audio) {
+      try {
+        const transcribedText = await transcribeAudio(answerToUpdate.link_storage);
+        await update_answer_text(answerToUpdate.id, transcribedText);
+        setTimeout(async () => {
+          await refreshAnswers();
+        }, 1000);
+      } catch (error) {
+        Alert.alert("Erreur de transcription", error.message);
+      }
+    }
+  };
+
+  const handleAnswerSubmit = async (name, audio, uri = null) => {
+    const transcribedText = audio ? "audio pas encore converti en texte" : note;
+  
+    if (audio && uri) {
+      const uploadedFileName = await uploadAudioToSupabase(uri, name);
+      if (!uploadedFileName) {
+        Alert.alert("Erreur", "Échec du téléchargement du fichier audio");
+        return;
+      }
+    }
+
+  console.log("inputs : ",transcribedText, selectedQuestion, session, audio, name)
+    await submitMemories_Answer(transcribedText, selectedQuestion, session, audio, name, async () => {
+      setNote('');
+      setTimeout(async () => {
+        await refreshAnswers();
+      }, 1000);
+    });
+  };
+
+
+  const handleUploadAudio = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'audio/*',
+        copyToCacheDirectory: false
+      });
+  
+
+  
+      if (!result.canceled) {
+        let uri, name, mimeType;
+  
+        // Gérer les différences de plateforme
+        if (result.output && result.output.length > 0) {
+          console.log("Using result.output");
+          const file = result.output[0];
+          console.log("Selected file: ", file);
+          uri = URL.createObjectURL(file);
+          name = file.name;
+          mimeType = file.type;
+        } else if (result.assets && result.assets.length > 0) {
+          console.log("Using result.assets");
+          const asset = result.assets[0];
+          console.log("Selected asset: ", asset);
+          uri = asset.uri;
+          name = asset.name;
+          mimeType = asset.mimeType;
+        } else {
+          console.error("Invalid file selection result", result);
+          throw new Error("Invalid file selection result");
+        }
+  
+        if (!uri || !name) {
+          console.error("Invalid file selection: URI or name is missing", { uri, name });
+          throw new Error("Invalid file selection: URI or name is missing");
+        }
+  
+        // Vérification du type MIME
+        if (mimeType && mimeType.startsWith('audio/')) {
+          console.log("File selected is an audio file:", { uri, name, mimeType });
+        } else {
+          console.error("Selected file is not an audio file:", { uri, name, mimeType });
+          Alert.alert("Erreur", "Le fichier sélectionné n'est pas un fichier audio");
+          return;
+        }
+  
+        console.log("File selected successfully:", { uri, name });
+        await handleAnswerSubmit(name, true, uri);
+      } else {
+        console.error("File selection was not successful: ", result);
+        Alert.alert("Erreur", "Sélection du fichier échouée");
+      }
+    } catch (error) {
+      console.error("Error handling file upload: ", error);
+      Alert.alert("Erreur", "Une erreur s'est produite lors de la sélection du fichier");
+    }
+  };
   
 
   if (isLoading) {
@@ -184,11 +333,11 @@ const [note, setNote] = useState(''); // Ajoutez cette ligne dans les états
   return (
     <View style={globalStyles.container}>
       <View style={globalStyles.navigationContainer}>
-        <TouchableOpacity onPress={() => navigateToScreen('ReadAnswersScreen')} style={globalStyles.navButton}>
+        <TouchableOpacity onPress={() => navigateToScreen('ReadAnswersScreen')} style={styles.navButton}>
           <Image source={BookIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigateToScreen('NoteScreen')} style={styles.navButton}>
-          <Image source={note} style={{ width: 60, height: 60, opacity: 1 }} />
+          <Image source={noteIcon} style={{ width: 60, height: 60, opacity: 1 }} />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigateToScreen('ManageBiographyScreen')} style={styles.navButton}>
           <Image source={settings} style={{ width: 60, height: 60, opacity: 0.5 }} />
@@ -207,6 +356,22 @@ const [note, setNote] = useState(''); // Ajoutez cette ligne dans les états
     <Modal isVisible={isModalVisible}>
       <View style={styles.modalContainer}>
         <Text style={styles.modalTitle}>Ajouter une note</Text>
+        {/* ajouter ici le nom de la question sélection et la possibilité d'en changer*/}
+        <TouchableOpacity
+      style={[
+        globalStyles.globalButton_wide,
+        isRecording ? styles.recordingButton : {},
+        { backgroundColor: isRecording ? "red" : '#b1b3b5', flex: 1, marginRight: 5 },
+      ]}
+      onPress={handleRecording}
+    >
+      <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+        <Image source={MicroIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
+        <Text style={globalStyles.globalButtonText}>
+          {isRecording ? "Arrêter l'enregistrement" : "Répondre"}
+        </Text>
+      </View>
+    </TouchableOpacity>
         <TextInput
           style={styles.input}
           placeholder="Écrire une note..."
@@ -214,11 +379,9 @@ const [note, setNote] = useState(''); // Ajoutez cette ligne dans les états
           onChangeText={setNote}
           multiline={true}
         />
-        <TouchableOpacity onPress={handleRecording} style={styles.recordButton}>
-          <Text style={styles.recordButtonText}>{isRecording ? 'Arrêter' : 'Enregistrer une note orale'}</Text>
-        </TouchableOpacity>
+        
         <View style={styles.modalButtonContainer}>
-          <TouchableOpacity onPress={handleSaveNote} style={styles.saveButton}>
+          <TouchableOpacity onPress={() => handleAnswerSubmit('', false)} style={styles.saveButton}>
             <Text style={styles.saveButtonText}>Enregistrer</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.cancelButton}>
@@ -323,9 +486,12 @@ const [note, setNote] = useState(''); // Ajoutez cette ligne dans les états
   <Text style={{ fontWeight: 'bold' }}>
     {question ? "Chapitre : " + question.question : 'Réponse incluse dans aucun chapitre'}
   </Text>
-  <TouchableOpacity onPress={() => { copyToClipboard(answer.answer); integration(answer.id); refreshPage(); }}>
+  <TouchableOpacity onPress={() => { copyToClipboard(answer.answer); integration(answer.id); refreshAnswers(); }}>
     <Image source={copyIcon} style={{ width: 20, height: 20, opacity: 0.5 }} />
   </TouchableOpacity>
+  <TouchableOpacity onPress={() => handleDeleteAnswer(answer.id)}>
+                        <Image source={trash} style={{ width: 36, height: 36, opacity: 0.5 }} />
+                      </TouchableOpacity>
 </View>
 
           <Text style={styles.answerText}>{answer.answer}</Text>

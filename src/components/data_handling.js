@@ -324,13 +324,28 @@ export async function deleteMemories_Answer(answerId) {
 export async function submitMemories_Answer(answer, question, session, audio, name, resetAnswerAndFetchQuestion) {
   try {
     const id_subject = await getActiveSubjectId();
+    let ID_question;
+
+    if (!question) {
+      console.log("Coco !");
+      ID_question = 0;
+    } else if (question.id) {
+      ID_question = question.id;
+    } else {
+      ID_question = question;
+    }
+
     const response = audio ? answer : (answer.trim() === '' ? 'Réponse vide' : answer);
+    console.log("input_bis :", ID_question);
+
     const { error } = await supabase
       .from('Memoires_answers')
       .insert([
-        { id_question: question.id, id_user: session?.user?.id,id_subject : id_subject, answer: response, audio: audio, link_storage: name }
+        { id_question: ID_question, id_user: session?.user?.id, id_subject: id_subject, answer: response, audio: audio, link_storage: name }
       ]);
+
     if (error) throw error;
+
     // Notification de succès
     Alert.alert(audio ? 'Réponse audio enregistrée' : 'Réponse écrite enregistrée');
     resetAnswerAndFetchQuestion();
@@ -338,6 +353,7 @@ export async function submitMemories_Answer(answer, question, session, audio, na
     Alert.alert("Erreur", error.message);
   }
 };
+
 
 
 export async function save_question(question, tags, subject_active, setQuestion) {
