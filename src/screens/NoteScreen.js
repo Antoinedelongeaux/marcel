@@ -30,6 +30,12 @@ import PersonIcon from '../../assets/icons/person.svg';
 import settings from '../../assets/icons/settings.svg';
 import copyIcon from '../../assets/icons/paste.png';
 import note from '../../assets/icons/notes.png';
+import filterIcon from '../../assets/icons/filtre.png';
+import Modal from 'react-native-modal'; // Ajoutez cette ligne pour importer le composant Modal
+import { startRecording, stopRecording, uploadAudioToSupabase } from '../components/sound_handling'; // Ajoutez cette ligne
+import { submitMemories_Answer } from '../components/data_handling'; // Ajoutez cette ligne
+
+
 
 const useFetchActiveSubjectId = (setSubjectActive, setSubject, navigation) => {
   useFocusEffect(
@@ -62,7 +68,7 @@ function NoteScreen({ route }) {
   const [showDateBeforePicker, setShowDateBeforePicker] = useState(false);
   const [showDateAfterPicker, setShowDateAfterPicker] = useState(false);
   const [questions, setQuestions] = useState([]);
-  const [personal, setPersonal] = useState('False');
+  const [personal, setPersonal] = useState(false);
   const [chapters,setChapters] = useState([]);
   const [tags, setTags] = useState([
     'Famille',
@@ -75,6 +81,11 @@ function NoteScreen({ route }) {
     '',
   ]);
   const [selectedQuestion, setSelectedQuestion] = useState('');
+  const [showFilters, setShowFilters] = useState(false); 
+  const [isModalVisible, setModalVisible] = useState(false); // Ajoutez cette ligne dans les états
+const [isRecording, setIsRecording] = useState(false); // Ajoutez cette ligne dans les états
+const [recording, setRecording] = useState(); // Ajoutez cette ligne dans les états
+const [note, setNote] = useState(''); // Ajoutez cette ligne dans les états
 
   useFetchActiveSubjectId(setSubjectActive, setSubject, navigation);
 
@@ -88,6 +99,15 @@ function NoteScreen({ route }) {
 
     fetchAnswers();
   }, []);
+
+  useEffect(() => {
+    console.log("questions : ", questions)
+  }, [questions]);
+
+  useEffect(() => {
+    console.log("réponses : ", answers)
+  }, [answers]);
+
   useEffect(() => {
     const fetchQuestionsAndChapters = async () => {
       if (subjectActive != null) {
@@ -111,7 +131,7 @@ function NoteScreen({ route }) {
     const answerDate = new Date(answer.created_at);
     const beforeDate = dateBefore ? new Date(dateBefore) : null;
     const afterDate = dateAfter ? new Date(dateAfter) : null;
-    const question = questions.find(q => q.id === answer.id_question);
+    
     
     return (
       (!textFilter || answer.answer.includes(textFilter)) &&
@@ -119,9 +139,38 @@ function NoteScreen({ route }) {
       (!afterDate || answerDate > afterDate) &&
       (selectedQuestion === '' || 
        (selectedQuestion === 'none' && answer.id_question === null) ||
-       (selectedQuestion === answer.id_question))
+       (selectedQuestion === answer.id_question.toString())) // Assurez-vous que les types sont cohérents pour la comparaison
     );
   });
+  
+  const handleRecording = async () => {
+    if (isRecording) {
+      const name = `${Date.now()}.mp3`;
+      await stopRecording(recording, name);
+      setIsRecording(false);
+    } else {
+      const temp = await startRecording();
+      setRecording(temp);
+      setIsRecording(true);
+    }
+  };
+  
+  const handleSaveNote = async () => {
+    const audio = isRecording ? `${Date.now()}.mp3` : null;
+    if (audio) {
+      const uploadedFileName = await uploadAudioToSupabase(recording, audio);
+      if (!uploadedFileName) {
+        Alert.alert('Erreur', 'Échec du téléchargement du fichier audio');
+        return;
+      }
+    }
+    await submitMemories_Answer(note, null, session, !!audio, audio);
+    setNote('');
+    setModalVisible(false);
+    // Rafraîchir les notes
+  };
+  
+  
 
   if (isLoading) {
     return (
@@ -151,6 +200,38 @@ function NoteScreen({ route }) {
 
       <Text style={globalStyles.title}> </Text>
 
+      <TouchableOpacity onPress={() => setModalVisible(true)} style={globalStyles.globalButton_wide}>
+      <Text style={globalStyles.globalButtonText}>Ajouter une note</Text>
+    </TouchableOpacity>
+
+    <Modal isVisible={isModalVisible}>
+      <View style={styles.modalContainer}>
+        <Text style={styles.modalTitle}>Ajouter une note</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Écrire une note..."
+          value={note}
+          onChangeText={setNote}
+          multiline={true}
+        />
+        <TouchableOpacity onPress={handleRecording} style={styles.recordButton}>
+          <Text style={styles.recordButtonText}>{isRecording ? 'Arrêter' : 'Enregistrer une note orale'}</Text>
+        </TouchableOpacity>
+        <View style={styles.modalButtonContainer}>
+          <TouchableOpacity onPress={handleSaveNote} style={styles.saveButton}>
+            <Text style={styles.saveButtonText}>Enregistrer</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.cancelButton}>
+            <Text style={styles.cancelButtonText}>Annuler</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+
+      <TouchableOpacity onPress={() => setShowFilters(!showFilters)} style={styles.filterIcon}>
+  <Image source={filterIcon} style={{ width: 30, height: 30, opacity: 0.5 }} />
+</TouchableOpacity>
+{showFilters && ( 
       <View style={styles.filterContainer}>
   <TextInput
     style={styles.input}
@@ -213,43 +294,47 @@ function NoteScreen({ route }) {
     )}
   </View>
   
-  {/* Ajoutez ce menu déroulant pour sélectionner la question */}
+
   <View style={styles.dropdownContainer}>
     <select
       style={styles.dropdown}
       value={selectedQuestion}
       onChange={(e) => setSelectedQuestion(e.target.value)}
     >
-      <option value="">Toutes les questions</option>
-      <option value="none">Aucune question</option>
+      <option value="">Tous les chapitres</option>
+      <option value="none">Aucun chapitre </option>
       {questions.map((question, index) => (
         <option key={index} value={question.id}>{question.question}</option>
       ))}
     </select>
   </View>
 </View>
+)}
 
+<ScrollView>
+    {filteredAnswers.length > 0 ? filteredAnswers.map((answer, index) => {
+      const question = questions.find(q => q.id === answer.id_question);
+      return (
+        <View key={index} style={styles.answerCard}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 }}>
+  <Text style={{ fontWeight: 'bold' }}>
+    {new Date(answer.created_at).toLocaleDateString()} {new Date(answer.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+  </Text>
+  <Text style={{ fontWeight: 'bold' }}>
+    {question ? "Chapitre : " + question.question : 'Réponse incluse dans aucun chapitre'}
+  </Text>
+  <TouchableOpacity onPress={() => { copyToClipboard(answer.answer); integration(answer.id); refreshPage(); }}>
+    <Image source={copyIcon} style={{ width: 20, height: 20, opacity: 0.5 }} />
+  </TouchableOpacity>
+</View>
 
-      <ScrollView>
-        <>
-        {filteredAnswers.length > 0 && filteredAnswers.map((answer, index) => {
-  const question = questions.find(q => q.id === answer.id_question);
-  return (
-    <View key={index} style={styles.answerCard}>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 }}>
-        <Text>{new Date(answer.created_at).toLocaleDateString()} {new Date(answer.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
-        <Text>{question ? question.question : ''}</Text>
-        <TouchableOpacity onPress={() => { copyToClipboard(answer.answer); integration(answer.id); refreshPage(); }}>
-          <Image source={copyIcon} style={{ width: 20, height: 20, opacity: 0.5 }} />
-        </TouchableOpacity>
-      </View>
-      <Text style={styles.answerText}>{answer.answer}</Text>
-    </View>
-  );
-})}
-
-        </>
-      </ScrollView>
+          <Text style={styles.answerText}>{answer.answer}</Text>
+        </View>
+      );
+    }) : (
+      <Text>Aucune réponse trouvée</Text>
+    )}
+  </ScrollView>
     </View>
   );
 }
@@ -258,10 +343,18 @@ const styles = StyleSheet.create({
   navButton: {
     padding: 10,
   },
+  filterIcon: {
+    alignSelf: 'flex-end',
+    margin: 10,
+  },
   filterContainer: {
     padding: 10,
-    zIndex: 3, // Ajoutez cette ligne
+    zIndex: 3,
+    marginHorizontal :5,
+    borderWidth: 1, // Ajoutez cette ligne
+    borderColor: '#ccc', // Ajoutez cette ligne pour définir la couleur de la bordure
   },
+
   dateFilterContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -309,6 +402,62 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     borderWidth: 1,
     borderRadius: 5,
+  },
+  addButton: {
+    backgroundColor: '#007bff',
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  addButtonText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  modalContainer: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  recordButton: {
+    backgroundColor: '#ff0000',
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  recordButtonText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  modalButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  saveButton: {
+    backgroundColor: '#28a745',
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  saveButtonText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  cancelButton: {
+    backgroundColor: '#dc3545',
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    color: '#fff',
+    fontSize: 16,
   },
   
 });
