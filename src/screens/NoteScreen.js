@@ -37,11 +37,14 @@ import copyIcon from '../../assets/icons/paste.png';
 import noteIcon from '../../assets/icons/notes.png';
 import filterIcon from '../../assets/icons/filtre.png';
 import Modal from 'react-native-modal'; // Ajoutez cette ligne pour importer le composant Modal
-import { startRecording, stopRecording, uploadAudioToSupabase, delete_audio } from '../components/sound_handling'; // Ajoutez cette ligne
+import { startRecording, stopRecording, uploadAudioToSupabase, delete_audio,playRecording_fromAudioFile } from '../components/sound_handling'; // Ajoutez cette ligne
 import { transcribeAudio } from '../components/call_to_google';
 import MicroIcon from '../../assets/icons/microphone-lines-solid.svg';
 import VolumeIcon from '../../assets/icons/volume_up_black_24dp.svg';
 import trash from '../../assets/icons/baseline_delete_outline_black_24dp.png';
+import closeIcon from '../../assets/icons/close.png'; 
+import edit from '../../assets/icons/pen-to-square-regular.svg';
+
 
 
 const useFetchActiveSubjectId = (setSubjectActive, setSubject, navigation) => {
@@ -93,19 +96,24 @@ function NoteScreen({ route }) {
 const [isRecording, setIsRecording] = useState(false); // Ajoutez cette ligne dans les états
 const [recording, setRecording] = useState(); // Ajoutez cette ligne dans les états
 const [note, setNote] = useState(''); // Ajoutez cette ligne dans les états
+const [editingAnswerId, setEditingAnswerId] = useState(null);
+const [editingText, setEditingText] = useState('');
 
   useFetchActiveSubjectId(setSubjectActive, setSubject, navigation);
 
 
-  useEffect(() => {
-    const fetchAnswers = async () => {
-      const answers = await getMemories_Answers();
-      setAnswers(answers);
-      setIsLoading(false);
-    };
-
-    fetchAnswers();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      const fetchAnswers = async () => {
+        const answers = await getMemories_Answers();
+        setAnswers(answers);
+        setIsLoading(false);
+      };
+  
+      fetchAnswers();
+    }, [])
+  );
+  
 
   const refreshAnswers = async () => {
     const answers = await getMemories_Answers();
@@ -208,6 +216,8 @@ const [note, setNote] = useState(''); // Ajoutez cette ligne dans les états
       });
       setIsRecording(false);
       setModalVisible(false)
+      
+
     } else {
       const temp = await startRecording();
       setRecording(temp);
@@ -252,9 +262,9 @@ const [note, setNote] = useState(''); // Ajoutez cette ligne dans les états
       }
     }
 
-  console.log("inputs : ",transcribedText, selectedQuestion, session, audio, name)
     await submitMemories_Answer(transcribedText, selectedQuestion, session, audio, name, async () => {
       setNote('');
+      setModalVisible(false)
       setTimeout(async () => {
         await refreshAnswers();
       }, 1000);
@@ -354,14 +364,31 @@ const [note, setNote] = useState(''); // Ajoutez cette ligne dans les états
     </TouchableOpacity>
 
     <Modal isVisible={isModalVisible}>
-      <View style={styles.modalContainer}>
-        <Text style={styles.modalTitle}>Ajouter une note</Text>
-        {/* ajouter ici le nom de la question sélection et la possibilité d'en changer*/}
-        <TouchableOpacity
+  <View style={styles.modalContainer}>
+    <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.closeButton}>
+      <Image source={closeIcon} style={styles.closeIcon} />
+    </TouchableOpacity>
+    <Text style={styles.modalTitle}>Ajouter une note</Text>
+
+<Text style={styles.selectedQuestionText}>Chapitre sélectionné: {selectedQuestion ? questions.find(q => q.id === parseInt(selectedQuestion))?.question : "Aucun"}</Text>
+<View style={styles.dropdownContainer}>
+  <select
+    style={styles.dropdown}
+    value={selectedQuestion}
+    onChange={(e) => setSelectedQuestion(e.target.value)}
+  >
+    <option value="">Sélectionner un chapitre</option>
+    {questions.map((question, index) => (
+      <option key={index} value={question.id}>{question.question}</option>
+    ))}
+  </select>
+</View>
+
+    <TouchableOpacity
       style={[
         globalStyles.globalButton_wide,
         isRecording ? styles.recordingButton : {},
-        { backgroundColor: isRecording ? "red" : '#b1b3b5', flex: 1, marginRight: 5 },
+        { backgroundColor: isRecording ? "red" : '#b1b3b5',  alignItems: 'center', paddingVertical: 10, marginRight: 5 },
       ]}
       onPress={handleRecording}
     >
@@ -371,29 +398,34 @@ const [note, setNote] = useState(''); // Ajoutez cette ligne dans les états
           {isRecording ? "Arrêter l'enregistrement" : "Répondre"}
         </Text>
       </View>
-    </TouchableOpacity>
-        <TextInput
-          style={styles.input}
-          placeholder="Écrire une note..."
-          value={note}
-          onChangeText={setNote}
-          multiline={true}
-        />
-        
-        <View style={styles.modalButtonContainer}>
-          <TouchableOpacity onPress={() => handleAnswerSubmit('', false)} style={styles.saveButton}>
-            <Text style={styles.saveButtonText}>Enregistrer</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.cancelButton}>
-            <Text style={styles.cancelButtonText}>Annuler</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </Modal>
+    </TouchableOpacity >
+    <Text> </Text>
+    <TextInput
+      style={styles.input}
+      placeholder="Écrire une note..."
+      value={note}
+      onChangeText={setNote}
+      multiline={true}
+      numberOfLines={4}
+      
+    />
+   
 
-      <TouchableOpacity onPress={() => setShowFilters(!showFilters)} style={styles.filterIcon}>
-  <Image source={filterIcon} style={{ width: 30, height: 30, opacity: 0.5 }} />
-</TouchableOpacity>
+      <TouchableOpacity onPress={() => handleAnswerSubmit('', false)} style={[globalStyles.globalButton_wide, { backgroundColor: '#b1b3b5', alignItems: 'center', paddingVertical: 10, marginRight: 5 },]}>
+        <Text style={globalStyles.globalButtonText}>Enregistrer la note écrite</Text>
+      </TouchableOpacity>
+      
+
+  </View>
+</Modal>
+
+
+<View style={{ flexDirection: 'row', justifyContent: 'center', marginBottom: 5 }}>
+  <TouchableOpacity onPress={() => setShowFilters(!showFilters)} style={styles.filterIcon}>
+    <Image source={filterIcon} style={{ width: 50, height: 50, opacity: 0.5, marginVertical : 30 }} />
+  </TouchableOpacity>
+</View>
+
 {showFilters && ( 
       <View style={styles.filterContainer}>
   <TextInput
@@ -486,15 +518,53 @@ const [note, setNote] = useState(''); // Ajoutez cette ligne dans les états
   <Text style={{ fontWeight: 'bold' }}>
     {question ? "Chapitre : " + question.question : 'Réponse incluse dans aucun chapitre'}
   </Text>
-  <TouchableOpacity onPress={() => { copyToClipboard(answer.answer); integration(answer.id); refreshAnswers(); }}>
-    <Image source={copyIcon} style={{ width: 20, height: 20, opacity: 0.5 }} />
-  </TouchableOpacity>
-  <TouchableOpacity onPress={() => handleDeleteAnswer(answer.id)}>
-                        <Image source={trash} style={{ width: 36, height: 36, opacity: 0.5 }} />
-                      </TouchableOpacity>
+  <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+  {answer.answer !== "audio pas encore converti en texte" && answer.id !== editingAnswerId && (
+                        <TouchableOpacity
+                          onPress={() => {
+                            setEditingAnswerId(answer.id);
+                            setEditingText(answer.answer);
+                          }}
+                        >
+                          <Image source={edit} style={{ width: 28, height: 28, opacity: 0.5 }} />
+                        </TouchableOpacity>
+                      )}
+    {answer.audio && (
+      <TouchableOpacity onPress={() => playRecording_fromAudioFile(answer.link_storage)} style={styles.playButton}>
+        <Image source={VolumeIcon} style={{ width: 35, height: 35, opacity: 0.5, marginHorizontal: 15 }} />
+      </TouchableOpacity>
+    )}
+    <TouchableOpacity onPress={() => { copyToClipboard(answer.answer); integration(answer.id); refreshAnswers(); }}>
+      <Image source={copyIcon} style={{ width: 27, height: 27, opacity: 0.5, marginHorizontal: 15 }} />
+    </TouchableOpacity>
+    <TouchableOpacity onPress={() => handleDeleteAnswer(answer.id)}>
+      <Image source={trash} style={{ width: 36, height: 36, opacity: 0.5, marginLeft: 15 }} />
+    </TouchableOpacity>
+  </View>
 </View>
 
-          <Text style={styles.answerText}>{answer.answer}</Text>
+{answer.id === editingAnswerId ? (
+  <>
+                      <TextInput
+                        style={globalStyles.input}
+                        value={editingText}
+                        onChangeText={setEditingText}
+                        multiline={true}
+                        numberOfLines={10}
+                      />
+                      
+                        <TouchableOpacity
+                          onPress={() => handleUpdateAnswer(answer.id, editingText)}
+                          style={[globalStyles.globalButton_wide, { backgroundColor: '#b1b3b5', alignItems: 'center', paddingVertical: 10, marginRight: 5 },]}
+                        >
+                          <Text style={globalStyles.globalButtonText}>Enregistrer</Text>
+                        </TouchableOpacity>
+                        </>
+                    ) : (
+                      <Text style={styles.answerText}>{answer.answer}</Text>
+                    )}
+
+      
         </View>
       );
     }) : (
@@ -517,6 +587,7 @@ const styles = StyleSheet.create({
     padding: 10,
     zIndex: 3,
     marginHorizontal :5,
+    marginVertical : 20,
     borderWidth: 1, // Ajoutez cette ligne
     borderColor: '#ccc', // Ajoutez cette ligne pour définir la couleur de la bordure
   },
@@ -615,15 +686,15 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
   },
-  cancelButton: {
-    backgroundColor: '#dc3545',
-    padding: 10,
-    borderRadius: 5,
-    alignItems: 'center',
+  closeButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    zIndex: 10,
   },
-  cancelButtonText: {
-    color: '#fff',
-    fontSize: 16,
+  closeIcon: {
+    width: 24,
+    height: 24,
   },
   
 });
