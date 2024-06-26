@@ -91,6 +91,7 @@ function NoteScreen({ route }) {
     '',
   ]);
   const [selectedQuestion, setSelectedQuestion] = useState('');
+  const [selectedChapter, setSelectedChapter] = useState('');
   const [showFilters, setShowFilters] = useState(false); 
   const [isModalVisible, setModalVisible] = useState(false); // Ajoutez cette ligne dans les états
 const [isRecording, setIsRecording] = useState(false); // Ajoutez cette ligne dans les états
@@ -114,6 +115,7 @@ const [editingText, setEditingText] = useState('');
     }, [])
   );
   
+ 
 
   const refreshAnswers = async () => {
     const answers = await getMemories_Answers();
@@ -124,6 +126,11 @@ const [editingText, setEditingText] = useState('');
   useEffect(() => {
     console.log("réponses : ", answers)
   }, [answers]);
+
+  useEffect(() => {
+    console.log("selectedChapter : ", selectedChapter)
+    console.log("Chapitres : ", questions)
+  }, [selectedChapter]);
 
   useEffect(() => {
     const fetchQuestionsAndChapters = async () => {
@@ -140,6 +147,16 @@ const [editingText, setEditingText] = useState('');
     navigation.navigate(screenName, params);
   };
 
+  const handleQuestionChange = (e) => {
+    const selectedQuestionId = e.target.value;
+    setSelectedQuestion(selectedQuestionId);
+  
+    const selectedQuestionObj = questions.find(question => question.id.toString() === selectedQuestionId);
+    if (selectedQuestionObj) {
+      setSelectedChapter(selectedQuestionObj.id_chapitre.toString());
+    }
+  };
+  
 
   const handleDeleteAnswer = async (answerId) => {
     const answerToDelete = answers.find(ans => ans.id === answerId);
@@ -182,9 +199,11 @@ const [editingText, setEditingText] = useState('');
       (!afterDate || answerDate > afterDate) &&
       (selectedQuestion === '' || 
        (selectedQuestion === 'none' && answer.id_question === null) ||
-       (answer.id_question !== null && selectedQuestion === answer.id_question.toString())) // Assurez-vous que les types sont cohérents pour la comparaison
+       (answer.id_question !== null && selectedQuestion === answer.id_question.toString())) &&
+      (selectedChapter === '' || selectedChapter === answer.id_chapter?.toString())
     );
   });
+  
   
   
   
@@ -370,18 +389,35 @@ const [editingText, setEditingText] = useState('');
     </TouchableOpacity>
     <Text style={styles.modalTitle}>Ajouter une note</Text>
 
-<Text style={styles.selectedQuestionText}>Chapitre sélectionné: {selectedQuestion ? questions.find(q => q.id === parseInt(selectedQuestion))?.question : "Aucun"}</Text>
+    <Text style={styles.selectedQuestionText}>Partie sélectionnée: {selectedChapter ? chapters.find(q => q.id === selectedChapter)?.title : "Aucune"}</Text>
 <View style={styles.dropdownContainer}>
   <select
     style={styles.dropdown}
-    value={selectedQuestion}
-    onChange={(e) => setSelectedQuestion(e.target.value)}
+    value={selectedChapter}
+    onChange={(e) => setSelectedChapter(e.target.value)}
   >
-    <option value="">Sélectionner un chapitre</option>
-    {questions.map((question, index) => (
-      <option key={index} value={question.id}>{question.question}</option>
+    <option value="">Sélectionner une Partie</option>
+    {chapters.map((chapter, index) => (
+      <option key={index} value={chapter.id}>{chapter.title}</option>
     ))}
   </select>
+</View>
+<Text> </Text>
+<Text style={styles.selectedQuestionText}>Chapitre sélectionné: {selectedQuestion ? questions.find(q => q.id === parseInt(selectedQuestion))?.question : "Aucun"}</Text>
+<View style={styles.dropdownContainer}>
+<select
+  style={styles.dropdown}
+  value={selectedQuestion}
+  onChange={handleQuestionChange}
+>
+  <option value="">Sélectionner un chapitre</option>
+  {questions
+    .filter(question => selectedChapter === '' || question.id_chapitre === selectedChapter)
+    .map((question, index) => (
+      <option key={index} value={question.id}>{question.question}</option>
+    ))}
+</select>
+
 </View>
 
     <TouchableOpacity
@@ -429,10 +465,11 @@ const [editingText, setEditingText] = useState('');
 {showFilters && ( 
       <View style={styles.filterContainer}>
   <TextInput
-    style={styles.input}
+    style={[styles.input, { backgroundColor: 'white' }]}
     placeholder="Filtrer par texte"
     value={textFilter}
     onChangeText={setTextFilter}
+
   />
   <View style={styles.dateFilterContainer}>
     {Platform.OS === 'web' ? (
@@ -488,17 +525,31 @@ const [editingText, setEditingText] = useState('');
       </View>
     )}
   </View>
-  
-
+  <View style={styles.dropdownContainer}>
+    <select
+      style={styles.dropdown}
+      value={selectedChapter}
+      onChange={(e) => setSelectedChapter(e.target.value)}
+    >
+      <option value="">Toutes les parties</option>
+      <option value="none">Aucune partie </option>
+      {chapters.map((chapter, index) => (
+        <option key={index} value={chapter.id}>{chapter.title}</option>
+      ))}
+    </select>
+  </View>
+      <Text> </Text>
   <View style={styles.dropdownContainer}>
     <select
       style={styles.dropdown}
       value={selectedQuestion}
-      onChange={(e) => setSelectedQuestion(e.target.value)}
+      onChange={handleQuestionChange}
     >
       <option value="">Tous les chapitres</option>
       <option value="none">Aucun chapitre </option>
-      {questions.map((question, index) => (
+      {questions
+        .filter(question => selectedChapter === '' || question.id_chapitre === selectedChapter)
+        .map((question, index) => (
         <option key={index} value={question.id}>{question.question}</option>
       ))}
     </select>
@@ -590,6 +641,7 @@ const styles = StyleSheet.create({
     marginVertical : 20,
     borderWidth: 1, // Ajoutez cette ligne
     borderColor: '#ccc', // Ajoutez cette ligne pour définir la couleur de la bordure
+    backgroundColor:'#b1b3b5',
   },
 
   dateFilterContainer: {
