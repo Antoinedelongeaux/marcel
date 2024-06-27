@@ -3,18 +3,11 @@ import * as FileSystem from 'expo-file-system';
 import { supabase } from '../lib/supabase';
 import { Buffer } from 'buffer';
 import { decode } from 'base64-arraybuffer';
-import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg';
 import { Platform } from 'react-native';
 
 global.Buffer = Buffer;
 
-async function setupFFmpeg() {
-  const ffmpeg = createFFmpeg({ log: true });
-  await ffmpeg.load();
-  console.log('FFmpeg is ready');
-}
 
-setupFFmpeg();
 
 /*
 export const save_audio = async (audioFile, name) => {
