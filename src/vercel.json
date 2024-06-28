@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/invitation/:id_invitation",
+      "destination": "/index.html"
+    }
+  ]
+}
