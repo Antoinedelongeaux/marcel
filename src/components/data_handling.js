@@ -146,7 +146,7 @@ export async function get_Question_by_id(id_question, setQuestion) {
 export async function getMemories_Question_by_id(id_question,setQuestion, setAnswers, setOwner) {
   try {
 
-  
+    console.log("id_question : ",id_question)
 
     // Préparer la requête de base
     let query = supabase

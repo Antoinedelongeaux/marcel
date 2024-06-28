@@ -34,9 +34,11 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import copyIcon from '../../assets/icons/paste.png';
 import save from '../../assets/icons/save.png';
 import note from '../../assets/icons/notes.png';
+import { supabase } from '../lib/supabase';
 
 function EditChapterScreen({ route }) {
   const navigation = useNavigation();
+  console.log("Route : ",route.params)
   const id_question = route.params.questionId;
   const session = route.params.session;
   const [question, setQuestion] = useState(null);
@@ -51,6 +53,9 @@ function EditChapterScreen({ route }) {
   const [content, setContent] = useState('<p>Commencez à écrire ici...</p>');
   const [isEditorReady, setEditorReady] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+
   const editor = useRef();
   const [isContentModified, setIsContentModified] = useState(false);
 
@@ -64,16 +69,18 @@ function EditChapterScreen({ route }) {
   useFocusEffect(
     React.useCallback(() => {
       const fetchActiveSubjectId = async () => {
-        var temp = null;
-        temp = await getActiveSubjectId();
+        var temp = await getActiveSubjectId();
         setSubject_active(temp);
       };
       fetchActiveSubjectId();
-      if (session && subject_active != null) {
+  
+      if (session && subject_active !== null) {
         getMemories_Question_by_id(id_question, setQuestion, setAnswers, setOwner);
       }
     }, [session, subject_active])
   );
+  
+  
 
  
   const quillModules = {
@@ -103,12 +110,15 @@ function EditChapterScreen({ route }) {
     await getMemories_Question_by_id(id_question, setQuestion, setAnswers, setOwner);
   };
 
-  useEffect(async () => {
-   
-      const temp = await get_Question_by_id(id_question)
+  useEffect(() => {
+    const fetchData = async () => {
+      console.log("id_question : ",id_question)
+      const temp = await get_Question_by_id(id_question,setQuestion);
       setQuestion(temp);
-    
+    };
+    fetchData();
   }, [id_question]);
+  
 
 
   useEffect(() => {
@@ -122,9 +132,12 @@ function EditChapterScreen({ route }) {
     }
   }, [content, isEditorReady]);
   
+  
+  
 
   useEffect(() => {
   
+if(question) {
       const loadData = async () => {
 
 
@@ -141,20 +154,21 @@ function EditChapterScreen({ route }) {
       loadData();
     
     setIsLoading(false);
+  }
   }, [question]);
 
   const handleSaving = async () => {
     setIsSaving(true);
-    if (Platform.OS === 'web') {
-      try {
+    try {
+      if (Platform.OS === 'web') {
         const quillInstance = editor.current.getEditor();
         const content = quillInstance.getContents();
-        setContent(content)
+        setContent(content);
   
         const { error: errorUpdating } = await supabase
           .from('Memoires_questions')
           .update({ full_text: content })
-          .match({ id: Object.keys(activeQuestionAnswers)[0] });
+          .match({ id: id_question});
   
         if (errorUpdating) {
           console.error('Error updating:', errorUpdating);
@@ -162,18 +176,20 @@ function EditChapterScreen({ route }) {
           console.log('Content successfully saved to Supabase');
           setIsContentModified(false);
         }
-      } catch (error) {
-        console.error('Failed to save content:', error);
+      } else {
+        const content = editor.current.getContent();
+        console.log('Saving content:', content);
+        setIsContentModified(false);
       }
-    } else {
-      const content = editor.current.getContent();
-      console.log('Saving content:', content);
-      setIsContentModified(false);
+    } catch (error) {
+      console.error('Failed to save content:', error);
+    } finally {
+      setIsSaving(false);
     }
-    setIsSaving(false);
   };
+  
 
-  if (isLoading) {
+  if (isLoading || !question) {
     return (
       <View style={globalStyles.container}>
         <Text>Loading...</Text>

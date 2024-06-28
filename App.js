@@ -1,4 +1,3 @@
-// App.js
 import 'react-native-url-polyfill/auto';
 window.global = window;
 import React, { useState, useEffect, useRef } from 'react';
@@ -11,10 +10,15 @@ export default function App() {
   const ref = useRef(null);
 
   const linking = {
-    prefixes: ['http://localhost:8081', 'https://redesigned-parakeet-544gx7qrgqv2v9qj-8081.app.github.dev','https://marcel-eight.vercel.app/'],
+    prefixes: ['http://localhost:8081', 'https://redesigned-parakeet-544gx7qrgqv2v9qj-8081.app.github.dev','https://marcel-eight.vercel.app'],
     config: {
       screens: {
-        InvitationScreen: 'invitation',
+        InvitationScreen: {
+          path: 'invitation/:id_invitation',
+          parse: {
+            id_invitation: (id_invitation) => `${id_invitation}`,
+          },
+        },
       },
     },
   };

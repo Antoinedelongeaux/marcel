@@ -608,6 +608,7 @@ const copyToClipboard = (text) => {
       <ScrollView>
         <>
         {Object.keys(activeQuestionAnswers).map((questionId) => (
+          <>
             <TouchableOpacity
               key={questionId}
               onPress={() => {
@@ -617,6 +618,15 @@ const copyToClipboard = (text) => {
             >
               <Text style={globalStyles.globalButtonText}>Répondre</Text>
             </TouchableOpacity>
+             <TouchableOpacity
+             key={questionId+1}
+             onPress={() => {copyToClipboard("https://marcel-eight.vercel.app/invitation/"+ questionId )}}
+             style={globalStyles.globalButton_wide}
+           >
+             <Text style={globalStyles.globalButtonText}>Copier le lien de réponse</Text>
+           </TouchableOpacity>
+
+           </>
           ))}
         {Object.keys(activeQuestionAnswers).map((questionId) =>
   activeQuestionAnswers[questionId]

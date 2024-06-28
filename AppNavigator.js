@@ -1,4 +1,3 @@
-// AppNavigator.js
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import Auth from './src/navigation/Auth';
@@ -31,6 +30,7 @@ function AppNavigator({ session }) {
           <Stack.Screen name="AskQuestionScreen" component={AskQuestionScreen} initialParams={{ session }} />
           <Stack.Screen name="EditChapterScreen" component={EditChapterScreen} initialParams={{ session }} />
           <Stack.Screen name="AnswerQuestionScreen" component={AnswerQuestionScreen} initialParams={{ session }} />
+
         </>
       ) : (
         <Stack.Screen name="Auth" component={Auth} />
