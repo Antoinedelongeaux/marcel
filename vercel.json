@@ -1,0 +1,16 @@
+{
+  "routes": [
+    {
+      "src": "/invitation/:id_invitation",
+      "dest": "/invitation?id=:id_invitation"
+    },
+    {
+      "src": "/api/*",
+      "dest": "/api/:path"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
+}

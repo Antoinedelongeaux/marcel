@@ -1,8 +1,16 @@
 {
-  "rewrites": [
+  "routes": [
     {
-      "source": "/invitation/:id_invitation",
-      "destination": "/index.html"
+      "src": "/invitation/:id_invitation",
+      "dest": "/invitation?id=:id_invitation"
+    },
+    {
+      "src": "/api/*",
+      "dest": "/api/:path"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ]
 }
