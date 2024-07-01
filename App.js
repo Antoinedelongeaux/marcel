@@ -7,7 +7,7 @@ import AppNavigator from './AppNavigator';
 export default function App() {
   const [session, setSession] = useState(null);
   const ref = useRef(null);
-
+/*
   const linking = {
     prefixes: [
       'https://marcel-eight.vercel.app',
@@ -27,7 +27,7 @@ export default function App() {
       },
     },
   };
-
+*/
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
@@ -39,7 +39,7 @@ export default function App() {
   }, []);
 
   return (
-    <NavigationContainer ref={ref} linking={linking}>
+    <NavigationContainer ref={ref} /*linking={linking}*/>
       <AppNavigator session={session} />
     </NavigationContainer>
   );
