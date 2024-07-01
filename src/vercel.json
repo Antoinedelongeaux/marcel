@@ -1,16 +1,16 @@
 {
-  "routes": [
+  "rewrites": [
     {
-      "src": "/invitation/:id_invitation",
-      "dest": "/invitation?id=:id_invitation"
+      "source": "/invitation/:id_invitation",
+      "destination": "/invitation?id=:id_invitation"
     },
     {
-      "src": "/api/*",
-      "dest": "/api/:path"
+      "source": "/api/:path*",
+      "destination": "/api/:path*"
     },
     {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/(.*)",
+      "destination": "/"
     }
   ]
 }
