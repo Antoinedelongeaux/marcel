@@ -16,7 +16,14 @@ export default function App() {
     ],
     config: {
       screens: {
-        InvitationScreen: 'invitation/:id_invitation',
+        Home: '/',
+        InvitationScreen: {
+          path: 'invitation/:id_invitation',
+          parse: {
+            id_invitation: (id) => `${id}`,
+          },
+        },
+        // Ajouter d'autres routes si nécessaire
       },
     },
   };
