@@ -524,3 +524,46 @@ export const uploadAudioToSupabase = async (uri, fileName) => {
     return null;
   }
 };
+
+export const uploadImageToSupabase = async (uri, fileName) => {
+  try {
+    let imageBlob;
+    console.log("Uploading image file...");
+
+    if (Platform.OS === 'web') {
+      // Utiliser fetch pour obtenir le Blob du fichier image sur le web
+      const response = await fetch(uri);
+      imageBlob = await response.blob();
+    } else {
+      // Utiliser expo-file-system pour lire le fichier en tant que base64 sur mobile
+      const base64 = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
+      const binaryString = atob(base64);
+      const len = binaryString.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      imageBlob = new Blob([bytes], { type: 'image/jpeg' }); // Ajustez le type MIME si nécessaire
+    }
+
+    // Convertir le Blob en ArrayBuffer pour l'upload
+    const arrayBuffer = await imageBlob.arrayBuffer();
+
+    // Uploader le fichier sur Supabase
+    const { error } = await supabase.storage.from('photos').upload(fileName, arrayBuffer, {
+      contentType: imageBlob.type,  // Assurez-vous que le contentType correspond au format du fichier image
+      cacheControl: '3600',
+      upsert: false,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    console.log(`File uploaded and accessible at: ${fileName}`);
+    return fileName;
+  } catch (error) {
+    console.error('Error uploading image to Supabase:', error);
+    return null;
+  }
+};

@@ -3,7 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Image, View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { globalStyles } from '../../global';
 import { getMemories_Question_by_id, getMemories_Question, submitMemories_Answer, deleteMemories_Answer, get_user_name, update_answer_text } from '../components/data_handling'; // Assurez-vous d'implémenter deleteMemories_Answer
-import { record_answer, playRecording_fromAudioFile, delete_audio, startRecording, stopRecording, uploadAudioToSupabase } from '../components/sound_handling';
+import { record_answer, playRecording_fromAudioFile, delete_audio, startRecording, stopRecording, uploadAudioToSupabase, uploadImageToSupabase } from '../components/sound_handling';
 import { transcribeAudio } from '../components/call_to_google';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -110,24 +110,88 @@ function ReadAnswersScreen({ route }) {
     }
   };
 
-  const handleAnswerSubmit = async (name, audio, uri = null) => {
-    const transcribedText = audio ? "audio pas encore converti en texte" : answer;
-  
-    if (audio && uri) {
-      const uploadedFileName = await uploadAudioToSupabase(uri, name);
+  const handleAnswerSubmit = async (name, isMedia, uri = null,isImage) => {
+    const transcribedText = isMedia ? "media en cours de traitement" : answer;
+    console.log("IsImage : ",isImage)
+    if (isMedia && uri) {
+      let uploadedFileName;
+      if (name.endsWith('.mp3')) {
+        uploadedFileName = await uploadAudioToSupabase(uri, name);
+      } else {
+        uploadedFileName = await uploadImageToSupabase(uri, name);
+      }
+      
       if (!uploadedFileName) {
-        Alert.alert("Erreur", "Échec du téléchargement du fichier audio");
+        Alert.alert("Erreur", `Échec du téléchargement du fichier ${name.endsWith('.mp3') ? 'audio' : 'image'}`);
         return;
       }
     }
   
-    await submitMemories_Answer(transcribedText, question, session, audio, name, async () => {
+    await submitMemories_Answer(transcribedText, question, session, isMedia, name,isImage, async () => {
       setAnswer('');
       setTimeout(async () => {
         await refreshAnswers();
       }, 1000);
     });
   };
+  
+  // Mettez à jour handleUploadPhoto pour utiliser handleAnswerSubmit correctement
+  const handleUploadPhoto = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'image/*', // Accepter les fichiers image
+        copyToCacheDirectory: false
+      });
+  
+      if (!result.canceled) {
+        let uri, name, mimeType;
+  
+        // Gérer les différences de plateforme
+        if (result.output && result.output.length > 0) {
+          console.log("Using result.output");
+          const file = result.output[0];
+          console.log("Selected file: ", file);
+          uri = URL.createObjectURL(file);
+          name = file.name;
+          mimeType = file.type;
+        } else if (result.assets && result.assets.length > 0) {
+          console.log("Using result.assets");
+          const asset = result.assets[0];
+          console.log("Selected asset: ", asset);
+          uri = asset.uri;
+          name = asset.name;
+          mimeType = asset.mimeType;
+        } else {
+          console.error("Invalid file selection result", result);
+          throw new Error("Invalid file selection result");
+        }
+  
+        if (!uri || !name) {
+          console.error("Invalid file selection: URI or name is missing", { uri, name });
+          throw new Error("Invalid file selection: URI or name is missing");
+        }
+  
+        // Vérification du type MIME
+        if (mimeType && mimeType.startsWith('image/')) {
+          console.log("File selected is an image file:", { uri, name, mimeType });
+        } else {
+          console.error("Selected file is not an image file:", { uri, name, mimeType });
+          Alert.alert("Erreur", "Le fichier sélectionné n'est pas un fichier image");
+          return;
+        }
+  
+        console.log("File selected successfully:", { uri, name });
+        await handleAnswerSubmit(name, true, uri,true);
+      } else {
+        console.error("File selection was not successful: ", result);
+        Alert.alert("Erreur", "Sélection du fichier échouée");
+      }
+    } catch (error) {
+      console.error("Error handling file upload: ", error);
+      Alert.alert("Erreur", "Une erreur s'est produite lors de la sélection du fichier");
+    }
+  };
+  
   
   
   
@@ -181,7 +245,7 @@ function ReadAnswersScreen({ route }) {
         }
   
         console.log("File selected successfully:", { uri, name });
-        await handleAnswerSubmit(name, true, uri);
+        await handleAnswerSubmit(name, true, uri,false);
       } else {
         console.error("File selection was not successful: ", result);
         Alert.alert("Erreur", "Sélection du fichier échouée");
@@ -191,6 +255,7 @@ function ReadAnswersScreen({ route }) {
       Alert.alert("Erreur", "Une erreur s'est produite lors de la sélection du fichier");
     }
   };
+  
   
   
   
@@ -272,6 +337,7 @@ function ReadAnswersScreen({ route }) {
     </TouchableOpacity>
     
     {session.user.id === '8a3d731c-6d40-4400-9dc5-b5926e6d5bbd' && (
+      <>
   <TouchableOpacity
     style={[globalStyles.globalButton_wide, { backgroundColor: '#b1b3b5', flex: 1, marginLeft: 5 }]}
     onPress={handleUploadAudio}
@@ -282,7 +348,21 @@ function ReadAnswersScreen({ route }) {
         Envoyer un enregistrement vocal
       </Text>
     </View>
+    
   </TouchableOpacity>
+  <TouchableOpacity
+  style={[globalStyles.globalButton_wide, { backgroundColor: '#b1b3b5', flex: 1, marginLeft: 5 }]}
+  onPress={handleUploadPhoto}
+>
+  <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+    <Image source={Upload} style={{ width: 60, height: 60, opacity: 0.5 }} />
+    <Text style={globalStyles.globalButtonText}>
+      Envoyer une photographie
+    </Text>
+  </View>
+  
+</TouchableOpacity>
+</>
 )}
 
   </View>
@@ -306,54 +386,64 @@ function ReadAnswersScreen({ route }) {
 </View>
 
 
-                {Array.isArray(answers) && answers.map((ans) => (
-                  <View key={ans.id} style={styles.answerCard}>
-                    {ans.id === editingAnswerId ? (
-                      <TextInput
-                        style={globalStyles.input}
-                        value={editingText}
-                        onChangeText={setEditingText}
-                        multiline={true}
-                        numberOfLines={10}
-                      />
-                    ) : (
-                      <Text style={styles.answerText}>{ans.answer}</Text>
-                    )}
-                    <View style={styles.answerFooter}>
-                      {ans.audio && (
-                        <TouchableOpacity onPress={() => playRecording_fromAudioFile(ans.link_storage)} style={styles.playButton}>
-                          <Image source={VolumeIcon} style={{ width: 36, height: 36, opacity: 0.5 }} />
-                        </TouchableOpacity>
-                      )}
-                      {ans.answer === "audio pas encore converti en texte" && (
-                        <View style={styles.container}>
-                          <ActivityIndicator size="large" color="#0b2d52" />
-                        </View>
-                      )}
-                      {ans.answer !== "audio pas encore converti en texte" && ans.id !== editingAnswerId && (
-                        <TouchableOpacity
-                          onPress={() => {
-                            setEditingAnswerId(ans.id);
-                            setEditingText(ans.answer);
-                          }}
-                        >
-                          <Image source={edit} style={{ width: 28, height: 28, opacity: 0.5 }} />
-                        </TouchableOpacity>
-                      )}
-                      <TouchableOpacity onPress={() => handleDeleteAnswer(ans.id)}>
-                        <Image source={trash} style={{ width: 36, height: 36, opacity: 0.5 }} />
-                      </TouchableOpacity>
-                    </View>
-                    {ans.id === editingAnswerId && (
-                      <TouchableOpacity
-                        onPress={() => handleUpdateAnswer(ans.id, editingText)}
-                        style={globalStyles.globalButton}
-                      >
-                        <Text style={globalStyles.globalButton_text}>Enregistrer</Text>
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                ))}
+{Array.isArray(answers) && answers.map((ans) => (
+  <View key={ans.id} style={styles.answerCard}>
+    {ans.id === editingAnswerId ? (
+      <TextInput
+        style={globalStyles.input}
+        value={editingText}
+        onChangeText={setEditingText}
+        multiline={true}
+        numberOfLines={10}
+      />
+    ) : (
+      ans.answer === "media en cours de traitement" && ans.image ? (
+
+        <Image 
+        source={{ uri: `https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/photos/${ans.link_storage}` }} 
+        style={{ width: '100%', height: 300, resizeMode: 'contain' }} 
+      />
+
+) : (
+  <Text style={styles.answerText}>{ans.answer}</Text>
+      )
+    )}
+    <View style={styles.answerFooter}>
+      {ans.audio && (
+        <TouchableOpacity onPress={() => playRecording_fromAudioFile(ans.link_storage)} style={styles.playButton}>
+          <Image source={VolumeIcon} style={{ width: 36, height: 36, opacity: 0.5 }} />
+        </TouchableOpacity>
+      )}
+      {ans.answer === "audio pas encore converti en texte" && (
+        <View style={styles.container}>
+          <ActivityIndicator size="large" color="#0b2d52" />
+        </View>
+      )}
+      {ans.answer !== "audio pas encore converti en texte" && ans.id !== editingAnswerId && (
+        <TouchableOpacity
+          onPress={() => {
+            setEditingAnswerId(ans.id);
+            setEditingText(ans.answer);
+          }}
+        >
+          <Image source={edit} style={{ width: 28, height: 28, opacity: 0.5 }} />
+        </TouchableOpacity>
+      )}
+      <TouchableOpacity onPress={() => handleDeleteAnswer(ans.id)}>
+        <Image source={trash} style={{ width: 36, height: 36, opacity: 0.5 }} />
+      </TouchableOpacity>
+    </View>
+    {ans.id === editingAnswerId && (
+      <TouchableOpacity
+        onPress={() => handleUpdateAnswer(ans.id, editingText)}
+        style={globalStyles.globalButton}
+      >
+        <Text style={globalStyles.globalButton_text}>Enregistrer</Text>
+      </TouchableOpacity>
+    )}
+  </View>
+))}
+
               </View>
             )}
           </>
