@@ -39,6 +39,12 @@ function ReadAnswersScreen({ route }) {
   const [recording, setRecording] = useState();
   const [editingAnswerId, setEditingAnswerId] = useState(null);
   const [editingText, setEditingText] = useState('');
+  const [fullscreenImage, setFullscreenImage] = useState(null);
+
+  const closeFullscreenImage = () => {
+    setFullscreenImage(null);
+  };
+  
 
   const navigateToScreen = (screenName) => {
     navigation.navigate(screenName);
@@ -307,6 +313,16 @@ function ReadAnswersScreen({ route }) {
           </TouchableOpacity>
         </View>
 
+        {fullscreenImage && (
+  <View style={styles.fullscreenContainer}>
+    <TouchableOpacity style={styles.closeButton} onPress={closeFullscreenImage}>
+      <Text style={styles.closeButtonText}>X</Text>
+    </TouchableOpacity>
+    <Image source={{ uri: fullscreenImage }} style={styles.fullscreenImage} />
+  </View>
+)}
+
+
         {question ? (
           <>
             {question.question == "End" ? (
@@ -397,12 +413,15 @@ function ReadAnswersScreen({ route }) {
         numberOfLines={10}
       />
     ) : (
-      ans.answer === "media en cours de traitement" && ans.image ? (
+      ans.image ? (
 
-        <Image 
-        source={{ uri: `https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/photos/${ans.link_storage}` }} 
-        style={{ width: '100%', height: 300, resizeMode: 'contain' }} 
-      />
+        <TouchableOpacity onPress={() => setFullscreenImage(`https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/photos/${ans.link_storage}`)}>
+  <Image 
+    source={{ uri: `https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/photos/${ans.link_storage}` }} 
+    style={{ width: '100%', height: 300, resizeMode: 'contain' }} 
+  />
+</TouchableOpacity>
+
 
 ) : (
   <Text style={styles.answerText}>{ans.answer}</Text>
@@ -540,7 +559,34 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center'
-  }
+  },
+  fullscreenContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 40,
+    right: 20,
+    zIndex: 20,
+  },
+  closeButtonText: {
+    color: 'white',
+    fontSize: 30,
+  },
+  fullscreenImage: {
+    width: '90%',
+    height: '90%',
+    resizeMode: 'contain',
+  },
+  
 });
 
 export default ReadAnswersScreen;

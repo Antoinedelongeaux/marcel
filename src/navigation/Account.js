@@ -17,47 +17,7 @@ const Tab = createBottomTabNavigator();
 export default function Account({ route }) {
   const { session } = route.params;
 
-  const [currentGroup, setCurrentGroup] = useState('');
-  const [userGroups, setUserGroups] = useState([]);
 
-  useEffect(() => {
-    const userID = session.user?.id;
-    const fetchUserGroups = async () => {
-      try {
-        // récupérer les groupes de l'utilisateur
-        const { data, error } = await supabase
-          .from('users_in_groups')
-          .select('id_group')
-          .eq('id_user', userID);
-
-        if (error) {
-          throw error;
-        }
-
-        // Récupération des IDs des groupes
-        const groupIDs = data.map((group) => group.id_group);
-
-        // Requête pour obtenir les détails des groupes
-        const { data: groupData, error: groupError } = await supabase
-          .from('groups')
-          .select('*')
-          .in('id', groupIDs);
-
-        if (groupError) {
-          throw groupError;
-        }
-
-        // Mise à jour de l'état avec les détails des groupes
-        setUserGroups(groupData);
-      } catch (error) {
-        console.error('Erreur lors de la récupération des groupes de l\'utilisateur :', error.message);
-      }
-    };
-
-    if (userID) {
-      fetchUserGroups();
-    }
-  }, []);
 
   return (
     <Tab.Navigator
