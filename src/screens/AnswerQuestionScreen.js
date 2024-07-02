@@ -25,6 +25,8 @@ import VolumeIcon from '../../assets/icons/volume_up_black_24dp.svg';
 import Upload from '../../assets/icons/upload.png';
 import Svg, { Path } from 'react-native-svg';
 import * as DocumentPicker from 'expo-document-picker';
+import AttachIcon from '../../assets/icons/attach.png';
+
 
 function ReadAnswersScreen({ route }) {
   const navigation = useNavigation();
@@ -40,7 +42,8 @@ function ReadAnswersScreen({ route }) {
   const [editingAnswerId, setEditingAnswerId] = useState(null);
   const [editingText, setEditingText] = useState('');
   const [fullscreenImage, setFullscreenImage] = useState(null);
-
+  const [showAttachement, setShowAttachement] = useState(false);
+  
   const closeFullscreenImage = () => {
     setFullscreenImage(null);
   };
@@ -198,7 +201,9 @@ function ReadAnswersScreen({ route }) {
     }
   };
   
-  
+  const handleFiles = async () => {
+    setShowAttachement(!showAttachement)
+  };
   
   
 
@@ -335,7 +340,8 @@ function ReadAnswersScreen({ route }) {
                 </Text>
                 <Text></Text>
                 <View style={{ paddingVertical: 20 }}>
-  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
+  <View style={{ flexDirection: 'column', justifyContent: 'space-between', marginBottom: 10 }}>
+  
     <TouchableOpacity
       style={[
         globalStyles.globalButton_wide,
@@ -344,21 +350,25 @@ function ReadAnswersScreen({ route }) {
       ]}
       onPress={handleRecording}
     >
-      <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+      <View style={{ flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
         <Image source={MicroIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
         <Text style={globalStyles.globalButtonText}>
           {isRecording ? "Arrêter l'enregistrement" : "Répondre"}
         </Text>
       </View>
     </TouchableOpacity>
+    <TouchableOpacity onPress={handleFiles} style={{ flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }} >
+      
+    <Image source={AttachIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
+    </TouchableOpacity>
     
-    {session.user.id === '8a3d731c-6d40-4400-9dc5-b5926e6d5bbd' && (
+    {showAttachement && (
       <>
   <TouchableOpacity
     style={[globalStyles.globalButton_wide, { backgroundColor: '#b1b3b5', flex: 1, marginLeft: 5 }]}
     onPress={handleUploadAudio}
   >
-    <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+    <View style={{ flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
       <Image source={Upload} style={{ width: 60, height: 60, opacity: 0.5 }} />
       <Text style={globalStyles.globalButtonText}>
         Envoyer un enregistrement vocal
@@ -370,7 +380,7 @@ function ReadAnswersScreen({ route }) {
   style={[globalStyles.globalButton_wide, { backgroundColor: '#b1b3b5', flex: 1, marginLeft: 5 }]}
   onPress={handleUploadPhoto}
 >
-  <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+  <View style={{ flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
     <Image source={Upload} style={{ width: 60, height: 60, opacity: 0.5 }} />
     <Text style={globalStyles.globalButtonText}>
       Envoyer une photographie
@@ -414,14 +424,17 @@ function ReadAnswersScreen({ route }) {
       />
     ) : (
       ans.image ? (
-
+<>
         <TouchableOpacity onPress={() => setFullscreenImage(`https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/photos/${ans.link_storage}`)}>
   <Image 
     source={{ uri: `https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/photos/${ans.link_storage}` }} 
     style={{ width: '100%', height: 300, resizeMode: 'contain' }} 
   />
-</TouchableOpacity>
+  
+  <Text style={{ justifyContent: 'center', textAlign: 'center' }}>{ans.answer}</Text>
 
+</TouchableOpacity>
+</>
 
 ) : (
   <Text style={styles.answerText}>{ans.answer}</Text>

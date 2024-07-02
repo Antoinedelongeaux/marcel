@@ -44,6 +44,10 @@ import VolumeIcon from '../../assets/icons/volume_up_black_24dp.svg';
 import trash from '../../assets/icons/baseline_delete_outline_black_24dp.png';
 import closeIcon from '../../assets/icons/close.png'; 
 import edit from '../../assets/icons/pen-to-square-regular.svg';
+import eyeIcon from '../../assets/icons/view.png';
+import plusIcon from '../../assets/icons/plus.png';
+import minusIcon from '../../assets/icons/minus.png';
+
 
 
 
@@ -99,9 +103,12 @@ const [recording, setRecording] = useState(); // Ajoutez cette ligne dans les é
 const [note, setNote] = useState(''); // Ajoutez cette ligne dans les états
 const [editingAnswerId, setEditingAnswerId] = useState(null);
 const [editingText, setEditingText] = useState('');
+const [fullscreenImage, setFullscreenImage] = useState(null);
 
   useFetchActiveSubjectId(setSubjectActive, setSubject, navigation);
-
+  const closeFullscreenImage = () => {
+    setFullscreenImage(null);
+  };
 
   useFocusEffect(
     React.useCallback(() => {
@@ -378,6 +385,14 @@ const [editingText, setEditingText] = useState('');
 
       <Text style={globalStyles.title}> </Text>
 
+      {fullscreenImage && (
+  <View style={styles.fullscreenContainer}>
+    <TouchableOpacity style={styles.closeButton} onPress={closeFullscreenImage}>
+      <Text style={styles.closeButtonText}>X</Text>
+    </TouchableOpacity>
+    <Image source={{ uri: fullscreenImage }} style={styles.fullscreenImage} />
+  </View>
+)}
       <TouchableOpacity onPress={() => setModalVisible(true)} style={globalStyles.globalButton_wide}>
       <Text style={globalStyles.globalButtonText}>Ajouter une note</Text>
     </TouchableOpacity>
@@ -585,6 +600,11 @@ const [editingText, setEditingText] = useState('');
         <Image source={VolumeIcon} style={{ width: 35, height: 35, opacity: 0.5, marginHorizontal: 15 }} />
       </TouchableOpacity>
     )}
+    {answer.image && (
+    <TouchableOpacity onPress={() => setFullscreenImage(`https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/photos/${answer.link_storage}`)}>
+      <Image source={eyeIcon} style={{ width: 35, height: 35, opacity: 0.5, marginHorizontal: 15 }} />
+    </TouchableOpacity>
+  )}
     <TouchableOpacity onPress={() => { copyToClipboard(answer.answer); integration(answer.id); refreshAnswers(); }}>
       <Image source={copyIcon} style={{ width: 27, height: 27, opacity: 0.5, marginHorizontal: 15 }} />
     </TouchableOpacity>
@@ -747,6 +767,32 @@ const styles = StyleSheet.create({
   closeIcon: {
     width: 24,
     height: 24,
+  },
+  fullscreenContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 40,
+    right: 20,
+    zIndex: 20,
+  },
+  closeButtonText: {
+    color: 'white',
+    fontSize: 30,
+  },
+  fullscreenImage: {
+    width: '90%',
+    height: '90%',
+    resizeMode: 'contain',
   },
   
 });
