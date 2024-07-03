@@ -104,6 +104,7 @@ const [note, setNote] = useState(''); // Ajoutez cette ligne dans les états
 const [editingAnswerId, setEditingAnswerId] = useState(null);
 const [editingText, setEditingText] = useState('');
 const [fullscreenImage, setFullscreenImage] = useState(null);
+const [showDetails, setShowDetails] = useState(false);
 
   useFetchActiveSubjectId(setSubjectActive, setSubject, navigation);
   const closeFullscreenImage = () => {
@@ -162,6 +163,9 @@ const [fullscreenImage, setFullscreenImage] = useState(null);
     if (selectedQuestionObj) {
       setSelectedChapter(selectedQuestionObj.id_chapitre.toString());
     }
+  };
+  const handleShowDetails = () => {
+    setShowDetails(!showDetails)
   };
   
 
@@ -475,6 +479,13 @@ const [fullscreenImage, setFullscreenImage] = useState(null);
   <TouchableOpacity onPress={() => setShowFilters(!showFilters)} style={styles.filterIcon}>
     <Image source={filterIcon} style={{ width: 50, height: 50, opacity: 0.5, marginVertical : 30 }} />
   </TouchableOpacity>
+  <TouchableOpacity onPress={() => setShowDetails(!showDetails)} style={styles.filterIcon}>
+  <Image 
+    source={showDetails ? minusIcon : plusIcon} 
+    style={{ width: 50, height: 50, opacity: 0.5, marginVertical: 30 }} 
+  />
+</TouchableOpacity>
+
 </View>
 
 {showFilters && ( 
@@ -570,20 +581,31 @@ const [fullscreenImage, setFullscreenImage] = useState(null);
     </select>
   </View>
 </View>
+
 )}
 
 <ScrollView>
     {filteredAnswers.length > 0 ? filteredAnswers.map((answer, index) => {
       const question = questions.find(q => q.id === answer.id_question);
+      let chapter
+      if (question){
+
+       chapter = chapters.find(q => q.id === question.id_chapitre);
+      }
       return (
+        
         <View key={index} style={styles.answerCard}>
+          {showDetails && ( 
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 }}>
   <Text style={{ fontWeight: 'bold' }}>
     {new Date(answer.created_at).toLocaleDateString()} {new Date(answer.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
   </Text>
+  
+  
   <Text style={{ fontWeight: 'bold' }}>
-    {question ? "Chapitre : " + question.question : 'Réponse incluse dans aucun chapitre'}
+  {chapter ? chapter.title+" - " : ''} {question ? question.question : ''}
   </Text>
+
   <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
   {answer.answer !== "audio pas encore converti en texte" && answer.id !== editingAnswerId && (
                         <TouchableOpacity
@@ -612,8 +634,9 @@ const [fullscreenImage, setFullscreenImage] = useState(null);
       <Image source={trash} style={{ width: 36, height: 36, opacity: 0.5, marginLeft: 15 }} />
     </TouchableOpacity>
   </View>
-</View>
 
+</View>
+)}
 {answer.id === editingAnswerId ? (
   <>
                       <TextInput
@@ -655,6 +678,8 @@ const styles = StyleSheet.create({
     margin: 10,
   },
   filterContainer: {
+    width: '90%',
+    alignSelf: "center",
     padding: 10,
     zIndex: 3,
     marginHorizontal :5,

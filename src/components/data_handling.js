@@ -674,7 +674,7 @@ export async function create_project(name,id_user) {
         { id: id , title: name}
       ]);
 
-    joinSubject(id,id_user,"Oui")
+    joinSubject(id,id_user,"Editeur")
     
     
     if (error) throw error;

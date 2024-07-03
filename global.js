@@ -104,7 +104,7 @@ export const globalStyles = StyleSheet.create({
     shadowRadius: 3.84,
   },
   globalButtonText: {
-    textAlign: 'left',
+    textAlign: 'center',
     color: '#ffffff', // Texte blanc pour un meilleur contraste
     fontSize: 15,
     fontWeight: 'bold',
