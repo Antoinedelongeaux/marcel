@@ -160,22 +160,26 @@ export default function ProfileScreen({ route }) {
     const toggleAuthorization = async (contributor) => {
         let newAuthorization;
         switch (contributor.authorized) {
-            case 'Oui':
-                newAuthorization = 'Non';
+            case 'Contributeur':
+                newAuthorization = 'Editeur';
                 break;
+            case 'Oui':
+                    newAuthorization = 'Contributeur';
+                    break;
+            case 'Editeur':
+                    newAuthorization = 'Non';
+                    break;
             case 'Non':
                 newAuthorization = 'En attente';
                 break;
             case 'En attente':
-                newAuthorization = 'Oui';
+                newAuthorization = 'Contributeur';
                 break;
             default:
                 newAuthorization = 'En attente'; // Valeur par défaut si aucun cas n'est correspondant
         }
 
         try {
-            console.log("subject_active_ter")
-            console.log(subject_active)
             await validate_project_contributors(subject_active.id, contributor.id_user, newAuthorization);
             // Après la validation, rafraîchir la liste des contributeurs pour afficher la mise à jour
             await fetchContributors();

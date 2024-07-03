@@ -521,7 +521,7 @@ export async function getSubjects(id_user) {
       .from('Memoires_contributors')
       .select('*')
       .eq('id_user', id_user)
-      .eq('authorized', "Oui");
+      .or('authorized.eq.Contributeur,authorized.eq.Editeur,authorized.eq.Oui');
     if (error) throw error;
 
 
@@ -884,6 +884,23 @@ export async function integration(id_answer) {
 
 
   }catch (errorUpdating ) {
+    Alert.alert('Erreur lors de la prise en compte de la copie : ', errorUpdating.message);
+  } 
+
+
+}
+
+export async function getUserStatus(id_user,id_subject) {
+  try {
+    const { data: status, error: fetchError } = await supabase
+    .from('Memoires_contributors')
+    .select('authorized')
+    .eq('id_subject', id_subject)
+    .eq('id_user', id_user)
+    .single(); 
+  if (fetchError) throw fetchError;
+  return status.authorized
+    }catch (errorUpdating ) {
     Alert.alert('Erreur lors de la prise en compte de la copie : ', errorUpdating.message);
   } 
 

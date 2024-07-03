@@ -28,6 +28,7 @@ import {
   delete_question,
   get_Question_by_id,
   integration,
+  getUserStatus,
 } from '../components/data_handling';
 import { useFocusEffect } from '@react-navigation/native';
 import { getActiveSubjectId } from '../components/local_storage';
@@ -73,11 +74,12 @@ const useFetchActiveSubjectId = (setSubjectActive, setSubject, navigation) => {
   );
 };
 
-const useFetchData = (subjectActive, setQuestions, tags, personal, setChapters) => {
+const useFetchData = (id_user,subjectActive, setQuestions, tags, personal, setChapters,setUserStatus) => {
   useEffect(() => {
     if (subjectActive != null) {
       getMemories_Questions(subjectActive, setQuestions, tags, personal);
       get_chapters(subjectActive, setChapters);
+      setUserStatus(getUserStatus(id_user,subjectActive))
     }
   }, [subjectActive, tags, personal]);
 };
@@ -127,7 +129,7 @@ function ReadQuestionsScreen({ route }) {
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [showIntegratedNotes, setShowIntegratedNotes] = useState(false);
-
+  const [userStatus, setUserStatus] = useState('');
 
 
   
@@ -136,7 +138,19 @@ function ReadQuestionsScreen({ route }) {
   const [isDragging, setIsDragging] = useState(false);
   const [expandedAnswers, setExpandedAnswers] = useState({});
 
-  
+  useEffect(() => {
+    const fetchUserStatus = async () => {
+      const status = await getUserStatus(session.user.id, subjectActive);
+      setUserStatus(status);
+      console.log("User status:", status);
+      if (status=="Contributeur") {
+        setMiddlePanelWidth(0);
+      }
+    };
+    if (subjectActive) {
+      fetchUserStatus();
+    }
+  }, [session.user.id, subjectActive]);
 
 
 const handleMouseDown = (e) => {
@@ -222,7 +236,9 @@ const copyToClipboard = (text) => {
 
 
   useFetchActiveSubjectId(setSubjectActive, setSubject, navigation);
-  useFetchData(subjectActive, setQuestions, tags, personal, setChapters);
+  console.log("session : ",session)
+  useFetchData(session.user.id,subjectActive, setQuestions, tags, personal, setChapters,setUserStatus);
+
 
   const toggleChapter = (chapterId) => {
     setOpenChapters((prevOpenChapters) => ({
@@ -501,6 +517,7 @@ const copyToClipboard = (text) => {
       </View>
     </View>
   )}
+  {isLargeScreen && userStatus==="Editeur" && (
 <View
   style={[styles.resizer, { right: rightPanelWidth -21 }]}
   onMouseDown={handleMouseDown}
@@ -509,12 +526,13 @@ const copyToClipboard = (text) => {
 <Text style={[styles.resizerText, { userSelect: 'none' }]}>{'< >'}</Text>
 
 </View>
-
-  {isLargeScreen && (
-   <View style={isLargeScreen ? styles.middlePanelContainer : styles.fullWidth}>
-   <TouchableOpacity onPress={toggleLeftPanel} style={styles.toggleLine}>
+  )}
+  <TouchableOpacity onPress={toggleLeftPanel} style={styles.toggleLine}>
      <Text style={styles.toggleLineText}>{isLeftPanelVisible ? '<' : '>'}</Text>
    </TouchableOpacity>
+  {isLargeScreen && userStatus==="Editeur" && (
+   <View style={isLargeScreen ? styles.middlePanelContainer : styles.fullWidth}>
+   
    <View style={{ ...styles.MiddlePanel, width: middlePanelWidth }}>
    <Text style={globalStyles.title}>
   {question && question.question ? question.question : 'Veuillez sélectionner un chapitre à éditer'}
@@ -618,6 +636,7 @@ const copyToClipboard = (text) => {
             >
               <Text style={globalStyles.globalButtonText}>Répondre</Text>
             </TouchableOpacity>
+             {/*
              <TouchableOpacity
              key={questionId+1}
              onPress={() => {copyToClipboard("https://marcel-eight.vercel.app/invitation/"+ questionId )}}
@@ -625,7 +644,7 @@ const copyToClipboard = (text) => {
            >
              <Text style={globalStyles.globalButtonText}>Copier le lien de réponse</Text>
            </TouchableOpacity>
-
+              */}
            </>
           ))}
         {Object.keys(activeQuestionAnswers).map((questionId) =>
