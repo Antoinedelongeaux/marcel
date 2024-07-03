@@ -211,76 +211,74 @@ if(question) {
 
      
 
-   <View style={{ ...styles.MiddlePanel }}>
-   <Text style={globalStyles.title}>
-  {question && question.question ? question.question : 'Veuillez sélectionner un chapitre à éditer'}
-  {isContentModified && (
-    <TouchableOpacity style={{ marginLeft: 10 }} onPress={handleSaving}>
-      <Image source={save} style={{ width: 20, height: 20, opacity: 0.5 }} />
-    </TouchableOpacity>
-  )}
-</Text>
+        <View style={{ ...styles.MiddlePanel }}>
+  <Text style={globalStyles.title}>
+    {question && question.question ? question.question : 'Veuillez sélectionner un chapitre à éditer'}
+    {isContentModified && (
+      <TouchableOpacity style={{ marginLeft: 10 }} onPress={handleSaving}>
+        <Image source={save} style={{ width: 20, height: 20, opacity: 0.5 }} />
+      </TouchableOpacity>
+    )}
+  </Text>
 
-<Text> </Text>
+  <Text> </Text>
 
-     <View style={styles.container}>
-       {Platform.OS === 'web' ? (
-         <>
-           <div id="toolbar"></div>
-           <View style={styles.toolbarContainer}>
+  <View style={{ width: '100%' }}> {/* Assurez-vous que cette vue occupe 100% de la largeur */}
+    {Platform.OS === 'web' ? (
+      <>
+        <div id="toolbar"></div>
+        <View style={styles.toolbarContainer}>
+          <ReactQuill
+            ref={editor}
+            theme="snow"
+            modules={quillModules}
+            bounds={'#toolbar'}
+            value={content}
+            onChange={() => {
+              if (!isSaving && !isInitialLoad) setIsContentModified(true);
+            }}
+            onChangeSelection={() => setIsInitialLoad(false)}
+          />
+        </View>
+      </>
+    ) : (
+      <>
+        <RichEditor
+          ref={editor}
+          style={styles.editor}
+          initialContentHTML={content}
+          onChange={() => {
+            if (!isSaving && !isInitialLoad) setIsContentModified(true);
+          }}
+          onSelectionChange={() => setIsInitialLoad(false)}
+        />
 
- 
-           <ReactQuill
-  ref={editor}
-  theme="snow"
-  modules={quillModules}
-  bounds={'#toolbar'}
-  value={content}
-  onChange={() => {
-    if (!isSaving && !isInitialLoad) setIsContentModified(true);
-  }}
-  onChangeSelection={() => setIsInitialLoad(false)}
-/>
+        <RichToolbar
+          editor={editor}
+          style={styles.toolbar}
+          iconTint="#000000"
+          selectedIconTint="#209cee"
+          selectedButtonStyle={{ backgroundColor: 'transparent' }}
+          actions={[
+            'bold',
+            'italic',
+            'underline',
+            'unorderedList',
+            'orderedList',
+            'insertLink',
+            'insertImage',
+            'blockQuote',
+            'undo',
+            'redo',
+            'save',
+          ]}
+          onSave={handleSaving}
+        />
+      </>
+    )}
+  </View>
+</View>
 
-           </View>
-         </>
-       ) : (
-         <>
-           <RichEditor
-  ref={editor}
-  style={styles.editor}
-  initialContentHTML={content}
-  onChange={() => {
-    if (!isSaving && !isInitialLoad) setIsContentModified(true);
-  }}
-  onSelectionChange={() => setIsInitialLoad(false)}
-/>
-
-           <RichToolbar
-             editor={editor}
-             style={styles.toolbar}
-             iconTint="#000000"
-             selectedIconTint="#209cee"
-             selectedButtonStyle={{ backgroundColor: 'transparent' }}
-             actions={[
-               'bold',
-               'italic',
-               'underline',
-               'unorderedList',
-               'orderedList',
-               'insertLink',
-               'insertImage',
-               'blockQuote',
-               'undo',
-               'redo',
-               'save',
-             ]}
-             onSave={handleSaving}
-           />
-         </>
-       )}
-     </View>
-   </View>
  
  
   
@@ -380,14 +378,16 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   middlePanelContainer: {
+    width:'90%',
     flexDirection: 'row',
     flex: 1,
   },
-  MiddlePanel: {
- 
-    padding: 10,
-    borderRightWidth: 1,
-    borderColor: '#ccc',
+  
+  editor: {
+    flex: 1,
+    height: 400,
+    width: '90%', // Définir la largeur à 95%
+    alignSelf: 'center', // Centrer l'élément
   },
 });
 
