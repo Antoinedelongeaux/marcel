@@ -242,7 +242,11 @@ export default function ProfileScreen({ route }) {
         }
     }
 
-
+    const sortedSubjectsActive = subjects_active.sort((a, b) => {
+        if (a.content_subject.id === subject_active.id) return -1;
+        if (b.content_subject.id === subject_active.id) return 1;
+        return 0;
+    });
 
 
 
@@ -254,22 +258,16 @@ export default function ProfileScreen({ route }) {
                     <Image source={BookIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => navigateToScreen('NoteScreen')} style={styles.navButton}>
-          <Image source={note} style={{ width: 60, height: 60, opacity: 0.5 }} />
-        </TouchableOpacity>
+                    <Image source={note} style={{ width: 60, height: 60, opacity: 0.5 }} />
+                </TouchableOpacity>
                 <TouchableOpacity onPress={() => navigateToScreen('ManageBiographyScreen')} style={styles.navButton}>
                     <Image source={settings} style={{ width: 60, height: 60, opacity: 1 }} />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => navigateToScreen('ProfileScreen')} style={styles.navButton}>
                     <Image source={PersonIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
                 </TouchableOpacity>
-   {/*             
-                <TouchableOpacity onPress={() => navigateToScreen('AideScreen')} style={styles.navButton}>
-                    <Image source={help} style={{ width: 60, height: 60, opacity: 0.5 }} />
-                </TouchableOpacity>
-*/}
             </View>
-
-
+    
             <Modal
                 animationType="slide"
                 transparent={true}
@@ -292,43 +290,29 @@ export default function ProfileScreen({ route }) {
                     </View>
                 </View>
             </Modal>
-
-
+    
             <Text style={globalStyles.title}>
                 {subject_active && subject_active.title ? `Vous travaillez actuellement sur le projet : ${subject_active.title}` : "Veuillez sélectionner un projet afin de pouvoir y contribuer activement."}
             </Text>
+    
+            {/* Première partie */}
+            {subject_active && subject_active.title && (
+                <View>
 
-
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 10 }}>
-
-                {subject_active && subject_active.title && (
                     <TouchableOpacity
-                        style={showContributors ? globalStyles.globalButton_active : globalStyles.globalButton_narrow}
+                        style={showContributors ? globalStyles.globalButton_active : globalStyles.globalButton_wide}
                         onPress={() => {
                             setShowChangeProject(false);
                             setShowContributors(!showContributors);
                             fetchContributors();
                         }}
                     >
-                        <Text style={globalStyles.globalButtonText}>Gérer les droits d'accès au projet </Text>
+                        <Text style={globalStyles.globalButtonText}>Gérer les droits d'accès du projet actif </Text>
                     </TouchableOpacity>
-                )}
-
-                <TouchableOpacity
-                    style={showChangeProject ? globalStyles.globalButton_active : globalStyles.globalButton_narrow}
-                    onPress={() => {
-                        setShowContributors(false);
-                        setShowChangeProject(!showChangeProject);
-                    }}
-                >
-                    <Text style={globalStyles.globalButtonText}>{subject_active && subject_active.title ? "Changer le projet" : "Sélectionner un projet"} </Text>
-                </TouchableOpacity>
-            </View>
-
-
-
+                </View>
+            )}
             {showContributors && (
-                <View>
+                <View style={globalStyles.container_wide}>
                     {contributors?.length > 0 ? (
                         contributors.map((contributor) => (
                             <View key={contributor.id} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 10 }}>
@@ -343,173 +327,196 @@ export default function ProfileScreen({ route }) {
                     )}
                 </View>
             )}
+    
+            {/* Deuxième partie */}
+            {subjects_active.length > 0 && (
+                <View>
 
-
-
+                    <TouchableOpacity
+                        style={showChangeProject ? globalStyles.globalButton_active : globalStyles.globalButton_wide}
+                        onPress={() => {
+                            setShowContributors(false);
+                            setShowChangeProject(!showChangeProject);
+                        }}
+                    >
+                        <Text style={globalStyles.globalButtonText}>{subject_active && subject_active.title ? "Changer le projet" : "Sélectionner un projet"} </Text>
+                    </TouchableOpacity>
+                </View>
+            )}
+    
+            
+    
             {showChangeProject && (
-
                 <>
                     {subjects_active.length > 0 ? (
-                        <>
-
-
+                        <View style={globalStyles.container_wide}>
                             <Text style={globalStyles.title}>Projets auxquels vous contribuez</Text>
-                            {subjects_active.map((subject) => (
-                                <TouchableOpacity key={subject.content_subject.id}
-                                    style={[globalStyles.globalButton_tag, subject_active === subject.content_subject.id ? styles.SelectedTag : styles.unSelectedTag]}
-                                    onPress={() => handleJoinSubject(subject.content_subject.id)}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'transparent' }}>
-
-                                        <Text style={[
-                                            globalStyles.buttonText,
-                                            subject_active.id === subject.content_subject.id ? globalStyles.globalButtonText_active : globalStyles.globalButtonText,
-                                            { color: 'black' }]}>
-
-                                            {subject.content_subject.title} {subject_active.id === subject.content_subject.id ? "(actif)" : ""}
-                                        </Text>
-                                    </View>
-                                </TouchableOpacity>
-                            ))}
-
-
-                            {subjects_pending.map((subject) => (
-                                <TouchableOpacity
-                                    key={subject.content_subject.id}
-                                    style={[
-                                        globalStyles.globalButton_tag,
-                                        subject_active.id === subject.content_subject.id ? styles.SelectedTag : styles.unSelectedTag
-                                    ]}>
-                                    <Text style={[
-                                        globalStyles.buttonText,
-                                        subject_active.id === subject.content_subject.id ? globalStyles.globalButtonText_active : globalStyles.globalButtonText,
-                                        { color: 'black' }]}>
-                                        {subject.content_subject.title} - accès en attente de validation
-                                    </Text>
-                                </TouchableOpacity>
-                            ))}
-
-                        </>
-                    ) : (
-                        <Text>Vous ne contribuez à aucune biographie actuellement.</Text>
+                            {sortedSubjectsActive.map((subject) => (
+            <TouchableOpacity
+                key={subject.content_subject.id}
+                style={[
+                    globalStyles.globalButton_tag,
+                    subject_active.id === subject.content_subject.id ? styles.SelectedTag : styles.unSelectedTag
+                ]}
+                onPress={() => handleJoinSubject(subject.content_subject.id)}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                    <Text style={[
+                        globalStyles.buttonText,
+                        subject_active.id === subject.content_subject.id ? globalStyles.globalButtonText_active : globalStyles.buttonText,
+                        { textAlign: 'left', flex: 1, fontWeight: subject_active.id === subject.content_subject.id ? 'bold' : 'normal' }
+                    ]}>
+                        {subject.content_subject.title}
+                    </Text>
+                    {subject_active.id === subject.content_subject.id && (
+                        <Text style={[
+                            globalStyles.buttonText,
+                            { textAlign: 'right', fontWeight: 'bold' }
+                        ]}>
+                            (actif)
+                        </Text>
                     )}
+                </View>
+            </TouchableOpacity>
+        ))}
 
-                    <Text style={globalStyles.title}>Vous souhaitez contribuer à une autre projet ? </Text>
+        {subjects_pending.map((subject) => (
+            <TouchableOpacity
+                key={subject.content_subject.id}
+                style={[
+                    globalStyles.globalButton_tag,
+                    subject_active.id === subject.content_subject.id ? styles.SelectedTag : styles.unSelectedTag
+                ]}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                    <Text style={[
+                        globalStyles.buttonText,
+                        { textAlign: 'left', flex: 1 }
+                    ]}>
+                        {subject.content_subject.title}
+                    </Text>
+                    <Text style={[
+                        globalStyles.buttonText,
+                        { textAlign: 'right' }
+                    ]}>
+                        (accès en attente de validation)
+                    </Text>
+                </View>
+            </TouchableOpacity>
+        ))}
+    
+                        </View>
+                    ) : (
+                        <Text>Vous ne contribuez à aucun projet actuellement.</Text>
+                    )}
+                </>
+            )}
+    
+            {/* Troisième partie */}
+            <View>
 
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 10 }}>
-                        <TouchableOpacity style={!showProjects ? globalStyles.globalButton_narrow : globalStyles.globalButton_active} onPress={() => { setShowProjects(!showProjects), setShowNewProject(false) }}>
-                            <Text style={globalStyles.globalButtonText}>{showProjects ? "Masquer les projets" : "Rejoindre un projet existant"}</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={!showNewProject ? globalStyles.globalButton_narrow : globalStyles.globalButton_active} onPress={() => { setShowNewProject(!showNewProject), setShowProjects(false) }}>
-                            <Text style={globalStyles.globalButtonText}>{showNewProject ? "Abandonner la création" : "Créer un nouveau projet"}</Text>
+
+                    <TouchableOpacity style={!showProjects ? globalStyles.globalButton_wide: globalStyles.globalButton_active} onPress={() => { setShowProjects(!showProjects), setShowNewProject(false) }}>
+                        <Text style={globalStyles.globalButtonText}>{showProjects ? "Masquer les projets" : "Rejoindre un projet existant"}</Text>
+                    </TouchableOpacity>
+
+        
+                {showProjects && (
+                    <View style={globalStyles.container_wide}>
+
+                        <View style={styles.searchContainer}>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Rechercher un projet"
+                                value={searchName}
+                                onChangeText={(text) => setSearchName(text)}
+                            />
+                            <TouchableOpacity onPress={() => get_project(searchName, setLoading, setSearchResults)} style={styles.icon}>
+                                <Image source={SearchIcon} style={{ width: 24, height: 24, opacity: 0.5 }} />
+                            </TouchableOpacity>
+                        </View>
+    
+                        {searchResults
+                            .filter(result => !subjects_active.some(subject => subject.content_subject.id === result.id))
+                            .map((result) => (
+                                <TouchableOpacity
+                                    key={result.id}
+                                    style={[globalStyles.globalButton_tag, styles.unSelectedTag, { color: 'black' }]}
+                                    onPress={() => handleConnectSubject(result.id)}
+                                >
+                                    <Text style={[globalStyles.globalButtonText_tag, { color: 'black' }]}>{result.title}</Text>
+                                </TouchableOpacity>
+                            ))}
+                    </View>
+                )}
+    
+    <TouchableOpacity style={!showNewProject ? globalStyles.globalButton_wide : globalStyles.globalButton_active} onPress={() => { setShowNewProject(!showNewProject), setShowProjects(false) }}>
+                        <Text style={globalStyles.globalButtonText}>{showNewProject ? "Abandonner la création" : "Créer un nouveau projet"}</Text>
+                    </TouchableOpacity>
+                {showNewProject && (
+                    <View style={globalStyles.container_wide}>
+                    <View style={styles.searchContainer}>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Nom du nouveau projet"
+                            value={newName}
+                            onChangeText={(text) => setNewName(text)}
+                        />
+                        <TouchableOpacity onPress={handleCreateProject} style={styles.icon}>
+                            <Image source={AddIcon} style={{ width: 26, height: 26, opacity: 0.5 }} />
                         </TouchableOpacity>
                     </View>
-                    {showProjects && (
-                        <>
-
-                            <View style={styles.searchContainer}>
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder="Rechercher un projet"
-                                    value={searchName}
-                                    onChangeText={(text) => setSearchName(text)}
-                                />
-                                <TouchableOpacity onPress={() => get_project(searchName, setLoading, setSearchResults)} style={styles.icon}>
-                                    <Image source={SearchIcon} style={{ width: 24, height: 24, opacity: 0.5 }} />
-                                </TouchableOpacity>
-                            </View>
-
-                            {searchResults.map((result) => (
-    <TouchableOpacity
-        key={result.id}
-        style={[globalStyles.globalButton_tag, styles.unSelectedTag, { color: 'black' }]}
-        onPress={() => handleConnectSubject(result.id)}
-    >
-        <Text style={[globalStyles.globalButtonText_tag, { color: 'black' }]}>{result.title}</Text>
-    </TouchableOpacity>
-))}
-
-                        </>
-                    )}
-
-
-
-                    {showNewProject && (
-                        <>
-
-                            <View style={styles.searchContainer}>
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder="Nom du nouveau projet"
-                                    value={newName}
-                                    onChangeText={(text) => setNewName(text)}
-                                />
-                                <TouchableOpacity onPress={handleCreateProject} style={styles.icon}>
-                                    <Image source={AddIcon} style={{ width: 26, height: 26, opacity: 0.5 }} />
-                                </TouchableOpacity>
-                            </View>
-
-
-                        </>
-                    )}
-
-                </>)}
-                
-                <Modal
-    animationType="slide"
-    transparent={true}
-    visible={showJoinModal}
-    onRequestClose={() => setShowJoinModal(false)}
->
-    <View style={styles.centeredView}>
-        <View style={styles.modalView}>
-            
-            <TouchableOpacity
-        style={[globalStyles.globalButton_wide]}
-        onPress={async () => {
-            setShowJoinModal(false);
-            await joinSubject(selectedSubject,session.user.id,"En attente");
-            setJoinMessage("Votre demande a bien été envoyés aux contributeurs du projet pour validation.")
-        }}
-    >
-        <Text style={[globalStyles.globalButtonText]}>Envoyer la demande d'accès au projet</Text>
-    </TouchableOpacity>
-    <TouchableOpacity
-        style={[globalStyles.globalButton_wide]}
-        onPress={() => setShowJoinModal(false)}
-    >
-        <Text style={[globalStyles.globalButtonText]}>Abandonner</Text>
-    </TouchableOpacity>
-            
- 
-        
-        </View>
-    </View>
-</Modal>
-
-<Modal
-    animationType="slide"
-    transparent={true}
-    visible={!!joinMessage}
-    onRequestClose={() => setJoinMessage("")}
->
-    <View style={styles.centeredView}>
-        <View style={styles.modalView}>
-            <Text style={styles.modalText}>{joinMessage}</Text>
-            <TouchableOpacity
-        style={[globalStyles.globalButton_wide]}
-        onPress={() => setJoinMessage("")}
-    >
-        <Text style={[globalStyles.globalButtonText]}>Ok</Text>
-    </TouchableOpacity>
-            
-            
-        </View>
-    </View>
-</Modal>
-
-
+                    </View>
+                )}
+            </View>
+    
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={showJoinModal}
+                onRequestClose={() => setShowJoinModal(false)}
+            >
+                <View style={styles.centeredView}>
+                    <View style={styles.modalView}>
+                        <TouchableOpacity
+                            style={[globalStyles.globalButton_wide]}
+                            onPress={async () => {
+                                setShowJoinModal(false);
+                                await joinSubject(selectedSubject, session.user.id, "En attente");
+                                setJoinMessage("Votre demande a bien été envoyée aux contributeurs du projet pour validation.")
+                            }}
+                        >
+                            <Text style={[globalStyles.globalButtonText]}>Envoyer la demande d'accès au projet</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[globalStyles.globalButton_wide]}
+                            onPress={() => setShowJoinModal(false)}
+                        >
+                            <Text style={[globalStyles.globalButtonText]}>Abandonner</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
+    
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={!!joinMessage}
+                onRequestClose={() => setJoinMessage("")}
+            >
+                <View style={styles.centeredView}>
+                    <View style={styles.modalView}>
+                        <Text style={styles.modalText}>{joinMessage}</Text>
+                        <TouchableOpacity
+                            style={[globalStyles.globalButton_wide]}
+                            onPress={() => setJoinMessage("")}
+                        >
+                            <Text style={[globalStyles.globalButtonText]}>Ok</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
         </View>
     )
+    
 
 
 }
@@ -588,9 +595,27 @@ const styles = StyleSheet.create({
     },
     modalText: {
         textAlign: "center"
-    }
+    },
 
-
+    globalButtonText: {
+        textAlign: 'left',
+        color: '#ffffff', // Texte blanc pour un meilleur contraste
+        fontSize: 15,
+        fontWeight: 'bold',
+    },
+    globalButtonText_active: {
+        textAlign: 'left',
+        color: '#0b2d52', // Texte bleu foncé
+        fontSize: 19,
+        fontWeight: 'bold',
+    },
+    globalButtonText_tag: {
+        textAlign: 'left',
+        color: '#ffffff', // Texte blanc pour un meilleur contraste
+        fontSize: 14, // Taille de police légèrement augmentée pour améliorer la lisibilité
+        fontWeight: 'bold',
+    },
+    
 
 
 })

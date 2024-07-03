@@ -66,18 +66,12 @@ export const globalStyles = StyleSheet.create({
     shadowRadius: 3.84,
   },
   globalButton_active: {
-    width: '45%', // Adaptation de la largeur
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#7D94AF', // Couleur du fond
-    margin: 10,
+    backgroundColor: '#7D94AF', 
+    alignSelf: "center",
+    width: '90%',
+    marginVertical: 10,
     borderRadius: 10,
     padding: 10,
-    elevation: 5, // Ombre pour Android
-    shadowColor: '#000', // Ombre pour iOS
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
   },
   globalButton_wide: {
     alignSelf: "center",
@@ -86,7 +80,14 @@ export const globalStyles = StyleSheet.create({
     marginVertical: 10,
     borderRadius: 10,
     padding: 10,
-    
+  },
+  container_wide:{
+    alignSelf: "center",
+    width: '90%',
+    marginVertical: 10,
+    borderRadius: 10,
+    padding: 10,
+
   },
   globalButton_narrow: {
     width: '45%', // Adaptation de la largeur
@@ -103,16 +104,17 @@ export const globalStyles = StyleSheet.create({
     shadowRadius: 3.84,
   },
   globalButtonText: {
-    textAlign: 'center',
+    textAlign: 'left',
     color: '#ffffff', // Texte blanc pour un meilleur contraste
     fontSize: 15,
     fontWeight: 'bold',
   },
   globalButtonText_active: {
-    textAlign: 'center',
+    textAlign: 'left',
     color: '#ffffff', // Texte blanc pour un meilleur contraste
     fontSize: 19,
     fontWeight: 'bold',
+    color: '#0b2d52', 
   },
   globalButtonText_narrow: {
     textAlign: 'center',
