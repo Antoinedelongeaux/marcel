@@ -11,6 +11,7 @@ import {
   Button,
   Platform,
   Alert,
+  Dimensions,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import DatePicker from 'react-datepicker';
@@ -24,7 +25,7 @@ import {
   submitMemories_Answer,
   update_answer_text,
   deleteMemories_Answer,
-
+  get_user_name,
 } from '../components/data_handling';
 
 import { useFocusEffect } from '@react-navigation/native';
@@ -105,6 +106,10 @@ const [editingAnswerId, setEditingAnswerId] = useState(null);
 const [editingText, setEditingText] = useState('');
 const [fullscreenImage, setFullscreenImage] = useState(null);
 const [showDetails, setShowDetails] = useState(false);
+const windowWidth = Dimensions.get('window').width;
+const isLargeScreen = windowWidth > 768;
+const [userNames, setUserNames] = useState({});
+
 
   useFetchActiveSubjectId(setSubjectActive, setSubject, navigation);
   const closeFullscreenImage = () => {
@@ -130,10 +135,23 @@ const [showDetails, setShowDetails] = useState(false);
       setAnswers(answers);
       setIsLoading(false);
   };
-
   useEffect(() => {
-    console.log("réponses : ", answers)
+    const fetchUserNames = async () => {
+      const names = {};
+      for (const answer of answers) {
+        if (!names[answer.id_user]) {
+          names[answer.id_user] = await get_user_name(answer.id_user);
+        }
+      }
+      setUserNames(names);
+    };
+  
+    if (answers.length > 0) {
+      fetchUserNames();
+    }
   }, [answers]);
+  
+ 
 
   useEffect(() => {
     console.log("selectedChapter : ", selectedChapter)
@@ -199,21 +217,45 @@ const [showDetails, setShowDetails] = useState(false);
     }
   };
 
-  const filteredAnswers = answers.filter(answer => {
-    const answerDate = new Date(answer.created_at);
-    const beforeDate = dateBefore ? new Date(dateBefore) : null;
-    const afterDate = dateAfter ? new Date(dateAfter) : null;
-  
-    return (
-      (!textFilter || answer.answer.includes(textFilter)) &&
-      (!beforeDate || answerDate < beforeDate) &&
-      (!afterDate || answerDate > afterDate) &&
-      (selectedQuestion === '' || 
-       (selectedQuestion === 'none' && answer.id_question === null) ||
-       (answer.id_question !== null && selectedQuestion === answer.id_question.toString())) &&
-      (selectedChapter === '' || selectedChapter === answer.id_chapter?.toString())
-    );
-  });
+ // Créer une liste d'IDs de questions pour le chapitre sélectionné
+ const [questionIdsForSelectedChapter, setQuestionIdsForSelectedChapter] = useState([]);
+
+useEffect(() => {
+  // Vérifier si un chapitre est sélectionné
+  if (selectedChapter) {
+    // Filtrer les questions pour ne garder que celles appartenant au chapitre sélectionné
+    const filteredQuestions = questions.filter(q => q.id_chapitre === selectedChapter);
+    // Extraire les IDs des questions filtrées et les convertir en chaînes de caractères
+    const ids = filteredQuestions.map(q => q.id.toString());
+    setQuestionIdsForSelectedChapter(ids);
+    console.log('questionIdsForSelectedChapter 1 : ', ids);
+  } else {
+    setQuestionIdsForSelectedChapter('');
+  }
+}, [selectedChapter, questions]);
+
+const filteredAnswers = answers.filter(answer => {
+  const answerDate = new Date(answer.created_at);
+  const beforeDate = dateBefore ? new Date(dateBefore) : null;
+  const afterDate = dateAfter ? new Date(dateAfter) : null;
+  console.log("selectedQuestion : ", selectedQuestion);
+  console.log('Answer : ', answer);
+  console.log('questionIdsForSelectedChapter 2 : ', questionIdsForSelectedChapter);
+
+  return (
+    (!textFilter || answer.answer.includes(textFilter)) &&
+    (!beforeDate || answerDate < beforeDate) &&
+    (!afterDate || answerDate > afterDate) &&
+    (selectedQuestion === '' || 
+     (selectedQuestion === 'none' && answer.id_question === null) ||
+     (answer.id_question !== null && selectedQuestion.toString() === answer.id_question.toString())) &&
+    (selectedChapter === '' || 
+     (selectedChapter === 'none' && answer.id_question === null) || 
+     (questionIdsForSelectedChapter.length === 0 || questionIdsForSelectedChapter.includes(answer.id_question?.toString())))
+  );
+});
+
+
   
   
   
@@ -597,6 +639,9 @@ const [showDetails, setShowDetails] = useState(false);
         <View key={index} style={styles.answerCard}>
           {showDetails && ( 
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 }}>
+  
+  {isLargeScreen && (<>
+
   <Text style={{ fontWeight: 'bold' }}>
     {new Date(answer.created_at).toLocaleDateString()} {new Date(answer.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
   </Text>
@@ -605,7 +650,7 @@ const [showDetails, setShowDetails] = useState(false);
   <Text style={{ fontWeight: 'bold' }}>
   {chapter ? chapter.title+" - " : ''} {question ? question.question : ''}
   </Text>
-
+  </>)}
   <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
   {answer.answer !== "audio pas encore converti en texte" && answer.id !== editingAnswerId && (
                         <TouchableOpacity
@@ -657,7 +702,9 @@ const [showDetails, setShowDetails] = useState(false);
                     ) : (
                       <Text style={styles.answerText}>{answer.answer}</Text>
                     )}
-
+<Text style={{ textAlign: 'right', marginTop: 10, fontStyle: 'italic' }}>
+        {userNames[answer.id_user]}
+      </Text>
       
         </View>
       );
