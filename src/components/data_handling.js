@@ -907,3 +907,73 @@ export async function getUserStatus(id_user,id_subject) {
 
 }
 
+
+import { v4 as uuidv4 } from 'uuid';
+
+// Fonction pour connecter les réponses
+export async function connectAnswers(answers) {
+  try {
+    // Définir un nouveau UUID pour connection_new
+    const connection_new = uuidv4();
+    console.log('answers to be connected : ',answers)
+    console.log('connection_new : ',connection_new)
+    for (let answerId of answers) {
+      // Chercher les answer.connection non vides dans la table answers
+      const { data: answerData, error: fetchError } = await supabase
+        .from('Memoires_answers')
+        .select('connection')
+        .eq('id', answerId);
+
+      if (fetchError) {
+        throw fetchError;
+      }
+
+      const existingConnections = answerData
+        .map(answer => answer.connection)
+        .filter(connection => connection !== null && connection !== '');
+
+      // Mettre à jour les réponses existantes avec la nouvelle connexion
+      const { error: updateError } = await supabase
+        .from('Memoires_answers')
+        .update({ connection: connection_new })
+        .in('connection', existingConnections);
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      // Mettre à jour la réponse actuelle avec la nouvelle connexion
+      const { error: currentUpdateError } = await supabase
+        .from('Memoires_answers')
+        .update({ connection: connection_new })
+        .eq('id', answerId);
+
+      if (currentUpdateError) {
+        throw currentUpdateError;
+      }
+    }
+    console.log('Answers successfully connected.');
+  } catch (error) {
+    console.error('Error connecting answers:', error.message);
+  }
+}
+
+// Fonction pour déconnecter les réponses
+export async function disconnectAnswers(answers) {
+  try {
+    for (let answerId of answers) {
+      // Mettre answer.connection à null pour chaque id dans answers
+      const { error: updateError } = await supabase
+        .from('Memoires_answers')
+        .update({ connection: null })
+        .eq('id', answerId);
+
+      if (updateError) {
+        throw updateError;
+      }
+    }
+    console.log('Answers successfully disconnected.');
+  } catch (error) {
+    console.error('Error disconnecting answers:', error.message);
+  }
+}

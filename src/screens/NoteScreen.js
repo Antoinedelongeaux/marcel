@@ -26,6 +26,8 @@ import {
   update_answer_text,
   deleteMemories_Answer,
   get_user_name,
+  connectAnswers,
+  disconnectAnswers
 } from '../components/data_handling';
 
 import { useFocusEffect } from '@react-navigation/native';
@@ -48,6 +50,7 @@ import edit from '../../assets/icons/pen-to-square-regular.svg';
 import eyeIcon from '../../assets/icons/view.png';
 import plusIcon from '../../assets/icons/plus.png';
 import minusIcon from '../../assets/icons/minus.png';
+import linkIcon from '../../assets/icons/link.png';
 
 
 
@@ -109,6 +112,8 @@ const [showDetails, setShowDetails] = useState(false);
 const windowWidth = Dimensions.get('window').width;
 const isLargeScreen = windowWidth > 768;
 const [userNames, setUserNames] = useState({});
+const [selectedAnswers, setSelectedAnswers] = useState([]);
+
 
 
   useFetchActiveSubjectId(setSubjectActive, setSubject, navigation);
@@ -322,6 +327,11 @@ const filteredAnswers = answers.filter(answer => {
       }
     }
   };
+  const linkAnswers = async () => {
+    await connectAnswers(selectedAnswers);
+    setSelectedAnswers([]);
+    await refreshAnswers();
+  };
 
   const handleAnswerSubmit = async (name, audio, uri = null) => {
     const transcribedText = audio ? "audio pas encore converti en texte" : note;
@@ -333,6 +343,9 @@ const filteredAnswers = answers.filter(answer => {
         return;
       }
     }
+
+    
+    
 
     await submitMemories_Answer(transcribedText, selectedQuestion, session, audio, name, async () => {
       setNote('');
@@ -528,6 +541,13 @@ const filteredAnswers = answers.filter(answer => {
   />
 </TouchableOpacity>
 
+<TouchableOpacity onPress={() => linkAnswers(answers)} style={styles.filterIcon}>
+  <Image 
+    source={linkIcon} 
+    style={{ width: 50, height: 50, opacity: 0.5, marginVertical: 30 }} 
+  />
+</TouchableOpacity>
+
 </View>
 
 {showFilters && ( 
@@ -636,77 +656,89 @@ const filteredAnswers = answers.filter(answer => {
       }
       return (
         
-        <View key={index} style={styles.answerCard}>
-          {showDetails && ( 
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 }}>
-  
-  {isLargeScreen && (<>
-
-  <Text style={{ fontWeight: 'bold' }}>
-    {new Date(answer.created_at).toLocaleDateString()} {new Date(answer.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-  </Text>
-  
-  
-  <Text style={{ fontWeight: 'bold' }}>
-  {chapter ? chapter.title+" - " : ''} {question ? question.question : ''}
-  </Text>
-  </>)}
-  <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
-  {answer.answer !== "audio pas encore converti en texte" && answer.id !== editingAnswerId && (
-                        <TouchableOpacity
-                          onPress={() => {
-                            setEditingAnswerId(answer.id);
-                            setEditingText(answer.answer);
-                          }}
-                        >
-                          <Image source={edit} style={{ width: 28, height: 28, opacity: 0.5 }} />
-                        </TouchableOpacity>
-                      )}
-    {answer.audio && (
-      <TouchableOpacity onPress={() => playRecording_fromAudioFile(answer.link_storage)} style={styles.playButton}>
-        <Image source={VolumeIcon} style={{ width: 35, height: 35, opacity: 0.5, marginHorizontal: 15 }} />
-      </TouchableOpacity>
-    )}
-    {answer.image && (
-    <TouchableOpacity onPress={() => setFullscreenImage(`https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/photos/${answer.link_storage}`)}>
-      <Image source={eyeIcon} style={{ width: 35, height: 35, opacity: 0.5, marginHorizontal: 15 }} />
-    </TouchableOpacity>
-  )}
-    <TouchableOpacity onPress={() => { copyToClipboard(answer.answer); integration(answer.id); refreshAnswers(); }}>
-      <Image source={copyIcon} style={{ width: 27, height: 27, opacity: 0.5, marginHorizontal: 15 }} />
-    </TouchableOpacity>
-    <TouchableOpacity onPress={() => handleDeleteAnswer(answer.id)}>
-      <Image source={trash} style={{ width: 36, height: 36, opacity: 0.5, marginLeft: 15 }} />
-    </TouchableOpacity>
-  </View>
-
-</View>
-)}
-{answer.id === editingAnswerId ? (
-  <>
-                      <TextInput
-                        style={globalStyles.input}
-                        value={editingText}
-                        onChangeText={setEditingText}
-                        multiline={true}
-                        numberOfLines={10}
-                      />
-                      
-                        <TouchableOpacity
-                          onPress={() => handleUpdateAnswer(answer.id, editingText)}
-                          style={[globalStyles.globalButton_wide, { backgroundColor: '#b1b3b5', alignItems: 'center', paddingVertical: 10, marginRight: 5 },]}
-                        >
-                          <Text style={globalStyles.globalButtonText}>Enregistrer</Text>
-                        </TouchableOpacity>
-                        </>
-                    ) : (
-                      <Text style={styles.answerText}>{answer.answer}</Text>
-                    )}
-<Text style={{ textAlign: 'right', marginTop: 10, fontStyle: 'italic' }}>
-        {userNames[answer.id_user]}
-      </Text>
-      
+        <View
+  key={index}
+  style={[
+    styles.answerCard,
+    selectedAnswers.includes(answer.id) && styles.selectedAnswerCard,
+  ]}
+>
+  <TouchableOpacity
+    onPress={() => {
+      if (selectedAnswers.includes(answer.id)) {
+        setSelectedAnswers(selectedAnswers.filter(id => id !== answer.id));
+      } else {
+        setSelectedAnswers([...selectedAnswers, answer.id]);
+      }
+    }}
+  >
+    {showDetails && (
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 }}>
+        {isLargeScreen && (
+          <>
+            <Text style={{ fontWeight: 'bold' }}>
+              {new Date(answer.created_at).toLocaleDateString()} {new Date(answer.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </Text>
+            <Text style={{ fontWeight: 'bold' }}>
+              {chapter ? chapter.title + " - " : ''} {question ? question.question : ''}
+            </Text>
+          </>
+        )}
+        <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+          {answer.answer !== "audio pas encore converti en texte" && answer.id !== editingAnswerId && (
+            <TouchableOpacity
+              onPress={() => {
+                setEditingAnswerId(answer.id);
+                setEditingText(answer.answer);
+              }}
+            >
+              <Image source={edit} style={{ width: 28, height: 28, opacity: 0.5 }} />
+            </TouchableOpacity>
+          )}
+          {answer.audio && (
+            <TouchableOpacity onPress={() => playRecording_fromAudioFile(answer.link_storage)} style={styles.playButton}>
+              <Image source={VolumeIcon} style={{ width: 35, height: 35, opacity: 0.5, marginHorizontal: 15 }} />
+            </TouchableOpacity>
+          )}
+          {answer.image && (
+            <TouchableOpacity onPress={() => setFullscreenImage(`https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/photos/${answer.link_storage}`)}>
+              <Image source={eyeIcon} style={{ width: 35, height: 35, opacity: 0.5, marginHorizontal: 15 }} />
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity onPress={() => { copyToClipboard(answer.answer); integration(answer.id); refreshAnswers(); }}>
+            <Image source={copyIcon} style={{ width: 27, height: 27, opacity: 0.5, marginHorizontal: 15 }} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => handleDeleteAnswer(answer.id)}>
+            <Image source={trash} style={{ width: 36, height: 36, opacity: 0.5, marginLeft: 15 }} />
+          </TouchableOpacity>
         </View>
+      </View>
+    )}
+    {answer.id === editingAnswerId ? (
+      <>
+        <TextInput
+          style={globalStyles.input}
+          value={editingText}
+          onChangeText={setEditingText}
+          multiline={true}
+          numberOfLines={10}
+        />
+        <TouchableOpacity
+          onPress={() => handleUpdateAnswer(answer.id, editingText)}
+          style={[globalStyles.globalButton_wide, { backgroundColor: '#b1b3b5', alignItems: 'center', paddingVertical: 10, marginRight: 5 },]}
+        >
+          <Text style={globalStyles.globalButtonText}>Enregistrer</Text>
+        </TouchableOpacity>
+      </>
+    ) : (
+      <Text style={styles.answerText}>{answer.answer}</Text>
+    )}
+    <Text style={{ textAlign: 'right', marginTop: 10, fontStyle: 'italic' }}>
+      {userNames[answer.id_user]}
+    </Text>
+  </TouchableOpacity>
+</View>
+
       );
     }) : (
       <Text>Aucune réponse trouvée</Text>
@@ -865,6 +897,9 @@ const styles = StyleSheet.create({
     width: '90%',
     height: '90%',
     resizeMode: 'contain',
+  },
+  selectedAnswerCard: {
+    backgroundColor: '#d3d3d3', // Couleur de fond différente pour les réponses sélectionnées
   },
   
 });

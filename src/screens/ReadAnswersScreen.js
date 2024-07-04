@@ -436,6 +436,7 @@ const copyToClipboard = (text) => {
       <View style={isLargeScreen ? styles.largeScreenContainer : styles.smallScreenContainer}>
   {isLeftPanelVisible && (
     <View style={isLargeScreen ? styles.leftPanel : styles.fullWidth}>
+      <View style={globalStyles.container_wide}> 
       <Text style={globalStyles.title}>{subject.title}</Text> 
 <Text> </Text>
       <ScrollView>
@@ -479,6 +480,7 @@ const copyToClipboard = (text) => {
               </View>
             </View>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            {userStatus==='Editeur'&&(
             <TouchableOpacity
               onPress={() => {
                 navigateToScreen('EditChapterScreen', {questionId :question.id} );
@@ -487,6 +489,7 @@ const copyToClipboard = (text) => {
             >
               <Text style={globalStyles.globalButtonText}>Lire</Text>
             </TouchableOpacity>
+            )}
             <TouchableOpacity
               onPress={() => {
                 navigateToScreen('AnswerQuestionScreen', {questionId :question.id} );
@@ -515,6 +518,7 @@ const copyToClipboard = (text) => {
           <Text style={globalStyles.globalButtonText}>Nouveau chapitre </Text>
         </TouchableOpacity>
       </View>
+      </View>
     </View>
   )}
   {isLargeScreen && userStatus==="Editeur" && (
@@ -527,9 +531,11 @@ const copyToClipboard = (text) => {
 
 </View>
   )}
+  {isLargeScreen && ( 
   <TouchableOpacity onPress={toggleLeftPanel} style={styles.toggleLine}>
      <Text style={styles.toggleLineText}>{isLeftPanelVisible ? '<' : '>'}</Text>
    </TouchableOpacity>
+   )}
   {isLargeScreen && userStatus==="Editeur" && (
    <View style={isLargeScreen ? styles.middlePanelContainer : styles.fullWidth}>
    
@@ -607,7 +613,7 @@ const copyToClipboard = (text) => {
  
   )}
 
-
+{isLargeScreen && ( 
 
 <View style={[styles.rightPanel, { width: rightPanelWidth }]}>
 
@@ -670,7 +676,7 @@ const copyToClipboard = (text) => {
         </>
       </ScrollView>
     </View>
-  
+  )}
 </View>
 
 
@@ -813,7 +819,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   leftPanel: {
-    width: 350,
+    width: 550,
     padding: 10,
     borderRightWidth: 1,
     borderColor: '#ccc',
