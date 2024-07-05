@@ -259,8 +259,9 @@ export default function ProfileScreen({ route }) {
         <View style={globalStyles.container}>
             <View style={globalStyles.navigationContainer}>
                 <TouchableOpacity onPress={() => navigateToScreen('ReadAnswersScreen')} style={styles.navButton}>
-                    <Image source={BookIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
+                    <Image source={BookIcon} style={{ width: 120, height: 120, opacity: 0.5 }} />
                 </TouchableOpacity>
+                {/* 
                 <TouchableOpacity onPress={() => navigateToScreen('NoteScreen')} style={styles.navButton}>
                     <Image source={note} style={{ width: 60, height: 60, opacity: 0.5 }} />
                 </TouchableOpacity>
@@ -270,7 +271,8 @@ export default function ProfileScreen({ route }) {
                 <TouchableOpacity onPress={() => navigateToScreen('ProfileScreen')} style={styles.navButton}>
                     <Image source={PersonIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
                 </TouchableOpacity>
-            </View>
+            */}
+                </View>
     
             <Modal
                 animationType="slide"

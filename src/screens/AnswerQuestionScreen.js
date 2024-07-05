@@ -3,7 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Image, View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { globalStyles } from '../../global';
 import { getMemories_Question_by_id, getMemories_Question, submitMemories_Answer, deleteMemories_Answer, get_user_name, update_answer_text } from '../components/data_handling'; // Assurez-vous d'implémenter deleteMemories_Answer
-import { record_answer, playRecording_fromAudioFile, delete_audio, startRecording, stopRecording, uploadAudioToSupabase, uploadImageToSupabase } from '../components/sound_handling';
+import { createAudioChunk,record_answer, playRecording_fromAudioFile, delete_audio, startRecording, stopRecording, uploadAudioToSupabase, uploadImageToSupabase } from '../components/sound_handling';
 import { transcribeAudio } from '../components/call_to_google';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -26,6 +26,7 @@ import Upload from '../../assets/icons/upload.png';
 import Svg, { Path } from 'react-native-svg';
 import * as DocumentPicker from 'expo-document-picker';
 import AttachIcon from '../../assets/icons/attach.png';
+import { v4 as uuidv4 } from 'uuid';
 
 
 function ReadAnswersScreen({ route }) {
@@ -38,6 +39,7 @@ function ReadAnswersScreen({ route }) {
   const [answers, setAnswers] = useState([]);
   const [subject_active, setSubject_active] = useState(null);
   const [isRecording, setIsRecording] = useState(false);
+  const [PleaseWait, setPleaseWait] = useState(false);
   const [recording, setRecording] = useState();
   const [editingAnswerId, setEditingAnswerId] = useState(null);
   const [editingText, setEditingText] = useState('');
@@ -77,21 +79,36 @@ function ReadAnswersScreen({ route }) {
 
   const handleRecording = async () => {
     if (isRecording) {
-      const name = `${Date.now()}.mp3`;
-      await stopRecording(recording, name);
-      const transcribedText = "audio pas encore converti en texte";
-      submitMemories_Answer(transcribedText, question, session, true, name, async () => {
-        setTimeout(async () => {
-          await refreshAnswers();
-        }, 100);
-      });
-      setIsRecording(false);
+      try {
+        setIsRecording(false);
+        setPleaseWait(true);
+        const baseName = `${Date.now()}`;
+        const { uri, duration } = await stopRecording(recording, `${baseName}.mp3`);
+  
+        const chunks = Math.ceil(duration / 30);
+        const connectionId = uuidv4();
+  
+        for (let i = 0; i < chunks; i++) {
+          const start = i * 30;
+          const end = (i + 1) * 30 > duration ? duration : (i + 1) * 30;
+          const chunkName = `${baseName}_part_${i + 1}.mp3`;
+  
+          const chunkUri = await createAudioChunk(uri, chunkName, start, end);
+          await handleAnswerSubmit(chunkName, true, chunkUri, false, connectionId);
+        }
+      } catch (error) {
+        console.error('Error during handleRecording:', error);
+      } finally {
+        console.log("Voilà c'est fait")
+      }
     } else {
       const temp = await startRecording();
       setRecording(temp);
       setIsRecording(true);
     }
   };
+  
+
 
   const handleUpdateAnswer = async (answerId, newText) => {
     try {
@@ -118,10 +135,13 @@ function ReadAnswersScreen({ route }) {
       }
     }
   };
+ 
+  const handleAnswerSubmit = async (name, isMedia, uri = null,isImage,connectionID) => {
+    let transcribedText = isMedia ? "audio pas encore converti en texte" : answer;
+    if (isImage){
+      transcribedText = "Ceci est une photographie"
+    }
 
-  const handleAnswerSubmit = async (name, isMedia, uri = null,isImage) => {
-    const transcribedText = isMedia ? "media en cours de traitement" : answer;
-    console.log("IsImage : ",isImage)
     if (isMedia && uri) {
       let uploadedFileName;
       if (name.endsWith('.mp3')) {
@@ -136,12 +156,14 @@ function ReadAnswersScreen({ route }) {
       }
     }
   
-    await submitMemories_Answer(transcribedText, question, session, isMedia, name,isImage, async () => {
+    await submitMemories_Answer(transcribedText, question, session, isMedia, name,isImage, connectionID,async () => {
       setAnswer('');
       setTimeout(async () => {
         await refreshAnswers();
       }, 1000);
-    });
+    }
+  
+  );
   };
   
   // Mettez à jour handleUploadPhoto pour utiliser handleAnswerSubmit correctement
@@ -353,7 +375,9 @@ function ReadAnswersScreen({ route }) {
       <View style={{ flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
         <Image source={MicroIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
         <Text style={globalStyles.globalButtonText}>
+            
           {isRecording ? "Arrêter l'enregistrement" : "Répondre"}
+          
         </Text>
       </View>
     </TouchableOpacity>

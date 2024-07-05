@@ -147,19 +147,22 @@ export const stopRecording = async (recording, name) => {
   try {
     await recording.stopAndUnloadAsync();
     const uri = recording.getURI();
+    const status = await recording.getStatusAsync();
+    const duration = status.durationMillis / 1000; // Get duration in seconds
 
     if (Platform.OS === 'web') {
       const response = await fetch(uri);
       const blob = await response.blob();
-      return convertAndUpload(blob, name);
+      return { uri: await convertAndUpload(blob, name), duration };
     } else {
-      // Supposer ici que le fichier est déjà au format correct; ajuster si nécessaire
-      return convertAndUpload(uri, name);
+      return { uri: await convertAndUpload(uri, name), duration };
     }
   } catch (error) {
     console.error('Error stopping recording or uploading:', error);
   }
 };
+
+
 
 export const convertAndUpload = async (audioInput, fileName) => {
   let base64;
@@ -219,14 +222,8 @@ export const playRecording_fromURI = async (uri) => {
 
 export const playRecording_fromAudioFile = async (publicURL, fileName) => {
   try {
-    // Utilisation de la nouvelle URL de Supabase pour le fichier audio
     publicURL = `https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/audio/${publicURL}`;
 
-    // Log pour afficher l'URL et le nom du fichier audio
-    console.log("Playing audio from URL:", publicURL);
-    console.log("File name for non-web platforms:", fileName);
-
-    // Sur les plateformes Web, créer un URL Object et le jouer
     if (Platform.OS === 'web') {
       const { sound } = await Audio.Sound.createAsync(
         { uri: publicURL },
@@ -237,11 +234,10 @@ export const playRecording_fromAudioFile = async (publicURL, fileName) => {
         if (!playbackStatus.isLoaded) {
           console.error("Playback status: ", playbackStatus.error);
         } else if (playbackStatus.didJustFinish && !playbackStatus.isLooping) {
-          sound.unloadAsync(); // Décharger le son de la mémoire une fois la lecture terminée
+          sound.unloadAsync();
         }
       });
     } else {
-      // Télécharger le fichier audio dans le système de fichiers local
       const uri = FileSystem.cacheDirectory + fileName;
       const downloadResponse = await FileSystem.downloadAsync(publicURL, uri);
 
@@ -249,7 +245,6 @@ export const playRecording_fromAudioFile = async (publicURL, fileName) => {
         throw new Error('Failed to download file');
       }
 
-      // Lire le fichier audio téléchargé
       const { sound } = await Audio.Sound.createAsync(
         { uri: downloadResponse.uri },
         { shouldPlay: true }
@@ -257,11 +252,10 @@ export const playRecording_fromAudioFile = async (publicURL, fileName) => {
 
       sound.setOnPlaybackStatusUpdate((playbackStatus) => {
         if (!playbackStatus.isLoaded) {
-          // Gestion des erreurs
           console.log(playbackStatus.error);
         } else {
           if (playbackStatus.didJustFinish && !playbackStatus.isLooping) {
-            sound.unloadAsync(); // Décharger le son de la mémoire une fois la lecture terminée
+            sound.unloadAsync();
           }
         }
       });
@@ -270,6 +264,7 @@ export const playRecording_fromAudioFile = async (publicURL, fileName) => {
     console.error('Error playing recording from Supabase file', error);
   }
 };
+
 
 
 
@@ -491,24 +486,19 @@ export const uploadAudioToSupabase = async (uri, fileName) => {
 export const uploadAudioToSupabase = async (uri, fileName) => {
   try {
     let audioBlob;
-    console.log("Uploading audio file...");
 
     if (Platform.OS === 'web') {
-      // Utiliser fetch pour obtenir le Blob du fichier audio sur le web
       const response = await fetch(uri);
       audioBlob = await response.blob();
     } else {
-      // Utiliser expo-file-system pour lire le fichier en tant que base64 sur mobile
       const base64 = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
-      audioBlob = new Blob([decode(base64)], { type: 'audio/flac' }); // Ajustez le type MIME si nécessaire
+      audioBlob = new Blob([decode(base64)], { type: 'audio/mp3' }); // Ajustez le type MIME si nécessaire
     }
 
-    // Convertir le Blob en ArrayBuffer pour l'upload
     const arrayBuffer = await audioBlob.arrayBuffer();
 
-    // Uploader le fichier sur Supabase
     const { error } = await supabase.storage.from('audio').upload(fileName, arrayBuffer, {
-      contentType: audioBlob.type,  // Assurez-vous que le contentType correspond au format du fichier audio
+      contentType: audioBlob.type,
       cacheControl: '3600',
       upsert: false,
     });
@@ -524,6 +514,7 @@ export const uploadAudioToSupabase = async (uri, fileName) => {
     return null;
   }
 };
+
 
 export const uploadImageToSupabase = async (uri, fileName) => {
   try {
@@ -565,5 +556,123 @@ export const uploadImageToSupabase = async (uri, fileName) => {
   } catch (error) {
     console.error('Error uploading image to Supabase:', error);
     return null;
+  }
+};
+
+export const createAudioChunk = async (uri, chunkName, start, end) => {
+  try {
+    if (Platform.OS === 'web') {
+      // Web-specific handling
+      const response = await fetch(uri);
+      const arrayBuffer = await response.arrayBuffer();
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+      const sampleRate = audioBuffer.sampleRate;
+      const startSample = start * sampleRate;
+      const endSample = end * sampleRate;
+
+      const numberOfChannels = audioBuffer.numberOfChannels;
+      const chunkBuffer = audioContext.createBuffer(numberOfChannels, endSample - startSample, sampleRate);
+
+      for (let i = 0; i < numberOfChannels; i++) {
+        chunkBuffer.copyToChannel(audioBuffer.getChannelData(i).subarray(startSample, endSample), i);
+      }
+
+      const wavData = audioBufferToWav(chunkBuffer);
+      const blob = new Blob([wavData], { type: 'audio/wav' });
+      const chunkUri = URL.createObjectURL(blob);
+      return chunkUri;
+    } else {
+      // Native handling
+      const soundObject = new Audio.Sound();
+      await soundObject.loadAsync({ uri }, {}, false);
+      const status = await soundObject.getStatusAsync();
+      const duration = status.durationMillis / 1000;
+
+      if (end > duration) {
+        throw new Error('End time is beyond the duration of the audio file');
+      }
+
+      const startMillis = start * 1000;
+      const endMillis = end * 1000;
+
+      await soundObject.setPositionAsync(startMillis);
+      await soundObject.playAsync();
+
+      return new Promise((resolve, reject) => {
+        setTimeout(async () => {
+          try {
+            await soundObject.stopAsync();
+            const chunkUri = `${FileSystem.documentDirectory}${chunkName}`;
+            const base64Audio = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
+            const slicedAudio = base64Audio.slice(startMillis, endMillis);
+            await FileSystem.writeAsStringAsync(chunkUri, slicedAudio, { encoding: FileSystem.EncodingType.Base64 });
+            resolve(chunkUri);
+          } catch (error) {
+            reject(error);
+          }
+        }, (end - start) * 1000);
+      });
+    }
+  } catch (error) {
+    console.error('Error in createAudioChunk:', error.message);
+    return null;
+  }
+};
+
+// Helper function to convert AudioBuffer to WAV
+const audioBufferToWav = (buffer) => {
+  const numOfChan = buffer.numberOfChannels;
+  const length = buffer.length * numOfChan * 2 + 44;
+  const bufferArray = new ArrayBuffer(length);
+  const view = new DataView(bufferArray);
+  const channels = [];
+  let sample;
+  let offset = 0;
+  let pos = 0;
+
+  // Write WAVE header
+  setUint32(0x46464952); // "RIFF"
+  setUint32(length - 8); // file length - 8
+  setUint32(0x45564157); // "WAVE"
+
+  setUint32(0x20746d66); // "fmt " chunk
+  setUint32(16); // length = 16
+  setUint16(1); // PCM (uncompressed)
+  setUint16(numOfChan);
+  setUint32(buffer.sampleRate);
+  setUint32(buffer.sampleRate * 2 * numOfChan); // avg. bytes/sec
+  setUint16(numOfChan * 2); // block-align
+  setUint16(16); // 16-bit (hardcoded in this demo)
+
+  setUint32(0x61746164); // "data" - chunk
+  setUint32(length - pos - 4); // chunk length
+
+  // Write interleaved data
+  for (let i = 0; i < buffer.numberOfChannels; i++)
+    channels.push(buffer.getChannelData(i));
+
+  while (pos < length) {
+    for (let i = 0; i < numOfChan; i++) {
+      // interleave channels
+      sample = Math.max(-1, Math.min(1, channels[i][offset])); // clamp
+      sample = (0.5 + sample < 0 ? sample * 32768 : sample * 32767) | 0; // scale to 16-bit signed int
+      view.setInt16(pos, sample, true); // write 16-bit sample
+      pos += 2;
+    }
+    offset++; // next source sample
+  }
+
+  return view;
+
+  function setUint16(data) {
+    view.setUint16(pos, data, true);
+    pos += 2;
+  }
+
+  function setUint32(data) {
+    view.setUint32(pos, data, true);
+    pos += 4;
   }
 };

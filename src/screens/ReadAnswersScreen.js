@@ -52,6 +52,8 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import copyIcon from '../../assets/icons/paste.png';
 import save from '../../assets/icons/save.png';
 import note from '../../assets/icons/notes.png';
+import NoteScreen from './NoteScreen';
+
 
 
 const windowWidth = Dimensions.get('window').width;
@@ -120,7 +122,7 @@ function ReadQuestionsScreen({ route }) {
   const editor = useRef();
   const [isLeftPanelVisible, setIsLeftPanelVisible] = useState(true);
   const [middlePanelWidth, setMiddlePanelWidth] = useState(0.5*windowWidth )
-  const [rightPanelWidth, setRightPanelWidth] = useState(windowWidth - middlePanelWidth);
+  const [rightPanelWidth, setRightPanelWidth] = useState(windowWidth - middlePanelWidth - 550);
   const [initialMouseX, setInitialMouseX] = useState(null);
   const [initialMiddlePanelWidth, setInitialMiddlePanelWidth] = useState(middlePanelWidth);
   const [question, setQuestion] = useState('');
@@ -203,7 +205,7 @@ useEffect(() => {
     setRightPanelWidth(windowWidth - middlePanelWidth);
   }
   if (isLeftPanelVisible){
-    setRightPanelWidth(windowWidth - middlePanelWidth-350);
+    setRightPanelWidth(windowWidth - middlePanelWidth-550);
   }
 }, [middlePanelWidth,isLeftPanelVisible ]);
 
@@ -280,13 +282,19 @@ const copyToClipboard = (text) => {
     if (activeQuestionAnswers[questionId]) {
       setActiveQuestionAnswers({});
     } else {
-      await get_Question_by_id(questionId,setQuestion)
+      await get_Question_by_id(questionId, setQuestion);
       const answers = await getMemories_Answers_to_Question(questionId);
       if (answers) {
         setActiveQuestionAnswers({ [questionId]: answers });
+        refreshNoteScreen(question); // Ajoutez cette ligne pour rafraîchir NoteScreen
       }
     }
   };
+  
+  const refreshNoteScreen = (question) => {
+    // Ici, vous pouvez appeler une fonction de rafraîchissement dans le composant NoteScreen si nécessaire
+  };
+  
   
 
   const confirmDeletion = (id, isChapter = true) => {
@@ -404,20 +412,21 @@ const copyToClipboard = (text) => {
 
   return (
     <View style={globalStyles.container}>
+      
       <View style={globalStyles.navigationContainer}>
+        {/*
         <TouchableOpacity onPress={refreshPage} style={styles.navButton}>
           <Image source={refresh} style={{ width: 60, height: 60, opacity: 1 }} />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigateToScreen('NoteScreen')} style={styles.navButton}>
-          <Image source={note} style={{ width: 60, height: 60, opacity: 0.5 }} />
+        */}
+        <TouchableOpacity onPress={() => navigateToScreen('ManageBiographyScreen')} style={globalStyles.navButton}>
+          <Image source={settings} style={{ width: 120, height: 120, opacity: 0.5 }} />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigateToScreen('ManageBiographyScreen')} style={styles.navButton}>
-          <Image source={settings} style={{ width: 60, height: 60, opacity: 0.5 }} />
-        </TouchableOpacity>
+        {/*
         <TouchableOpacity onPress={() => navigateToScreen('ProfileScreen')} style={styles.navButton}>
           <Image source={PersonIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
         </TouchableOpacity>
-        {/*
+        
         <TouchableOpacity onPress={() => navigateToScreen('AideScreen')} style={styles.navButton}>
           <Image source={help} style={{ width: 60, height: 60, opacity: 0.5 }} />
         </TouchableOpacity>
@@ -431,7 +440,7 @@ const copyToClipboard = (text) => {
       </TouchableOpacity>
 
       */}
-      <Text style={globalStyles.title}> </Text>
+
 
       <View style={isLargeScreen ? styles.largeScreenContainer : styles.smallScreenContainer}>
   {isLeftPanelVisible && (
@@ -490,14 +499,7 @@ const copyToClipboard = (text) => {
               <Text style={globalStyles.globalButtonText}>Lire</Text>
             </TouchableOpacity>
             )}
-            <TouchableOpacity
-              onPress={() => {
-                navigateToScreen('AnswerQuestionScreen', {questionId :question.id} );
-              }}
-              style={[globalStyles.globalButton_narrow, { backgroundColor: '#b1b3b5'}]}
-            >
-              <Text style={globalStyles.globalButtonText}>Contribuer</Text>
-            </TouchableOpacity>
+            
               </View>
           </TouchableOpacity>
         ))}
@@ -618,6 +620,9 @@ const copyToClipboard = (text) => {
 <View style={[styles.rightPanel, { width: rightPanelWidth }]}>
 
 <Text style={styles.panelTitle}>Notes</Text>
+<NoteScreen route={{ params: { question } }} />
+
+{/*
 <Text> </Text>
 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
   <Text> </Text>
@@ -642,15 +647,7 @@ const copyToClipboard = (text) => {
             >
               <Text style={globalStyles.globalButtonText}>Répondre</Text>
             </TouchableOpacity>
-             {/*
-             <TouchableOpacity
-             key={questionId+1}
-             onPress={() => {copyToClipboard("https://marcel-eight.vercel.app/invitation/"+ questionId )}}
-             style={globalStyles.globalButton_wide}
-           >
-             <Text style={globalStyles.globalButtonText}>Copier le lien de réponse</Text>
-           </TouchableOpacity>
-              */}
+            
            </>
           ))}
         {Object.keys(activeQuestionAnswers).map((questionId) =>
@@ -675,7 +672,11 @@ const copyToClipboard = (text) => {
 
         </>
       </ScrollView>
+    */}
     </View>
+
+
+
   )}
 </View>
 
@@ -808,9 +809,7 @@ const copyToClipboard = (text) => {
 }
 
 const styles = StyleSheet.create({
-  navButton: {
-    padding: 10,
-  },
+
   largeScreenContainer: {
     flexDirection: 'row',
     flex: 1,

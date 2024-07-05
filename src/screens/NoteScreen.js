@@ -12,6 +12,7 @@ import {
   Platform,
   Alert,
   Dimensions,
+  Picker,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import DatePicker from 'react-datepicker';
@@ -40,7 +41,7 @@ import copyIcon from '../../assets/icons/paste.png';
 import noteIcon from '../../assets/icons/notes.png';
 import filterIcon from '../../assets/icons/filtre.png';
 import Modal from 'react-native-modal'; // Ajoutez cette ligne pour importer le composant Modal
-import { startRecording, stopRecording, uploadAudioToSupabase, delete_audio,playRecording_fromAudioFile } from '../components/sound_handling'; // Ajoutez cette ligne
+import { createAudioChunk, startRecording, stopRecording, uploadAudioToSupabase, delete_audio,playRecording_fromAudioFile } from '../components/sound_handling'; // Ajoutez cette ligne
 import { transcribeAudio } from '../components/call_to_google';
 import MicroIcon from '../../assets/icons/microphone-lines-solid.svg';
 import VolumeIcon from '../../assets/icons/volume_up_black_24dp.svg';
@@ -51,6 +52,9 @@ import eyeIcon from '../../assets/icons/view.png';
 import plusIcon from '../../assets/icons/plus.png';
 import minusIcon from '../../assets/icons/minus.png';
 import linkIcon from '../../assets/icons/link.png';
+import AttachIcon from '../../assets/icons/attach.png';
+import { v4 as uuidv4 } from 'uuid';
+import Upload from '../../assets/icons/upload.png';
 
 
 
@@ -98,7 +102,9 @@ function NoteScreen({ route }) {
     'Autre',
     '',
   ]);
-  const [selectedQuestion, setSelectedQuestion] = useState('');
+  console.log("route.params : ",route.params.question.id)
+  const question = route.params?.question.id || '';
+  const [selectedQuestion, setSelectedQuestion] = useState(question);
   const [selectedChapter, setSelectedChapter] = useState('');
   const [showFilters, setShowFilters] = useState(false); 
   const [isModalVisible, setModalVisible] = useState(false); // Ajoutez cette ligne dans les états
@@ -113,8 +119,12 @@ const windowWidth = Dimensions.get('window').width;
 const isLargeScreen = windowWidth > 768;
 const [userNames, setUserNames] = useState({});
 const [selectedAnswers, setSelectedAnswers] = useState([]);
-
-
+const [userIdFilter, setUserIdFilter] = useState('');
+const [userNameFilter, setUserNameFilter] = useState('');
+const [selectedUserName, setSelectedUserName] = useState('');
+const [showAttachement, setShowAttachement] = useState(false);
+const [answer, setAnswer] = useState('');
+const [PleaseWait, setPleaseWait] = useState(false);
 
   useFetchActiveSubjectId(setSubjectActive, setSubject, navigation);
   const closeFullscreenImage = () => {
@@ -136,10 +146,13 @@ const [selectedAnswers, setSelectedAnswers] = useState([]);
  
 
   const refreshAnswers = async () => {
+  
     const answers = await getMemories_Answers();
       setAnswers(answers);
       setIsLoading(false);
   };
+
+
   useEffect(() => {
     const fetchUserNames = async () => {
       const names = {};
@@ -158,10 +171,6 @@ const [selectedAnswers, setSelectedAnswers] = useState([]);
   
  
 
-  useEffect(() => {
-    console.log("selectedChapter : ", selectedChapter)
-    console.log("Chapitres : ", questions)
-  }, [selectedChapter]);
 
   useEffect(() => {
     const fetchQuestionsAndChapters = async () => {
@@ -243,22 +252,26 @@ const filteredAnswers = answers.filter(answer => {
   const answerDate = new Date(answer.created_at);
   const beforeDate = dateBefore ? new Date(dateBefore) : null;
   const afterDate = dateAfter ? new Date(dateAfter) : null;
-  console.log("selectedQuestion : ", selectedQuestion);
-  console.log('Answer : ', answer);
-  console.log('questionIdsForSelectedChapter 2 : ', questionIdsForSelectedChapter);
+  console.log("selectedQuestion : ",selectedQuestion);
+
+  const userName = userNames[answer.id_user];
 
   return (
     (!textFilter || answer.answer.includes(textFilter)) &&
     (!beforeDate || answerDate < beforeDate) &&
     (!afterDate || answerDate > afterDate) &&
-    (selectedQuestion === '' || 
-     (selectedQuestion === 'none' && answer.id_question === null) ||
-     (answer.id_question !== null && selectedQuestion.toString() === answer.id_question.toString())) &&
+    (question === '' || 
+     (question === 'none' && answer.id_question === null) ||
+     (answer.id_question !== null && question.toString() === answer.id_question.toString())) &&
     (selectedChapter === '' || 
      (selectedChapter === 'none' && answer.id_question === null) || 
-     (questionIdsForSelectedChapter.length === 0 || questionIdsForSelectedChapter.includes(answer.id_question?.toString())))
+     (questionIdsForSelectedChapter.length === 0 || questionIdsForSelectedChapter.includes(answer.id_question?.toString()))) &&
+    (!selectedUserName || (userName && userName.toLowerCase().includes(selectedUserName.toLowerCase())))
   );
 });
+
+
+
 
 
   
@@ -283,18 +296,28 @@ const filteredAnswers = answers.filter(answer => {
   
   const handleRecording = async () => {
     if (isRecording) {
-      const name = `${Date.now()}.mp3`;
-      await stopRecording(recording, name);
-      const transcribedText = "audio pas encore converti en texte";
-      submitMemories_Answer(transcribedText, selectedQuestion, session, true, name, async () => {
-        setTimeout(async () => {
-          await refreshAnswers();
-        }, 100);
-      });
-      setIsRecording(false);
-      setModalVisible(false)
-      
-
+      try {
+        setIsRecording(false);
+        setPleaseWait(true);
+        const baseName = `${Date.now()}`;
+        const { uri, duration } = await stopRecording(recording, `${baseName}.mp3`);
+  
+        const chunks = Math.ceil(duration / 30);
+        const connectionId = uuidv4();
+  
+        for (let i = 0; i < chunks; i++) {
+          const start = i * 30;
+          const end = (i + 1) * 30 > duration ? duration : (i + 1) * 30;
+          const chunkName = `${baseName}_part_${i + 1}.mp3`;
+  
+          const chunkUri = await createAudioChunk(uri, chunkName, start, end);
+          await handleAnswerSubmit(chunkName, true, chunkUri, false, connectionId);
+        }
+      } catch (error) {
+        console.error('Error during handleRecording:', error);
+      } finally {
+        console.log("Voilà c'est fait")
+      }
     } else {
       const temp = await startRecording();
       setRecording(temp);
@@ -327,35 +350,104 @@ const filteredAnswers = answers.filter(answer => {
       }
     }
   };
+ 
+ 
+
   const linkAnswers = async () => {
     await connectAnswers(selectedAnswers);
     setSelectedAnswers([]);
     await refreshAnswers();
   };
 
-  const handleAnswerSubmit = async (name, audio, uri = null) => {
-    const transcribedText = audio ? "audio pas encore converti en texte" : note;
-  
-    if (audio && uri) {
-      const uploadedFileName = await uploadAudioToSupabase(uri, name);
+  const handleAnswerSubmit = async (name, isMedia, uri = null,isImage,connectionID) => {
+    let transcribedText = isMedia ? "audio pas encore converti en texte" : answer;
+    if (isImage){
+      transcribedText = "Ceci est une photographie"
+    }
+
+    if (isMedia && uri) {
+      let uploadedFileName;
+      if (name.endsWith('.mp3')) {
+        uploadedFileName = await uploadAudioToSupabase(uri, name);
+      } else {
+        uploadedFileName = await uploadImageToSupabase(uri, name);
+      }
+      
       if (!uploadedFileName) {
-        Alert.alert("Erreur", "Échec du téléchargement du fichier audio");
+        Alert.alert("Erreur", `Échec du téléchargement du fichier ${name.endsWith('.mp3') ? 'audio' : 'image'}`);
         return;
       }
     }
-
-    
-    
-
-    await submitMemories_Answer(transcribedText, selectedQuestion, session, audio, name, async () => {
-      setNote('');
-      setModalVisible(false)
+  
+    await submitMemories_Answer(transcribedText, question, session, isMedia, name,isImage, connectionID,async () => {
+      setAnswer('');
       setTimeout(async () => {
         await refreshAnswers();
       }, 1000);
-    });
+    }
+  
+  );
   };
 
+  const handleUploadPhoto = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'image/*', // Accepter les fichiers image
+        copyToCacheDirectory: false
+      });
+  
+      if (!result.canceled) {
+        let uri, name, mimeType;
+  
+        // Gérer les différences de plateforme
+        if (result.output && result.output.length > 0) {
+          console.log("Using result.output");
+          const file = result.output[0];
+          console.log("Selected file: ", file);
+          uri = URL.createObjectURL(file);
+          name = file.name;
+          mimeType = file.type;
+        } else if (result.assets && result.assets.length > 0) {
+          console.log("Using result.assets");
+          const asset = result.assets[0];
+          console.log("Selected asset: ", asset);
+          uri = asset.uri;
+          name = asset.name;
+          mimeType = asset.mimeType;
+        } else {
+          console.error("Invalid file selection result", result);
+          throw new Error("Invalid file selection result");
+        }
+  
+        if (!uri || !name) {
+          console.error("Invalid file selection: URI or name is missing", { uri, name });
+          throw new Error("Invalid file selection: URI or name is missing");
+        }
+  
+        // Vérification du type MIME
+        if (mimeType && mimeType.startsWith('image/')) {
+          console.log("File selected is an image file:", { uri, name, mimeType });
+        } else {
+          console.error("Selected file is not an image file:", { uri, name, mimeType });
+          Alert.alert("Erreur", "Le fichier sélectionné n'est pas un fichier image");
+          return;
+        }
+  
+        console.log("File selected successfully:", { uri, name });
+        await handleAnswerSubmit(name, true, uri,true);
+      } else {
+        console.error("File selection was not successful: ", result);
+        Alert.alert("Erreur", "Sélection du fichier échouée");
+      }
+    } catch (error) {
+      console.error("Error handling file upload: ", error);
+      Alert.alert("Erreur", "Une erreur s'est produite lors de la sélection du fichier");
+    }
+  };
+
+  const handleFiles = async () => {
+    setShowAttachement(!showAttachement)
+  };
 
   const handleUploadAudio = async () => {
     try {
@@ -404,7 +496,7 @@ const filteredAnswers = answers.filter(answer => {
         }
   
         console.log("File selected successfully:", { uri, name });
-        await handleAnswerSubmit(name, true, uri);
+        await handleAnswerSubmit(name, true, uri,false);
       } else {
         console.error("File selection was not successful: ", result);
         Alert.alert("Erreur", "Sélection du fichier échouée");
@@ -414,6 +506,22 @@ const filteredAnswers = answers.filter(answer => {
       Alert.alert("Erreur", "Une erreur s'est produite lors de la sélection du fichier");
     }
   };
+
+  const isConnectedToSelectedAnswer = (answer) => {
+    const selectedConnections = selectedAnswers.map(id => {
+      const selectedAnswer = answers.find(ans => ans.id === id);
+      return selectedAnswer ? selectedAnswer.connection : null;
+    }).filter(conn => conn !== null);
+  
+    return selectedConnections.includes(answer.connection);
+  };
+  useEffect(() => {
+    answers.forEach((answer) => {
+      if (answer.answer === "audio pas encore converti en texte" && answer.audio) {
+        handleTranscribe(answer.id);
+      }
+    });
+  }, [answers]);
   
 
   if (isLoading) {
@@ -427,22 +535,7 @@ const filteredAnswers = answers.filter(answer => {
 
   return (
     <View style={globalStyles.container}>
-      <View style={globalStyles.navigationContainer}>
-        <TouchableOpacity onPress={() => navigateToScreen('ReadAnswersScreen')} style={styles.navButton}>
-          <Image source={BookIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigateToScreen('NoteScreen')} style={styles.navButton}>
-          <Image source={noteIcon} style={{ width: 60, height: 60, opacity: 1 }} />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigateToScreen('ManageBiographyScreen')} style={styles.navButton}>
-          <Image source={settings} style={{ width: 60, height: 60, opacity: 0.5 }} />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigateToScreen('ProfileScreen')} style={styles.navButton}>
-          <Image source={PersonIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
-        </TouchableOpacity>
-      </View>
-
-      <Text style={globalStyles.title}> </Text>
+      
 
       {fullscreenImage && (
   <View style={styles.fullscreenContainer}>
@@ -452,10 +545,11 @@ const filteredAnswers = answers.filter(answer => {
     <Image source={{ uri: fullscreenImage }} style={styles.fullscreenImage} />
   </View>
 )}
+      {question && (
       <TouchableOpacity onPress={() => setModalVisible(true)} style={globalStyles.globalButton_wide}>
       <Text style={globalStyles.globalButtonText}>Ajouter une note</Text>
     </TouchableOpacity>
-
+)}
     <Modal isVisible={isModalVisible}>
   <View style={styles.modalContainer}>
     <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.closeButton}>
@@ -463,68 +557,77 @@ const filteredAnswers = answers.filter(answer => {
     </TouchableOpacity>
     <Text style={styles.modalTitle}>Ajouter une note</Text>
 
-    <Text style={styles.selectedQuestionText}>Partie sélectionnée: {selectedChapter ? chapters.find(q => q.id === selectedChapter)?.title : "Aucune"}</Text>
-<View style={styles.dropdownContainer}>
-  <select
-    style={styles.dropdown}
-    value={selectedChapter}
-    onChange={(e) => setSelectedChapter(e.target.value)}
-  >
-    <option value="">Sélectionner une Partie</option>
-    {chapters.map((chapter, index) => (
-      <option key={index} value={chapter.id}>{chapter.title}</option>
-    ))}
-  </select>
-</View>
-<Text> </Text>
-<Text style={styles.selectedQuestionText}>Chapitre sélectionné: {selectedQuestion ? questions.find(q => q.id === parseInt(selectedQuestion))?.question : "Aucun"}</Text>
-<View style={styles.dropdownContainer}>
-<select
-  style={styles.dropdown}
-  value={selectedQuestion}
-  onChange={handleQuestionChange}
->
-  <option value="">Sélectionner un chapitre</option>
-  {questions
-    .filter(question => selectedChapter === '' || question.id_chapitre === selectedChapter)
-    .map((question, index) => (
-      <option key={index} value={question.id}>{question.question}</option>
-    ))}
-</select>
-
-</View>
-
+    <View style={{ flexDirection: 'column', justifyContent: 'space-between', marginBottom: 10 }}>
+  
     <TouchableOpacity
       style={[
         globalStyles.globalButton_wide,
         isRecording ? styles.recordingButton : {},
-        { backgroundColor: isRecording ? "red" : '#b1b3b5',  alignItems: 'center', paddingVertical: 10, marginRight: 5 },
+        { backgroundColor: isRecording ? "red" : '#b1b3b5', flex: 1, marginRight: 5 },
       ]}
       onPress={handleRecording}
     >
-      <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+      <View style={{ flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
         <Image source={MicroIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
         <Text style={globalStyles.globalButtonText}>
+            
           {isRecording ? "Arrêter l'enregistrement" : "Répondre"}
+          
         </Text>
       </View>
-    </TouchableOpacity >
-    <Text> </Text>
-    <TextInput
-      style={styles.input}
-      placeholder="Écrire une note..."
-      value={note}
-      onChangeText={setNote}
-      multiline={true}
-      numberOfLines={4}
+    </TouchableOpacity>
+    <TouchableOpacity onPress={handleFiles} style={{ flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }} >
       
-    />
-   
+    <Image source={AttachIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
+    </TouchableOpacity>
+    
+    {showAttachement && (
+      <>
+  <TouchableOpacity
+    style={[globalStyles.globalButton_wide, { backgroundColor: '#b1b3b5', flex: 1, marginLeft: 5 }]}
+    onPress={handleUploadAudio}
+  >
+    <View style={{ flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+      <Image source={Upload} style={{ width: 60, height: 60, opacity: 0.5 }} />
+      <Text style={globalStyles.globalButtonText}>
+        Envoyer un enregistrement vocal
+      </Text>
+    </View>
+    
+  </TouchableOpacity>
+  <TouchableOpacity
+  style={[globalStyles.globalButton_wide, { backgroundColor: '#b1b3b5', flex: 1, marginLeft: 5 }]}
+  onPress={handleUploadPhoto}
+>
+  <View style={{ flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+    <Image source={Upload} style={{ width: 60, height: 60, opacity: 0.5 }} />
+    <Text style={globalStyles.globalButtonText}>
+      Envoyer une photographie
+    </Text>
+  </View>
+  
+</TouchableOpacity>
+</>
+)}
 
-      <TouchableOpacity onPress={() => handleAnswerSubmit('', false)} style={[globalStyles.globalButton_wide, { backgroundColor: '#b1b3b5', alignItems: 'center', paddingVertical: 10, marginRight: 5 },]}>
-        <Text style={globalStyles.globalButtonText}>Enregistrer la note écrite</Text>
-      </TouchableOpacity>
-      
+
+  </View>
+  <TextInput
+    style={globalStyles.input}
+    value={answer}
+    onChangeText={setAnswer}
+    placeholder="Écrire une réponse..."
+    multiline={true}
+    numberOfLines={4}
+  />
+   <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
+  <TouchableOpacity
+    style={[globalStyles.globalButton_wide, { backgroundColor: '#b1b3b5' , flex: 1, marginRight: 5 }]}
+    onPress={() => handleAnswerSubmit('', false)}
+  >
+    <Text style={globalStyles.globalButtonText}>Envoyer la réponse écrite</Text>
+  </TouchableOpacity>
+  </View>      
 
   </View>
 </Modal>
@@ -551,100 +654,84 @@ const filteredAnswers = answers.filter(answer => {
 </View>
 
 {showFilters && ( 
-      <View style={styles.filterContainer}>
-  <TextInput
-    style={[styles.input, { backgroundColor: 'white' }]}
-    placeholder="Filtrer par texte"
-    value={textFilter}
-    onChangeText={setTextFilter}
-
-  />
-  <View style={styles.dateFilterContainer}>
-    {Platform.OS === 'web' ? (
-      <DatePicker
-        selected={dateBefore}
-        onChange={(date) => setDateBefore(date)}
-        placeholderText="Filtrer avant la date"
-        className="date-picker"
-        style={styles.datePicker}
-      />
-    ) : (
-      <View style={styles.datePicker}>
-        <Button title="Filtrer avant la date" onPress={() => setShowDateBeforePicker(true)} />
-        {showDateBeforePicker && (
-          <DateTimePicker
-            value={dateBefore || new Date()}
-            mode="date"
-            display="default"
-            onChange={(event, selectedDate) => {
-              const currentDate = selectedDate || dateBefore;
-              setShowDateBeforePicker(false);
-              setDateBefore(currentDate);
-            }}
-            style={styles.datePicker}
-          />
-        )}
-      </View>
-    )}
-    {Platform.OS === 'web' ? (
-      <DatePicker
-        selected={dateAfter}
-        onChange={(date) => setDateAfter(date)}
-        placeholderText="Filtrer après la date"
-        className="date-picker"
-        style={styles.datePicker}
-      />
-    ) : (
-      <View style={styles.datePicker}>
-        <Button title="Filtrer après la date" onPress={() => setShowDateAfterPicker(true)} />
-        {showDateAfterPicker && (
-          <DateTimePicker
-            value={dateAfter || new Date()}
-            mode="date"
-            display="default"
-            onChange={(event, selectedDate) => {
-              const currentDate = selectedDate || dateAfter;
-              setShowDateAfterPicker(false);
-              setDateAfter(currentDate);
-            }}
-            style={styles.datePicker}
-          />
-        )}
-      </View>
-    )}
+  <View style={styles.filterContainer}>
+    <TextInput
+      style={[styles.input, { backgroundColor: 'white' }]}
+      placeholder="Filtrer par texte"
+      value={textFilter}
+      onChangeText={setTextFilter}
+    />
+    <View style={styles.dropdownContainer}>
+      <Picker
+        selectedValue={selectedUserName}
+        onValueChange={(itemValue, itemIndex) => setSelectedUserName(itemValue)}
+        style={styles.dropdown}
+      >
+        <Picker.Item label="Tous les utilisateurs" value="" />
+        {Object.values(userNames).map((name, index) => (
+          <Picker.Item key={index} label={name} value={name} />
+        ))}
+      </Picker>
+    </View>
+    <View style={styles.dateFilterContainer}>
+      {Platform.OS === 'web' ? (
+        <DatePicker
+          selected={dateBefore}
+          onChange={(date) => setDateBefore(date)}
+          placeholderText="Filtrer avant la date"
+          className="date-picker"
+          style={styles.datePicker}
+        />
+      ) : (
+        <View style={styles.datePicker}>
+          <Button title="Filtrer avant la date" onPress={() => setShowDateBeforePicker(true)} />
+          {showDateBeforePicker && (
+            <DateTimePicker
+              value={dateBefore || new Date()}
+              mode="date"
+              display="default"
+              onChange={(event, selectedDate) => {
+                const currentDate = selectedDate || dateBefore;
+                setShowDateBeforePicker(false);
+                setDateBefore(currentDate);
+              }}
+              style={styles.datePicker}
+            />
+          )}
+        </View>
+      )}
+      {Platform.OS === 'web' ? (
+        <DatePicker
+          selected={dateAfter}
+          onChange={(date) => setDateAfter(date)}
+          placeholderText="Filtrer après la date"
+          className="date-picker"
+          style={styles.datePicker}
+        />
+      ) : (
+        <View style={styles.datePicker}>
+          <Button title="Filtrer après la date" onPress={() => setShowDateAfterPicker(true)} />
+          {showDateAfterPicker && (
+            <DateTimePicker
+              value={dateAfter || new Date()}
+              mode="date"
+              display="default"
+              onChange={(event, selectedDate) => {
+                const currentDate = selectedDate || dateAfter;
+                setShowDateAfterPicker(false);
+                setDateAfter(currentDate);
+              }}
+              style={styles.datePicker}
+            />
+          )}
+        </View>
+      )}
+    </View>
   </View>
-  <View style={styles.dropdownContainer}>
-    <select
-      style={styles.dropdown}
-      value={selectedChapter}
-      onChange={(e) => setSelectedChapter(e.target.value)}
-    >
-      <option value="">Toutes les parties</option>
-      <option value="none">Aucune partie </option>
-      {chapters.map((chapter, index) => (
-        <option key={index} value={chapter.id}>{chapter.title}</option>
-      ))}
-    </select>
-  </View>
-      <Text> </Text>
-  <View style={styles.dropdownContainer}>
-    <select
-      style={styles.dropdown}
-      value={selectedQuestion}
-      onChange={handleQuestionChange}
-    >
-      <option value="">Tous les chapitres</option>
-      <option value="none">Aucun chapitre </option>
-      {questions
-        .filter(question => selectedChapter === '' || question.id_chapitre === selectedChapter)
-        .map((question, index) => (
-        <option key={index} value={question.id}>{question.question}</option>
-      ))}
-    </select>
-  </View>
-</View>
-
 )}
+
+
+
 
 <ScrollView>
     {filteredAnswers.length > 0 ? filteredAnswers.map((answer, index) => {
@@ -660,6 +747,7 @@ const filteredAnswers = answers.filter(answer => {
   key={index}
   style={[
     styles.answerCard,
+    isConnectedToSelectedAnswer(answer) && styles.connectedAnswerCard,
     selectedAnswers.includes(answer.id) && styles.selectedAnswerCard,
   ]}
 >
@@ -899,7 +987,10 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   selectedAnswerCard: {
-    backgroundColor: '#d3d3d3', // Couleur de fond différente pour les réponses sélectionnées
+    backgroundColor: '#93d9e6', // Couleur de fond différente pour les réponses sélectionnées
+  },
+  connectedAnswerCard: {
+    backgroundColor: '#cce4e8', // Bleu clair pour les réponses connectées
   },
   
 });
