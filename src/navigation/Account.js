@@ -11,13 +11,24 @@ import InvitationScreen from "../screens/InvitationScreen";  // Import de la nou
 import { supabase } from '../lib/supabase';
 import React, { useState, useEffect } from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useNavigation } from '@react-navigation/native'; 
 
 const Tab = createBottomTabNavigator();
 
 export default function Account({ route }) {
   const { session } = route.params;
 
+  const navigation = useNavigation();
 
+  useEffect(() => {
+    // Déterminer quelle écran afficher en fonction de la biographie active
+    if (session && session.user ){
+
+    
+      navigation.navigate('ReadAnswersScreen', { session });
+    
+  }
+  }, [session, navigation]);
 
   return (
     <Tab.Navigator
