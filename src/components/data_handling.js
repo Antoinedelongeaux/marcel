@@ -334,10 +334,17 @@ export async function submitMemories_Answer(answer, question, session, audio, na
 
     const response = audio ? answer : (answer.trim() === '' ? 'Réponse vide' : answer);
 
+    // Obtenez le nombre actuel de réponses pour définir le rank
+    const { count } = await supabase
+      .from('Memoires_answers')
+      .select('id', { count: 'exact' });
+
+    const rank = count + 1;
+
     const { error } = await supabase
       .from('Memoires_answers')
       .insert([
-        { id_question: ID_question, id_user: session?.user?.id, id_subject: id_subject, answer: response, audio: audio, link_storage: name, image: image, connection: connectionId }
+        { id_question: ID_question, id_user: session?.user?.id, id_subject: id_subject, answer: response, audio: audio, link_storage: name, image: image, connection: connectionId, rank: rank }
       ]);
 
     if (error) throw error;
@@ -349,6 +356,7 @@ export async function submitMemories_Answer(answer, question, session, audio, na
     Alert.alert("Erreur", error.message);
   }
 }
+
 
 
 
@@ -977,4 +985,19 @@ export async function disconnectAnswers(answers) {
   } catch (error) {
     console.error('Error disconnecting answers:', error.message);
   }
+}
+
+export async function moveAnswer(id_answer,new_rank) { 
+  try {
+
+
+    const { data, error: errorUpdating } = await supabase
+      .from('Memoires_answers')
+      .update({ rank: new_rank }) 
+      .eq('id', id_answer);
+
+    return
+} catch (errorUpdating) {
+  Alert.alert("Erreur", errorUpdating.message);
+}
 }

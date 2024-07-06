@@ -54,6 +54,7 @@ export default function ProfileScreen({ route }) {
     const [showJoinModal, setShowJoinModal] = useState(false);
     const [joinMessage, setJoinMessage] = useState("");
     const [selectedSubject, setSelectedSubject] = useState(null);
+    const [isHovered, setIsHovered] = useState(false);
 
 
 
@@ -258,9 +259,15 @@ export default function ProfileScreen({ route }) {
     return (
         <View style={globalStyles.container}>
             <View style={globalStyles.navigationContainer}>
-                <TouchableOpacity onPress={() => navigateToScreen('ReadAnswersScreen')} style={styles.navButton}>
-                    <Image source={BookIcon} style={{ width: 120, height: 120, opacity: 0.5 }} />
-                </TouchableOpacity>
+
+                <TouchableOpacity
+  onPress={() => navigateToScreen('ReadAnswersScreen')} 
+  style={[globalStyles.navButton, isHovered && globalStyles.navButton_over]}
+  onMouseEnter={() => setIsHovered(true)}
+  onMouseLeave={() => setIsHovered(false)}
+>
+  <Image source={BookIcon} style={{ width: 120, height: 120 }} />
+</TouchableOpacity>
                 {/* 
                 <TouchableOpacity onPress={() => navigateToScreen('NoteScreen')} style={styles.navButton}>
                     <Image source={note} style={{ width: 60, height: 60, opacity: 0.5 }} />

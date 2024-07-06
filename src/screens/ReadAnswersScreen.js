@@ -132,6 +132,7 @@ function ReadQuestionsScreen({ route }) {
   const [isSaving, setIsSaving] = useState(false);
   const [showIntegratedNotes, setShowIntegratedNotes] = useState(false);
   const [userStatus, setUserStatus] = useState('');
+  const [isHovered, setIsHovered] = useState(false);
 
 
   
@@ -238,7 +239,7 @@ const copyToClipboard = (text) => {
 
 
   useFetchActiveSubjectId(setSubjectActive, setSubject, navigation);
-  console.log("session : ",session)
+
   useFetchData(session.user.id,subjectActive, setQuestions, tags, personal, setChapters,setUserStatus);
 
 
@@ -419,9 +420,15 @@ const copyToClipboard = (text) => {
           <Image source={refresh} style={{ width: 60, height: 60, opacity: 1 }} />
         </TouchableOpacity>
         */}
-        <TouchableOpacity onPress={() => navigateToScreen('ManageBiographyScreen')} style={globalStyles.navButton}>
-          <Image source={settings} style={{ width: 120, height: 120, opacity: 0.5 }} />
-        </TouchableOpacity>
+        <TouchableOpacity
+  onPress={() => navigateToScreen('ManageBiographyScreen')}
+  style={[globalStyles.navButton, isHovered && globalStyles.navButton_over]}
+  onMouseEnter={() => setIsHovered(true)}
+  onMouseLeave={() => setIsHovered(false)}
+>
+  <Image source={settings} style={{ width: 120, height: 120 }} />
+</TouchableOpacity>
+
         {/*
         <TouchableOpacity onPress={() => navigateToScreen('ProfileScreen')} style={styles.navButton}>
           <Image source={PersonIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
@@ -533,11 +540,25 @@ const copyToClipboard = (text) => {
 
 </View>
   )}
-  {isLargeScreen && ( 
-  <TouchableOpacity onPress={toggleLeftPanel} style={styles.toggleLine}>
-     <Text style={styles.toggleLineText}>{isLeftPanelVisible ? '<' : '>'}</Text>
-   </TouchableOpacity>
-   )}
+ 
+ 
+ <TouchableOpacity 
+  onPress={toggleLeftPanel} 
+  style={[
+    styles.toggleLine, 
+    { 
+      position: !isLargeScreen ? 'absolute' : 'relative', // Utilise position absolue uniquement pour les petits écrans
+      top: !isLargeScreen ? 0 : 'auto', // Utilise top 0 uniquement pour les petits écrans
+      bottom: !isLargeScreen ? 0 : 'auto', // Utilise bottom 0 uniquement pour les petits écrans
+      right: !isLargeScreen && isLeftPanelVisible ? 0 : 'auto', // Utilise right 0 uniquement pour les petits écrans et quand le panneau gauche est visible
+      left: !isLargeScreen && !isLeftPanelVisible ? 0 : 'auto' // Utilise left 0 uniquement pour les petits écrans et quand le panneau gauche n'est pas visible
+    }
+  ]}
+>
+  <Text style={styles.toggleLineText}>{isLeftPanelVisible ? '<' : '>'}</Text>
+</TouchableOpacity>
+
+   
   {isLargeScreen && userStatus==="Editeur" && (
    <View style={isLargeScreen ? styles.middlePanelContainer : styles.fullWidth}>
    
@@ -615,11 +636,11 @@ const copyToClipboard = (text) => {
  
   )}
 
-{isLargeScreen && ( 
+{(isLargeScreen || !isLeftPanelVisible )&& ( 
 
 <View style={[styles.rightPanel, { width: rightPanelWidth }]}>
+<Text style={globalStyles.title}>Notes</Text> 
 
-<Text style={styles.panelTitle}>Notes</Text>
 <NoteScreen route={{ params: { question } }} />
 
 {/*
@@ -677,6 +698,7 @@ const copyToClipboard = (text) => {
 
 
 
+  
   )}
 </View>
 
@@ -992,6 +1014,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#000', // Noir pour le contraste
   },
+
   
   togglePanelButton: {
     position: 'absolute',
@@ -1019,12 +1042,15 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     textAlign: 'center',
   },
+
   toggleLine: {
     width: 10,
-    backgroundColor: '#ccc', // Noir pour faire ressortir la ligne
+    backgroundColor: '#ccc',
     justifyContent: 'center',
     alignItems: 'center',
     cursor: 'pointer',
+    height: '100%',
+    zIndex: 1,
   },
   toggleLineText: {
     color: '#fff', // Blanc pour contraster avec la ligne noire

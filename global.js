@@ -194,6 +194,12 @@ title_chapter: {
 
   navButton: {
     padding: 10,
+    opacity: 0.5,
+    transition: 'opacity 0.3s ease',
+  },
+
+  navButton_over: {
+    opacity: 1,
   },
 
   iconStyle : {
