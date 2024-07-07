@@ -854,13 +854,27 @@ export async function edit_chapter(id_chapter, titre) {
 
     if (error) throw error;
 
-    Alert.alert("Le chapitre a bien été mis à jour");
+    Alert.alert("La partie a bien été mis à jour");
   } catch (error) {
     Alert.alert('Erreur lors de la mise à jour', error.message);
   }
 }
 
+export async function edit_question(id_question, question) {
+  try {
+    console.log("Hello les jeunes !")
+    const { data, error } = await supabase
+      .from('Memoires_questions')
+      .update({ question: question })
+      .eq('id', id_question);
 
+    if (error) throw error;
+
+    Alert.alert("Le chapitre a bien été mis à jour");
+  } catch (error) {
+    Alert.alert('Erreur lors de la mise à jour', error.message);
+  }
+}
 
 
 export async function delete_question(id_question) {

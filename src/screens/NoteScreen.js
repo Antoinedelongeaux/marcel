@@ -132,6 +132,7 @@ const [answer, setAnswer] = useState('');
 const [PleaseWait, setPleaseWait] = useState(false);
 const [draggedAnswer, setDraggedAnswer] = useState(null);
 const [dragOverAnswer, setDragOverAnswer] = useState(null);
+const [voirTout,setVoirTout]=useState(false);
 
   useFetchActiveSubjectId(setSubjectActive, setSubject, navigation);
   const closeFullscreenImage = () => {
@@ -597,11 +598,11 @@ const filteredAnswers = answers.filter(answer => {
     <Image source={{ uri: fullscreenImage }} style={styles.fullscreenImage} />
   </View>
 )}
-      {question && (
+      {(question || voirTout) && (<>
       <TouchableOpacity onPress={() => setModalVisible(true)} style={globalStyles.globalButton_wide}>
       <Text style={globalStyles.globalButtonText}>Ajouter une note</Text>
     </TouchableOpacity>
-)}
+   
     <Modal isVisible={isModalVisible}>
   <View style={styles.modalContainer}>
     <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.closeButton}>
@@ -899,8 +900,23 @@ const filteredAnswers = answers.filter(answer => {
 
 />
 
+</>
+)}
 
-
+{!question && !voirTout && (
+  <>
+    <View style={globalStyles.container_wide}>
+      <Text> </Text>
+      <Text> </Text>
+      <Text>Selectionner un chapitre pour afficher les notes associées </Text>
+      <Text> </Text>
+      <Text>... ou bien afficher toutes les contributions existantes : </Text>
+      <TouchableOpacity onPress={() => setVoirTout(true)} style={globalStyles.globalButton}>
+        <Text style={globalStyles.globalButtonText}>Afficher toutes les notes</Text>
+      </TouchableOpacity>
+    </View>
+  </>
+)}
 
 
 

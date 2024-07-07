@@ -25,6 +25,7 @@ import {
   create_chapter,
   delete_chapter,
   edit_chapter,
+  edit_question,
   delete_question,
   get_Question_by_id,
   integration,
@@ -53,6 +54,8 @@ import copyIcon from '../../assets/icons/paste.png';
 import save from '../../assets/icons/save.png';
 import note from '../../assets/icons/notes.png';
 import NoteScreen from './NoteScreen';
+import plusIcon from '../../assets/icons/plus.png';
+import minusIcon from '../../assets/icons/minus.png';
 
 
 
@@ -114,8 +117,13 @@ function ReadQuestionsScreen({ route }) {
   const [isChapterModalVisible, setIsChapterModalVisible] = useState(false);
   const [selectedQuestionId, setSelectedQuestionId] = useState(null);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [isEditChapterModalVisible, setIsEditChapterModalVisible] = useState(false);
+
   const [editChapterId, setEditChapterId] = useState(null);
   const [editChapterTitle, setEditChapterTitle] = useState('');
+  const [editQuestionId, setEditQuestionId] = useState(null);
+  const [editQuestionTitle, setEditQuestionTitle] = useState('');
+
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [deletionDetails, setDeletionDetails] = useState({ id: null, isChapter: true });
   const [subject, setSubject] = useState([]);
@@ -133,6 +141,9 @@ function ReadQuestionsScreen({ route }) {
   const [showIntegratedNotes, setShowIntegratedNotes] = useState(false);
   const [userStatus, setUserStatus] = useState('');
   const [isHovered, setIsHovered] = useState(false);
+  const [iconsVisible, setIconsVisible] = useState(false);
+const [toggleIcon, setToggleIcon] = useState(plusIcon);
+
 
 
   
@@ -453,7 +464,15 @@ const copyToClipboard = (text) => {
   {isLeftPanelVisible && (
     <View style={isLargeScreen ? styles.leftPanel : styles.fullWidth}>
       <View style={globalStyles.container_wide}> 
-      <Text style={globalStyles.title}>{subject.title}</Text> 
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+    <Text style={globalStyles.title}>{subject.title}</Text>
+    <TouchableOpacity onPress={() => {
+      setIconsVisible(!iconsVisible);
+      setToggleIcon(iconsVisible ? plusIcon : minusIcon);
+    }}>
+      <Image source={toggleIcon} style={{ width: 25, height: 25, opacity: 0.5, marginVertical: 5 }} />
+    </TouchableOpacity>
+  </View>
 <Text> </Text>
       <ScrollView>
       {(hasUnclassifiedQuestions ? [{ id: null, title: 'Chapitres non classés' }] : []).concat(chapters).map((chapter) => (
@@ -462,6 +481,7 @@ const copyToClipboard = (text) => {
       <TouchableOpacity onPress={() => toggleChapter(chapter.id)}>
         <Text style={globalStyles.title_chapter}>{chapter.title}</Text>
       </TouchableOpacity>
+      {iconsVisible && (
       <View style={{ flexDirection: 'row' }}>
         <TouchableOpacity
           onPress={() => {
@@ -477,16 +497,28 @@ const copyToClipboard = (text) => {
           <Image source={trash} style={{ width: 25, height: 25, opacity: 0.5 }} />
         </TouchableOpacity>
       </View>
+      )}
     </View>
     {openChapters[chapter.id] && (
       <>
         {questions.filter((q) => q.id_chapitre === chapter.id).map((question) => (
           <TouchableOpacity key={question.id} style={styles.questionCard} onPress={() => toggleAnswersDisplay(question.id)}>
             <Text style={styles.questionText}>{question.question}</Text>
+            {iconsVisible && (
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
               <Text style={styles.answersCount}>{question.answers_count} réponses</Text>
+              
               <View style={{ flexDirection: 'row' }}>
-  
+              <TouchableOpacity
+          onPress={() => {
+            setEditQuestionId(question.id);
+            setEditQuestionTitle(question.question);
+            setIsEditChapterModalVisible(true);
+          }}
+          style={{ marginRight: 10 }}
+        >
+          <Image source={edit} style={{ width: 20, height: 20, opacity: 0.5 }} />
+        </TouchableOpacity>
                 <TouchableOpacity onPress={() => handleAssociateQuestion(question.id)} style={styles.associateButton}>
                   <Image source={LinkIcon} style={{ width: 18, height: 18, opacity: 0.5 }} />
                 </TouchableOpacity>
@@ -495,6 +527,7 @@ const copyToClipboard = (text) => {
                 </TouchableOpacity>
               </View>
             </View>
+            )}
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             {userStatus==='Editeur'&&(
             <TouchableOpacity
@@ -794,6 +827,41 @@ const copyToClipboard = (text) => {
           </View>
         </View>
       </Modal>
+
+      <Modal animationType="slide" transparent={true} visible={isEditChapterModalVisible} onRequestClose={() => setIsEditChapterModalVisible(false)}>
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalText}>Éditer Chapitre</Text>
+            <TextInput
+              style={styles.modalInput}
+              onChangeText={setEditQuestionTitle}
+              value={editQuestionTitle}
+              placeholder="Nouveau titre du chapitre"
+            />
+            <TouchableOpacity
+              style={[globalStyles.globalButton_wide]}
+              onPress={() => {
+                edit_question(editQuestionId, editQuestionTitle);
+                setIsEditChapterModalVisible(false);
+                setEditQuestionTitle('');
+                refreshPage();
+              }}
+            >
+              <Text style={globalStyles.globalButtonText}>Sauvegarder</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[globalStyles.globalButton_wide]}
+              onPress={() => {
+                setIsEditChapterModalVisible(false);
+                setEditQuestionTitle('');
+              }}
+            >
+              <Text style={globalStyles.globalButtonText}>Annuler</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
 
       <Modal animationType="slide" transparent={true} visible={deleteModalVisible} onRequestClose={() => setDeleteModalVisible(!deleteModalVisible)}>
         <View style={styles.centeredView}>
