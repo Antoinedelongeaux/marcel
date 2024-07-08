@@ -573,9 +573,7 @@ const copyToClipboard = (text) => {
         </TouchableOpacity>
 
 
-        <TouchableOpacity style={globalStyles.globalButton_wide} onPress={() => navigateToScreen('AskQuestionScreen')}>
-          <Text style={globalStyles.globalButtonText}>Nouveau chapitre </Text>
-        </TouchableOpacity>
+    
       </View>
       </View>
     </View>
@@ -762,7 +760,8 @@ const copyToClipboard = (text) => {
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
             <ScrollView>
-              <Text>Placer la note dans le chapitre :</Text>
+              <Text>Placer le chapitre dans la partie :</Text>
+              <Text> </Text>
               {chapters.map((chapter) => (
                 <TouchableOpacity
                   key={chapter.id}
