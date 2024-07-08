@@ -90,12 +90,17 @@ const useFetchData = (id_user,subjectActive, setQuestions, tags, personal, setCh
 };
 
 
-
+useEffect(() => {
+  if (question.id) {
+    toggleAnswersDisplay(question.id);
+  }
+}, [question]);
 
 
 function ReadQuestionsScreen({ route }) {
   const navigation = useNavigation();
   const session = route.params?.session;
+
   const [questions, setQuestions] = useState([]);
   const [subjectActive, setSubjectActive] = useState(null);
   const [tags, setTags] = useState([
@@ -114,6 +119,11 @@ function ReadQuestionsScreen({ route }) {
   const [openChapters, setOpenChapters] = useState({});
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [newChapterTitle, setNewChapterTitle] = useState('');
+  const [isModalNewQuestionVisible, setIsModalNewQuestionVisible] = useState(false);
+  const [newQuestionTitle, setNewQuestionTitle] = useState('');
+
+
+
   const [isChapterModalVisible, setIsChapterModalVisible] = useState(false);
   const [selectedQuestionId, setSelectedQuestionId] = useState(null);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
@@ -156,7 +166,7 @@ const [toggleIcon, setToggleIcon] = useState(plusIcon);
     const fetchUserStatus = async () => {
       const status = await getUserStatus(session.user.id, subjectActive);
       setUserStatus(status);
-      console.log("User status:", status);
+
       if (status=="Contributeur") {
         setMiddlePanelWidth(0);
       }
@@ -556,6 +566,12 @@ const copyToClipboard = (text) => {
           <Text style={globalStyles.globalButtonText}>Nouvelle partie</Text>
         </TouchableOpacity>
 
+
+        <TouchableOpacity style={globalStyles.globalButton_wide} onPress={() => setIsModalNewQuestionVisible(true)}>
+          <Text style={globalStyles.globalButtonText}>Nouveau chapitre</Text>
+        </TouchableOpacity>
+
+
         <TouchableOpacity style={globalStyles.globalButton_wide} onPress={() => navigateToScreen('AskQuestionScreen')}>
           <Text style={globalStyles.globalButtonText}>Nouveau chapitre </Text>
         </TouchableOpacity>
@@ -674,7 +690,7 @@ const copyToClipboard = (text) => {
 <View style={[styles.rightPanel, { width: rightPanelWidth }]}>
 <Text style={globalStyles.title}>Notes</Text> 
 
-<NoteScreen route={{ params: { question } }} />
+<NoteScreen route={{ params: { session, question } }} />
 
 {/*
 <Text> </Text>
@@ -793,6 +809,36 @@ const copyToClipboard = (text) => {
           </View>
         </View>
       </Modal>
+
+      <Modal animationType="slide" transparent={true} visible={isModalNewQuestionVisible} onRequestClose={() => setIsModalNewQuestionVisible(!isModalNewQuestionVisible)}>
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalText}>Nouveau Chapitre</Text>
+            <TextInput
+              style={styles.modalInput}
+              onChangeText={setNewQuestionTitle}
+              value={newQuestionTitle}
+              placeholder="Titre du chapitre"
+            />
+            <TouchableOpacity
+              style={[globalStyles.globalButton_wide]}
+              onPress={() => {
+                save_question(newQuestionTitle, '[]', subject_active, setQuestion);
+                setIsModalNewQuestionVisible(!isModalVisible);
+                setNewQuestionTitle('');
+                refreshPage();
+              }}
+            >
+              <Text style={globalStyles.globalButtonText}>Créer</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[globalStyles.globalButton_wide]} onPress={() => setIsModalVisible(!isModalVisible)}>
+              <Text style={globalStyles.globalButtonText}>Annuler</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+
 
       <Modal animationType="slide" transparent={true} visible={isEditModalVisible} onRequestClose={() => setIsEditModalVisible(false)}>
         <View style={styles.centeredView}>

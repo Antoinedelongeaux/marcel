@@ -83,6 +83,7 @@ const useFetchActiveSubjectId = (setSubjectActive, setSubject, navigation) => {
 };
 
 function NoteScreen({ route }) {
+ 
   const navigation = useNavigation();
   const session = route.params?.session;
   const [subjectActive, setSubjectActive] = useState(null);
@@ -293,7 +294,7 @@ useEffect(() => {
     // Extraire les IDs des questions filtrées et les convertir en chaînes de caractères
     const ids = filteredQuestions.map(q => q.id.toString());
     setQuestionIdsForSelectedChapter(ids);
-    console.log('questionIdsForSelectedChapter 1 : ', ids);
+
   } else {
     setQuestionIdsForSelectedChapter('');
   }
@@ -339,6 +340,7 @@ const filteredAnswers = answers.filter(answer => {
         return;
       }
     }
+    console.log("session 1 : ", session)
     await submitMemories_Answer(note, null, session, !!audio, audio);
     setNote('');
     setModalVisible(false);
@@ -431,7 +433,7 @@ const filteredAnswers = answers.filter(answer => {
         return;
       }
     }
-  
+    console.log("session 2 : ", session)
     await submitMemories_Answer(transcribedText, question, session, isMedia, name,isImage, connectionID,async () => {
       setAnswer('');
       setTimeout(async () => {
