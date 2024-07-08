@@ -30,6 +30,7 @@ import {
   get_Question_by_id,
   integration,
   getUserStatus,
+ save_question,
 } from '../components/data_handling';
 import { useFocusEffect } from '@react-navigation/native';
 import { getActiveSubjectId } from '../components/local_storage';
@@ -90,11 +91,6 @@ const useFetchData = (id_user,subjectActive, setQuestions, tags, personal, setCh
 };
 
 
-useEffect(() => {
-  if (question.id) {
-    toggleAnswersDisplay(question.id);
-  }
-}, [question]);
 
 
 function ReadQuestionsScreen({ route }) {
@@ -177,6 +173,11 @@ const [toggleIcon, setToggleIcon] = useState(plusIcon);
   }, [session.user.id, subjectActive]);
 
 
+  useEffect(() => {
+    if (question.id) {
+      toggleAnswersDisplay(question.id);
+    }
+  }, [question]);
 const handleMouseDown = (e) => {
   setIsDragging(true);
   setInitialMouseX(e.clientX);
@@ -761,7 +762,7 @@ const copyToClipboard = (text) => {
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
             <ScrollView>
-              <Text>Déplacer la note dans le chapitre :</Text>
+              <Text>Placer la note dans le chapitre :</Text>
               {chapters.map((chapter) => (
                 <TouchableOpacity
                   key={chapter.id}
@@ -822,16 +823,18 @@ const copyToClipboard = (text) => {
             />
             <TouchableOpacity
               style={[globalStyles.globalButton_wide]}
-              onPress={() => {
-                save_question(newQuestionTitle, '[]', subject_active, setQuestion);
-                setIsModalNewQuestionVisible(!isModalVisible);
+              onPress={async () => {
+                const question = await save_question(newQuestionTitle, tags, subjectActive, setQuestion);
+                setSelectedQuestionId(question.id);
+                setIsModalNewQuestionVisible(!isModalNewQuestionVisible);
                 setNewQuestionTitle('');
+                setIsChapterModalVisible(true)
                 refreshPage();
               }}
             >
               <Text style={globalStyles.globalButtonText}>Créer</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[globalStyles.globalButton_wide]} onPress={() => setIsModalVisible(!isModalVisible)}>
+            <TouchableOpacity style={[globalStyles.globalButton_wide]} onPress={() => setIsModalNewQuestionVisible(!isModalNewQuestionVisible)}>
               <Text style={globalStyles.globalButtonText}>Annuler</Text>
             </TouchableOpacity>
           </View>
