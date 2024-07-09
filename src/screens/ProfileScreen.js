@@ -19,6 +19,8 @@ export default function ProfileScreen({ route }) {
     const [loading, setLoading] = useState(true)
     const [username, setUsername] = useState('')
     const [full_name, setFull_name] = useState('')
+    const [isHovered1, setIsHovered1] = useState(false);
+    const [isHovered, setIsHovered] = useState(false);
 
     const [subject_active, setSubject_active] = useState(null);
     
@@ -185,21 +187,22 @@ export default function ProfileScreen({ route }) {
 
     return (
         <View style={globalStyles.container}>
-            <View style={globalStyles.navigationContainer}>
-                <TouchableOpacity onPress={() => navigateToScreen('ReadAnswersScreen')} style={globalStyles.navButton}>
-                    <Image source={BookIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
+            <View style={[globalStyles.navigationContainer, { position: 'fixed', bottom: '0%', width: '100%' }]}>
+                <TouchableOpacity onPress={() => navigateToScreen('ReadAnswersScreen')} 
+                    style={[globalStyles.navButton, isHovered1 && globalStyles.navButton_over]}
+                    onMouseEnter={() => setIsHovered1(true)}
+                    onMouseLeave={() => setIsHovered1(false)}>
+
+                    <Image source={BookIcon} style={{ width: 120, height: 120, opacity: 0.5 }} />
                 </TouchableOpacity>
+     
                 
-                <TouchableOpacity onPress={() => navigateToScreen('NoteScreen')} style={styles.navButton}>
-          <Image source={note} style={{ width: 60, height: 60, opacity: 0.5 }} />
-        </TouchableOpacity>
-                
-                <TouchableOpacity onPress={() => navigateToScreen('ManageBiographyScreen')} style={globalStyles.navButton}>
-                    <Image source={SettingsIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
+                <TouchableOpacity onPress={() => navigateToScreen('ManageBiographyScreen')}  style={[globalStyles.navButton, isHovered && globalStyles.navButton_over]}
+  onMouseEnter={() => setIsHovered(true)}
+  onMouseLeave={() => setIsHovered(false)}>
+                    <Image source={SettingsIcon} style={{ width: 120, height: 120, opacity: 0.5 }} />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => navigateToScreen('ProfileScreen')} style={globalStyles.navButton}>
-                    <Image source={PersonIcon} style={{ width: 60, height: 60, opacity: 1 }} />
-                </TouchableOpacity>
+
             </View>
 
 

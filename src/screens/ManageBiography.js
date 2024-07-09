@@ -258,7 +258,7 @@ export default function ProfileScreen({ route }) {
 
     return (
         <View style={globalStyles.container}>
-            <View style={globalStyles.navigationContainer}>
+            <View style={[globalStyles.navigationContainer, { position: 'fixed', bottom: '0%', width: '100%' }]}>
 
                 <TouchableOpacity
   onPress={() => navigateToScreen('ReadAnswersScreen')} 
@@ -266,7 +266,7 @@ export default function ProfileScreen({ route }) {
   onMouseEnter={() => setIsHovered(true)}
   onMouseLeave={() => setIsHovered(false)}
 >
-  <Image source={BookIcon} style={{ width: 120, height: 120 }} />
+  <Image source={BookIcon} style={{ width: 120, height: 120, opacity: 0.5 }} />
 </TouchableOpacity>
                 {/* 
                 <TouchableOpacity onPress={() => navigateToScreen('NoteScreen')} style={styles.navButton}>
@@ -479,6 +479,12 @@ export default function ProfileScreen({ route }) {
                     </View>
                     </View>
                 )}
+<TouchableOpacity style={globalStyles.globalButton_wide} onPress={() => navigateToScreen('ProfileScreen')}>
+                        <Text style={globalStyles.globalButtonText}>Informations utilisateur</Text>
+                    </TouchableOpacity>
+
+
+
             </View>
     
             <Modal

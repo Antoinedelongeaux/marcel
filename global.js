@@ -180,21 +180,18 @@ title_chapter: {
   },
   
   navigationContainer: {
-    position: 'absolute',
-    bottom: 0,
-    alignSelf: 'center',
-
     flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'center',  // Centrer les éléments verticalement
+    alignItems: 'center',
     paddingVertical: 10,
-    zIndex: 1000, // Assurez-vous que le conteneur est au-dessus des autres éléments
+    zIndex: 1000,
     
   },
 
+
   navButton: {
     padding: 10,
-    opacity: 0.5,
+    opacity: 0.3,
     transition: 'opacity 0.3s ease',
   },
 

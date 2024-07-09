@@ -225,10 +225,10 @@ useEffect(() => {
 
 useEffect(() => {
   if (!isLeftPanelVisible){
-    setRightPanelWidth(windowWidth - middlePanelWidth);
+    setRightPanelWidth(windowWidth - middlePanelWidth-10);
   }
   if (isLeftPanelVisible){
-    setRightPanelWidth(windowWidth - middlePanelWidth-550);
+    setRightPanelWidth(windowWidth - middlePanelWidth-550-10);
   }
 }, [middlePanelWidth,isLeftPanelVisible ]);
 
@@ -436,7 +436,9 @@ const copyToClipboard = (text) => {
   return (
     <View style={globalStyles.container}>
       
-      <View style={globalStyles.navigationContainer}>
+      <View style={[globalStyles.navigationContainer, { position: 'fixed', bottom: '0%', width: '100%' }]}>
+
+
         {/*
         <TouchableOpacity onPress={refreshPage} style={styles.navButton}>
           <Image source={refresh} style={{ width: 60, height: 60, opacity: 1 }} />
@@ -448,7 +450,7 @@ const copyToClipboard = (text) => {
   onMouseEnter={() => setIsHovered(true)}
   onMouseLeave={() => setIsHovered(false)}
 >
-  <Image source={settings} style={{ width: 120, height: 120 }} />
+  <Image source={settings} style={{ width: 120, height: 120, opacity: 0.5 }} />
 </TouchableOpacity>
 
         {/*
