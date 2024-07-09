@@ -560,6 +560,10 @@ const copyToClipboard = (text) => {
     )}
   </View>
 ))}
+<View>
+  <Text> </Text>
+  <Text> </Text>
+</View>
 
 
       </ScrollView>
@@ -573,7 +577,17 @@ const copyToClipboard = (text) => {
         <TouchableOpacity style={globalStyles.globalButton_wide} onPress={() => setIsModalNewQuestionVisible(true)}>
           <Text style={globalStyles.globalButtonText}>Nouveau chapitre</Text>
         </TouchableOpacity>
-
+        <View>
+  <Text> </Text>
+  <Text> </Text>
+  <Text> </Text>
+  <Text> </Text>
+  <Text> </Text>
+  <Text> </Text>
+  <Text> </Text>
+  <Text> </Text>
+  <Text> </Text>
+</View>
 
     
       </View>

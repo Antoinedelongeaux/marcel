@@ -280,7 +280,17 @@ if(question) {
 </View>
 
  
- 
+<View>
+  <Text> </Text>
+  <Text> </Text>
+  <Text> </Text>
+  <Text> </Text>
+  <Text> </Text>
+  <Text> </Text>
+  <Text> </Text>
+  <Text> </Text>
+  <Text> </Text>
+</View>
   
 
 
