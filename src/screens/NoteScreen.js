@@ -504,64 +504,70 @@ const filteredAnswers = answers.filter(answer => {
     setShowAttachement(!showAttachement)
   };
 
+  const getAudioDuration = async (uri) => {
+    return new Promise((resolve, reject) => {
+      const audio = new Audio(uri);
+      audio.onloadedmetadata = () => {
+        resolve(audio.duration);
+      };
+      audio.onerror = (e) => {
+        reject(e);
+      };
+    });
+   };
+
   const handleUploadAudio = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
         type: 'audio/*',
         copyToCacheDirectory: false
       });
-  
-
-  
+   
       if (!result.canceled) {
         let uri, name, mimeType;
-  
-        // Gérer les différences de plateforme
+        
         if (result.output && result.output.length > 0) {
-          console.log("Using result.output");
           const file = result.output[0];
-          console.log("Selected file: ", file);
           uri = URL.createObjectURL(file);
           name = file.name;
           mimeType = file.type;
         } else if (result.assets && result.assets.length > 0) {
-          console.log("Using result.assets");
           const asset = result.assets[0];
-          console.log("Selected asset: ", asset);
           uri = asset.uri;
           name = asset.name;
           mimeType = asset.mimeType;
         } else {
-          console.error("Invalid file selection result", result);
           throw new Error("Invalid file selection result");
         }
-  
+   
         if (!uri || !name) {
-          console.error("Invalid file selection: URI or name is missing", { uri, name });
           throw new Error("Invalid file selection: URI or name is missing");
         }
-  
-        // Vérification du type MIME
+   
         if (mimeType && mimeType.startsWith('audio/')) {
-          console.log("File selected is an audio file:", { uri, name, mimeType });
+          const { duration } = await getAudioDuration(uri); // Ajoutez cette ligne pour obtenir la durée de l'audio
+          const chunks = Math.ceil(duration / 30);
+          const connectionId = uuidv4();
+   
+          for (let i = 0; i < chunks; i++) {
+            const start = i * 30;
+            const end = (i + 1) * 30 > duration ? duration : (i + 1) * 30;
+            const chunkName = `${name}_part_${i + 1}.mp3`;
+   
+            const chunkUri = await createAudioChunk(uri, chunkName, start, end);
+            await handleAnswerSubmit(chunkName, true, chunkUri, false, connectionId);
+          }
         } else {
-          console.error("Selected file is not an audio file:", { uri, name, mimeType });
           Alert.alert("Erreur", "Le fichier sélectionné n'est pas un fichier audio");
-          return;
         }
-  
-        console.log("File selected successfully:", { uri, name });
-        await handleAnswerSubmit(name, true, uri,false);
       } else {
-        console.error("File selection was not successful: ", result);
         Alert.alert("Erreur", "Sélection du fichier échouée");
       }
     } catch (error) {
-      console.error("Error handling file upload: ", error);
       Alert.alert("Erreur", "Une erreur s'est produite lors de la sélection du fichier");
     }
-  };
-
+  }
+    
   const isConnectedToSelectedAnswer = (answer) => {
     const selectedConnections = selectedAnswers.map(id => {
       const selectedAnswer = answers.find(ans => ans.id === id);
