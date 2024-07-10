@@ -504,17 +504,19 @@ const filteredAnswers = answers.filter(answer => {
     setShowAttachement(!showAttachement)
   };
 
-  const getAudioDuration = async (uri) => {
+  const getAudioDuration = (uri) => {
     return new Promise((resolve, reject) => {
       const audio = new Audio(uri);
-      audio.onloadedmetadata = () => {
+      audio.addEventListener('loadedmetadata', () => {
         resolve(audio.duration);
-      };
-      audio.onerror = (e) => {
+      });
+      audio.addEventListener('error', (e) => {
         reject(e);
-      };
+      });
     });
-   };
+  };
+  
+  
 
   const handleUploadAudio = async () => {
     try {
@@ -522,10 +524,10 @@ const filteredAnswers = answers.filter(answer => {
         type: 'audio/*',
         copyToCacheDirectory: false
       });
-   
+  
       if (!result.canceled) {
         let uri, name, mimeType;
-        
+        console.log("Coucou !");
         if (result.output && result.output.length > 0) {
           const file = result.output[0];
           uri = URL.createObjectURL(file);
@@ -539,23 +541,30 @@ const filteredAnswers = answers.filter(answer => {
         } else {
           throw new Error("Invalid file selection result");
         }
-   
+  
         if (!uri || !name) {
           throw new Error("Invalid file selection: URI or name is missing");
         }
-   
+  
+        console.log("Selected audio URI:", uri);
         if (mimeType && mimeType.startsWith('audio/')) {
-          const { duration } = await getAudioDuration(uri); // Ajoutez cette ligne pour obtenir la durée de l'audio
-          const chunks = Math.ceil(duration / 30);
-          const connectionId = uuidv4();
-   
-          for (let i = 0; i < chunks; i++) {
-            const start = i * 30;
-            const end = (i + 1) * 30 > duration ? duration : (i + 1) * 30;
-            const chunkName = `${name}_part_${i + 1}.mp3`;
-   
-            const chunkUri = await createAudioChunk(uri, chunkName, start, end);
-            await handleAnswerSubmit(chunkName, true, chunkUri, false, connectionId);
+          try {
+            const duration = await getAudioDuration(uri); // Modifié pour récupérer directement la durée
+            console.log("Audio duration:", duration);
+            const chunks = Math.ceil(duration / 30);
+            const connectionId = uuidv4();
+  
+            for (let i = 0; i < chunks; i++) {
+              const start = i * 30;
+              const end = (i + 1) * 30 > duration ? duration : (i + 1) * 30;
+              const chunkName = `${name}_part_${i + 1}.mp3`;
+  
+              const chunkUri = await createAudioChunk(uri, chunkName, start, end);
+              await handleAnswerSubmit(chunkName, true, chunkUri, false, connectionId);
+            }
+          } catch (e) {
+            console.error("Error getting audio duration:", e);
+            Alert.alert("Erreur", "Impossible d'obtenir la durée de l'audio");
           }
         } else {
           Alert.alert("Erreur", "Le fichier sélectionné n'est pas un fichier audio");
@@ -564,9 +573,12 @@ const filteredAnswers = answers.filter(answer => {
         Alert.alert("Erreur", "Sélection du fichier échouée");
       }
     } catch (error) {
+      console.error("Error during file selection or processing:", error);
       Alert.alert("Erreur", "Une erreur s'est produite lors de la sélection du fichier");
     }
-  }
+  };
+  
+  
     
   const isConnectedToSelectedAnswer = (answer) => {
     const selectedConnections = selectedAnswers.map(id => {
