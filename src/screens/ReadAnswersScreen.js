@@ -542,7 +542,9 @@ const copyToClipboard = (text) => {
             </View>
             )}
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            {/*
             {userStatus==='Editeur'&&(
+            
             <TouchableOpacity
               onPress={() => {
                 navigateToScreen('EditChapterScreen', {questionId :question.id} );
@@ -551,7 +553,9 @@ const copyToClipboard = (text) => {
             >
               <Text style={globalStyles.globalButtonText}>Lire</Text>
             </TouchableOpacity>
+            
             )}
+            */}
             
               </View>
           </TouchableOpacity>

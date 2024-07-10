@@ -533,6 +533,17 @@ export default function ProfileScreen({ route }) {
                     </View>
                 </View>
             </Modal>
+            <View>
+  <Text> </Text>
+  <Text> </Text>
+  <Text> </Text>
+  <Text> </Text>
+  <Text> </Text>
+  <Text> </Text>
+  <Text> </Text>
+  <Text> </Text>
+  <Text> </Text>
+</View>
         </View>
     )
     

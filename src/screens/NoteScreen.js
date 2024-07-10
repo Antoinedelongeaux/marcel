@@ -920,7 +920,17 @@ const filteredAnswers = answers.filter(answer => {
   </>
 )}
 
-
+<View>
+  <Text> </Text>
+  <Text> </Text>
+  <Text> </Text>
+  <Text> </Text>
+  <Text> </Text>
+  <Text> </Text>
+  <Text> </Text>
+  <Text> </Text>
+  <Text> </Text>
+</View>
 
     </View>
   );
