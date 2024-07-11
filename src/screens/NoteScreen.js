@@ -1047,7 +1047,7 @@ const styles = StyleSheet.create({
     position: 'absolute', // Ajoutez cette ligne pour le placer au-dessus
   },
   answerCard: {
-    backgroundColor: 'white',
+    //backgroundColor: 'white',
     borderRadius: 10,
     padding: 10,
     marginBottom: 10,
