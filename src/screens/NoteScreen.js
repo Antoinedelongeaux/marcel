@@ -868,7 +868,7 @@ const filteredAnswers = answers.filter(answer => {
     //isActive && styles.selectedAnswerCard,
     isConnectedToSelectedAnswer(item) && styles.connectedAnswerCard,
   ]}
-  onPress={() => {
+  onLongPress={() => {
     setDraggedAnswer(item);
     drag();
   }}
