@@ -862,16 +862,16 @@ const filteredAnswers = answers.filter(answer => {
     return (
       <TouchableOpacity
         key={item.id}
-        style={[
-          isConnectedToSelectedAnswer(item) && styles.connectedAnswerCard,
-          isSelected && styles.selectedAnswerCard, 
-          styles.answerCard,
-          //isActive && { opacity: 0.5 },
-        ]}
-        onLongPress={() => {
-          setDraggedAnswer(item);
-          drag();
-        }}
+  style={[
+    styles.answerCard,
+    selectedAnswerIds.includes(item.id) && styles.selectedAnswerCard,
+    isActive && styles.selectedAnswerCard,
+    isConnectedToSelectedAnswer(item) && styles.connectedAnswerCard,
+  ]}
+  onLongPress={() => {
+    setDraggedAnswer(item);
+    drag();
+  }}
       >
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         {showDetails && (
@@ -1158,11 +1158,21 @@ const styles = StyleSheet.create({
     height: '90%',
     resizeMode: 'contain',
   },
+  /*
   selectedAnswerCard: {
     backgroundColor: '#93d9e6', // Couleur de fond différente pour les réponses sélectionnées
   },
   connectedAnswerCard: {
     backgroundColor: '#cce4e8', // Bleu clair pour les réponses connectées
+  },
+  */
+  selectedAnswerCard: {
+    borderColor: 'blue', // Remplacez cette ligne par votre style personnalisé
+    borderWidth: 2,
+  },
+  connectedAnswerCard: {
+    borderColor: 'green', // Remplacez cette ligne par votre style personnalisé
+    borderWidth: 2,
   },
   
 });
