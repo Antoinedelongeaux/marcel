@@ -14,6 +14,7 @@ import {
   Dimensions,
   Picker,
   ActivityIndicator,
+  CheckBox,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import DatePicker from 'react-datepicker';
@@ -126,6 +127,7 @@ const windowWidth = Dimensions.get('window').width;
 const isLargeScreen = windowWidth > 768;
 const [userNames, setUserNames] = useState({});
 const [selectedAnswers, setSelectedAnswers] = useState([]);
+const [selectedAnswerIds, setSelectedAnswerIds] = useState([]);
 const [userIdFilter, setUserIdFilter] = useState('');
 const [userNameFilter, setUserNameFilter] = useState('');
 const [selectedUserName, setSelectedUserName] = useState('');
@@ -761,14 +763,14 @@ const filteredAnswers = answers.filter(answer => {
     style={{ width: 50, height: 50, opacity: 0.5, marginVertical: 30 }} 
   />
 </TouchableOpacity>
-
+{showDetails && (
 <TouchableOpacity onPress={() => linkAnswers(answers)} style={styles.filterIcon}>
   <Image 
     source={linkIcon} 
     style={{ width: 50, height: 50, opacity: 0.5, marginVertical: 30 }} 
   />
 </TouchableOpacity>
-
+)}
 </View>
 
 {showFilters && ( 
@@ -851,6 +853,7 @@ const filteredAnswers = answers.filter(answer => {
 <DraggableFlatList
   data={filteredAnswers}
   renderItem={({ item, drag, isActive }) => {
+    const isSelected = selectedAnswerIds.includes(item.id); // Vérifier si la réponse est sélectionnée
     const question = questions.find(q => q.id === item.id_question);
     let chapter;
     if (question) {
@@ -866,96 +869,104 @@ const filteredAnswers = answers.filter(answer => {
           isActive && { opacity: 0.5 },
         ]}
         onLongPress={() => {
-          setDraggedAnswer(item)
+          setDraggedAnswer(item);
           drag();
         }}
-        /* 
-        onPress={() => {
-          if (selectedAnswers.includes(item.id)) {
-            setSelectedAnswers(selectedAnswers.filter(id => id !== item.id));
-          } else {
-            setSelectedAnswers([...selectedAnswers, item.id]);
-          }
-        }}
-*/
-
       >
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         {showDetails && (
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 }}>
-            {isLargeScreen && (
-              <>
-                <Text style={{ fontWeight: 'bold' }}>
-                  {new Date(item.created_at).toLocaleDateString()} {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </Text>
-                <Text style={{ fontWeight: 'bold' }}>
-                  {chapter ? chapter.title + " - " : ''} {question ? question.question : ''}
-                </Text>
-              </>
-            )}
-            <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
-              {item.answer !== "audio pas encore converti en texte" && item.id !== editingAnswerId && (
-                <TouchableOpacity
-                  onPress={() => {
-                    setEditingAnswerId(item.id);
-                    setEditingText(item.answer);
-                  }}
-                >
-                  <Image source={edit} style={{ width: 28, height: 28, opacity: 0.5 }} />
-                </TouchableOpacity>
-              )}
-              {item.audio && (
-                <TouchableOpacity onPress={() => playRecording_fromAudioFile(item.link_storage)} style={styles.playButton}>
-                  <Image source={VolumeIcon} style={{ width: 35, height: 35, opacity: 0.5, marginHorizontal: 15 }} />
-                </TouchableOpacity>
-              )}
-              {item.image && (
-                <TouchableOpacity onPress={() => setFullscreenImage(`https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/photos/${item.link_storage}`)}>
-                  <Image source={eyeIcon} style={{ width: 35, height: 35, opacity: 0.5, marginHorizontal: 15 }} />
-                </TouchableOpacity>
-              )}
-              <TouchableOpacity onPress={() => { copyToClipboard(item.answer); integration(item.id); refreshAnswers(); }}>
-                <Image source={copyIcon} style={{ width: 27, height: 27, opacity: 0.5, marginHorizontal: 15 }} />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => handleDeleteAnswer(item.id)}>
-                <Image source={trash} style={{ width: 36, height: 36, opacity: 0.5, marginLeft: 15 }} />
-              </TouchableOpacity>
-            </View>
-          </View>
+          <CheckBox
+            value={isSelected}
+            onValueChange={(newValue) => {
+              if (newValue) {
+                setSelectedAnswerIds([...selectedAnswerIds, item.id]);
+              } else {
+                setSelectedAnswerIds(selectedAnswerIds.filter(id => id !== item.id));
+              }
+            }}
+          />
         )}
-        {item.id === editingAnswerId ? (
-          <>
-            <TextInput
-              style={globalStyles.input}
-              value={editingText}
-              onChangeText={setEditingText}
-              multiline={true}
-              numberOfLines={10}
-            />
-            <TouchableOpacity
-              onPress={() => handleUpdateAnswer(item.id, editingText)}
-              style={[globalStyles.globalButton_wide, { backgroundColor: '#b1b3b5', alignItems: 'center', paddingVertical: 10, marginRight: 5 },]}
-            >
-              <Text style={globalStyles.globalButtonText}>Enregistrer</Text>
-            </TouchableOpacity>
-          </>
-        ) : (
-          <>
-            {item.answer === "audio pas encore converti en texte" && (
-              <View style={styles.container}>
-                <ActivityIndicator size="large" color="#0b2d52" />
+          <View style={{ flex: 1 }}>
+            {showDetails && (
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 }}>
+                {isLargeScreen && (
+                  <>
+                    <Text style={{ fontWeight: 'bold' }}>
+                      {new Date(item.created_at).toLocaleDateString()} {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </Text>
+                    <Text style={{ fontWeight: 'bold' }}>
+                      {chapter ? chapter.title + " - " : ''} {question ? question.question : ''}
+                    </Text>
+                  </>
+                )}
+                <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+                  {item.answer !== "audio pas encore converti en texte" && item.id !== editingAnswerId && (
+                    <TouchableOpacity
+                      onPress={() => {
+                        setEditingAnswerId(item.id);
+                        setEditingText(item.answer);
+                      }}
+                    >
+                      <Image source={edit} style={{ width: 28, height: 28, opacity: 0.5 }} />
+                    </TouchableOpacity>
+                  )}
+                  {item.audio && (
+                    <TouchableOpacity onPress={() => playRecording_fromAudioFile(item.link_storage)} style={styles.playButton}>
+                      <Image source={VolumeIcon} style={{ width: 35, height: 35, opacity: 0.5, marginHorizontal: 15 }} />
+                    </TouchableOpacity>
+                  )}
+                  {item.image && (
+                    <TouchableOpacity onPress={() => setFullscreenImage(`https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/photos/${item.link_storage}`)}>
+                      <Image source={eyeIcon} style={{ width: 35, height: 35, opacity: 0.5, marginHorizontal: 15 }} />
+                    </TouchableOpacity>
+                  )}
+                  <TouchableOpacity onPress={() => { copyToClipboard(item.answer); integration(item.id); refreshAnswers(); }}>
+                    <Image source={copyIcon} style={{ width: 27, height: 27, opacity: 0.5, marginHorizontal: 15 }} />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => handleDeleteAnswer(item.id)}>
+                    <Image source={trash} style={{ width: 36, height: 36, opacity: 0.5, marginLeft: 15 }} />
+                  </TouchableOpacity>
+                </View>
               </View>
             )}
-            {item.answer !== "audio pas encore converti en texte" && (
-              <Text style={styles.answerText}>{item.answer}</Text>
+            {item.id === editingAnswerId ? (
+              <>
+                <TextInput
+                  style={globalStyles.input}
+                  value={editingText}
+                  onChangeText={setEditingText}
+                  multiline={true}
+                  numberOfLines={10}
+                />
+                <TouchableOpacity
+                  onPress={() => handleUpdateAnswer(item.id, editingText)}
+                  style={[globalStyles.globalButton_wide, { backgroundColor: '#b1b3b5', alignItems: 'center', paddingVertical: 10, marginRight: 5 },]}
+                >
+                  <Text style={globalStyles.globalButtonText}>Enregistrer</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <>
+                {item.answer === "audio pas encore converti en texte" && (
+                  <View style={styles.container}>
+                    <ActivityIndicator size="large" color="#0b2d52" />
+                  </View>
+                )}
+                {item.answer !== "audio pas encore converti en texte" && (
+                  <Text style={styles.answerText}>{item.answer}</Text>
+                )}
+              </>
             )}
-          </>
-        )}
-        <Text style={{ textAlign: 'right', marginTop: 10, fontStyle: 'italic' }}>
-          {userNames[item.id_user]}
-        </Text>
+            <Text style={{ textAlign: 'right', marginTop: 10, fontStyle: 'italic' }}>
+              {userNames[item.id_user]}
+            </Text>
+          </View>
+        </View>
       </TouchableOpacity>
     );
   }}
+
+
   keyExtractor={(item) => item.id.toString()}
   onDragEnd={({ data }) => handleAnswerMove(data)}
 
