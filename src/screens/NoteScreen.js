@@ -864,7 +864,7 @@ const filteredAnswers = answers.filter(answer => {
         key={item.id}
         style={[
           isConnectedToSelectedAnswer(item) && styles.connectedAnswerCard,
-          selectedAnswers.includes(item.id) && styles.selectedAnswerCard,
+          isSelected && styles.selectedAnswerCard, 
           styles.answerCard,
           //isActive && { opacity: 0.5 },
         ]}
