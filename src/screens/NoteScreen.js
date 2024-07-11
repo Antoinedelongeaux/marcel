@@ -868,7 +868,7 @@ const filteredAnswers = answers.filter(answer => {
     isActive && styles.selectedAnswerCard,
     isConnectedToSelectedAnswer(item) && styles.connectedAnswerCard,
   ]}
-  onLongPress={() => {
+  onPress={() => {
     setDraggedAnswer(item);
     drag();
   }}
@@ -1168,10 +1168,12 @@ const styles = StyleSheet.create({
   */
   selectedAnswerCard: {
     borderColor: 'blue', // Remplacez cette ligne par votre style personnalisé
+    backgroundColor: '#93d9e6',
     borderWidth: 2,
   },
   connectedAnswerCard: {
     borderColor: 'green', // Remplacez cette ligne par votre style personnalisé
+    backgroundColor: '#cce4e8',
     borderWidth: 2,
   },
   
