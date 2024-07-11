@@ -146,7 +146,7 @@ export async function get_Question_by_id(id_question, setQuestion) {
 export async function getMemories_Question_by_id(id_question,setQuestion, setAnswers, setOwner) {
   try {
 
-    console.log("id_question : ",id_question)
+
 
     // Préparer la requête de base
     let query = supabase
@@ -187,9 +187,7 @@ export async function getMemories_Question_by_id(id_question,setQuestion, setAns
 export async function getMemories_Questions(subject_active, setQuestions, tags, personal) {
   try {
 
-    console.log("Tags : ",tags)
-    console.log("Personnel : ", personal)
-    console.log("subject_active : ",subject_active)
+
     setQuestions([])
     const orCondition = tags.length > 0 ? tags.map(tag => `tags.cs.{"${tag}"}`).join(',') : 'true';
     
@@ -211,8 +209,7 @@ export async function getMemories_Questions(subject_active, setQuestions, tags, 
 
     // Exécuter la requête pour récupérer les questions
     const { data: questions, error: errorQuestions } = await query;
-    console.log("query : ",query)
-    console.log("questions : ", questions)
+
 
     if (errorQuestions) throw errorQuestions;
 
@@ -291,7 +288,7 @@ export async function getMemories_Answers() {
     if (error) {
       throw error;
     }
-    console.log("Answers : ",answers)
+
     return answers || []; // Retourner les réponses ou un tableau vide si aucune réponse n'est trouvée
   } catch (error) {
     console.error("Error fetching answers:", error.message);
@@ -636,7 +633,7 @@ export async function get_user_name(id_user) {
 export async function update_answer_text(id_answer,answer) {
   try {
 
-    console.log("id_answer,answer",id_answer,answer)
+
 
     const { data, error: errorUpdating } = await supabase
       .from('Memoires_answers')
@@ -675,7 +672,6 @@ export async function create_project(name,id_user) {
 
     const id = customUUIDv4(); 
 
-    console.log("id : ",id)
 
     const { data, error } = await supabase
       .from('Memoires_subjects') // Remplacez 'projects' par le nom de votre table
@@ -778,13 +774,15 @@ export async function get_project_contributors(id_subject) {
       return { ...contributor, name }; // Ajoute le nom au contributeur
     }));
 
-    console.log("contributorsWithName : ",contributorsWithName)
+
     return contributorsWithName;
-    
+
   } catch (error) {
     Alert.alert('Erreur lors de la recherche de contributeurs', error.message);
+    return null;  // Assure-toi de retourner null en cas d'erreur
   }
 }
+
 
 
 
@@ -863,7 +861,7 @@ export async function edit_chapter(id_chapter, titre) {
 
 export async function edit_question(id_question, question) {
   try {
-    console.log("Hello les jeunes !")
+
     const { data, error } = await supabase
       .from('Memoires_questions')
       .update({ question: question })
@@ -939,8 +937,7 @@ export async function connectAnswers(answers) {
   try {
     // Définir un nouveau UUID pour connection_new
     const connection_new = uuidv4();
-    console.log('answers to be connected : ',answers)
-    console.log('connection_new : ',connection_new)
+
     for (let answerId of answers) {
       // Chercher les answer.connection non vides dans la table answers
       const { data: answerData, error: fetchError } = await supabase

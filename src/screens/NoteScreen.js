@@ -141,30 +141,32 @@ const [delegationUserId, setDelegationUserId] = useState(null);
 useFetchActiveSubjectId(setSubjectActive, setSubject, navigation);
 
 useEffect(() => {
-  
+
   const fetchUsers = async () => {
     try {
-      const { data, error } = await get_project_contributors(subjectActive);
-      if (error || !data) {
-        console.error("Failed to fetch users: ", error);
+      const data = await get_project_contributors(subjectActive);
+      if (!data) {
+        console.error("Failed to fetch users: No data returned");
       } else {
-        console.log("users : ", data);
         setUsers(data);
-       
       }
     } catch (error) {
       console.error("Error fetching users: ", error);
     }
   };
 
-
-  console.log("subjectActive voilà : ", subjectActive);
   if (subjectActive) {
     fetchUsers();
   }
 }, [subjectActive]);
 
 
+useEffect(() => {
+if(session.user){
+    setDelegationUserId({ user: { id: session.user.id } });
+  };
+
+}, [session]);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -212,7 +214,7 @@ useEffect(() => {
 
   useEffect(() => {
     const fetchQuestionsAndChapters = async () => {
-      console.log('subjectActive voili : ',subjectActive)
+
       if (subjectActive != null) {
         await getMemories_Questions(subjectActive, setQuestions, tags, personal);
         await get_chapters(subjectActive, setChapters);
@@ -260,9 +262,7 @@ useEffect(() => {
       } else {
         newRank = 1; // Default value if there are no answers before or after
       }
-      console.log("answerBefore : ",answerBefore)
-      console.log("answerAfter : ",answerAfter)
-      console.log("newRank : ",newRank)
+
       await moveAnswer(movedAnswer.id, newRank);
       refreshAnswers();
     }
@@ -367,8 +367,8 @@ const filteredAnswers = answers.filter(answer => {
         return;
       }
     }
-    console.log("session 1 : ", session)
-    await submitMemories_Answer(note, null, session, !!audio, audio);
+
+    await submitMemories_Answer(note, null, delegationUserId, !!audio, audio);
     setNote('');
     setModalVisible(false);
     // Rafraîchir les notes
@@ -460,8 +460,8 @@ const filteredAnswers = answers.filter(answer => {
         return;
       }
     }
-    console.log("session 2 : ", session)
-    await submitMemories_Answer(transcribedText, question, session, isMedia, name,isImage, connectionID,async () => {
+
+    await submitMemories_Answer(transcribedText, question, delegationUserId, isMedia, name,isImage, connectionID,async () => {
       setAnswer('');
       setTimeout(async () => {
         await refreshAnswers();
@@ -483,9 +483,9 @@ const filteredAnswers = answers.filter(answer => {
   
         // Gérer les différences de plateforme
         if (result.output && result.output.length > 0) {
-          console.log("Using result.output");
+       
           const file = result.output[0];
-          console.log("Selected file: ", file);
+      
           uri = URL.createObjectURL(file);
           name = file.name;
           mimeType = file.type;
@@ -554,7 +554,7 @@ const filteredAnswers = answers.filter(answer => {
   
       if (!result.canceled) {
         let uri, name, mimeType;
-        console.log("Coucou !");
+
         if (result.output && result.output.length > 0) {
           const file = result.output[0];
           uri = URL.createObjectURL(file);
@@ -661,14 +661,14 @@ const filteredAnswers = answers.filter(answer => {
   
     <Text>S'exprimer au nom de :</Text>
         <Picker
-          selectedValue={delegationUserId}
+          selectedValue={delegationUserId.user.id}
           onValueChange={(itemValue) => {
             setDelegationUserId(itemValue);
-            setDelegationUserId({ ...delegation, user: { id: itemValue } });
+            setDelegationUserId({ user: { id: itemValue } });
           }}
         >
           {users.map((user) => (
-            <Picker.Item key={user.id} label={user.name} value={user.id} />
+            <Picker.Item key={user.id_user} label={user.name} value={user.id_user} />
           ))}
         </Picker>
 
