@@ -865,7 +865,7 @@ const filteredAnswers = answers.filter(answer => {
   style={[
     styles.answerCard,
     selectedAnswerIds.includes(item.id) && styles.selectedAnswerCard,
-    isActive && styles.selectedAnswerCard,
+    //isActive && styles.selectedAnswerCard,
     isConnectedToSelectedAnswer(item) && styles.connectedAnswerCard,
   ]}
   onPress={() => {
@@ -1047,7 +1047,7 @@ const styles = StyleSheet.create({
     position: 'absolute', // Ajoutez cette ligne pour le placer au-dessus
   },
   answerCard: {
-    //backgroundColor: 'white',
+    backgroundColor: 'white',
     borderRadius: 10,
     padding: 10,
     marginBottom: 10,
@@ -1167,14 +1167,16 @@ const styles = StyleSheet.create({
   },
   */
   selectedAnswerCard: {
-    borderColor: 'blue', // Remplacez cette ligne par votre style personnalisé
+    //borderColor: 'blue', // Remplacez cette ligne par votre style personnalisé
     backgroundColor: '#93d9e6',
-    borderWidth: 2,
+    //borderWidth: 2,
+    zIndex: 2,
   },
   connectedAnswerCard: {
-    borderColor: 'green', // Remplacez cette ligne par votre style personnalisé
+    //borderColor: 'green', // Remplacez cette ligne par votre style personnalisé
     backgroundColor: '#cce4e8',
-    borderWidth: 2,
+    //borderWidth: 2,
+    zIndex: 2,
   },
   
 });
