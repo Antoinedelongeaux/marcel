@@ -189,8 +189,8 @@ if(session.user){
   const refreshAnswers = async () => {
   
     const answers = await getMemories_Answers();
-    //const sortedAnswers = answers.sort((a, b) => a.rank - b.rank);
-        setAnswers(answers);
+    const sortedAnswers = answers.sort((a, b) => a.rank - b.rank);
+        setAnswers(sortedAnswers);
       setIsLoading(false);
   };
 
