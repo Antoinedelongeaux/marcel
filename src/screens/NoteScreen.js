@@ -863,10 +863,10 @@ const filteredAnswers = answers.filter(answer => {
       <TouchableOpacity
         key={item.id}
         style={[
-          styles.answerCard,
           isConnectedToSelectedAnswer(item) && styles.connectedAnswerCard,
           selectedAnswers.includes(item.id) && styles.selectedAnswerCard,
-          isActive && { opacity: 0.5 },
+          styles.answerCard,
+          //isActive && { opacity: 0.5 },
         ]}
         onLongPress={() => {
           setDraggedAnswer(item);
