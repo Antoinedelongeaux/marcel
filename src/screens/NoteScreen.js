@@ -31,6 +31,7 @@ import {
   connectAnswers,
   disconnectAnswers,
   moveAnswer,
+  get_project_contributors,
 } from '../components/data_handling';
 
 import { useFocusEffect } from '@react-navigation/native';
@@ -134,11 +135,36 @@ const [PleaseWait, setPleaseWait] = useState(false);
 const [draggedAnswer, setDraggedAnswer] = useState(null);
 const [dragOverAnswer, setDragOverAnswer] = useState(null);
 const [voirTout,setVoirTout]=useState(false);
+const [users, setUsers] = useState([]);
+const [delegationUserId, setDelegationUserId] = useState(null);
 
-  useFetchActiveSubjectId(setSubjectActive, setSubject, navigation);
-  const closeFullscreenImage = () => {
-    setFullscreenImage(null);
+useFetchActiveSubjectId(setSubjectActive, setSubject, navigation);
+
+useEffect(() => {
+  
+  const fetchUsers = async () => {
+    try {
+      const { data, error } = await get_project_contributors(subjectActive);
+      if (error || !data) {
+        console.error("Failed to fetch users: ", error);
+      } else {
+        console.log("users : ", data);
+        setUsers(data);
+       
+      }
+    } catch (error) {
+      console.error("Error fetching users: ", error);
+    }
   };
+
+
+  console.log("subjectActive voilà : ", subjectActive);
+  if (subjectActive) {
+    fetchUsers();
+  }
+}, [subjectActive]);
+
+
 
   useFocusEffect(
     React.useCallback(() => {
@@ -186,6 +212,7 @@ const [voirTout,setVoirTout]=useState(false);
 
   useEffect(() => {
     const fetchQuestionsAndChapters = async () => {
+      console.log('subjectActive voili : ',subjectActive)
       if (subjectActive != null) {
         await getMemories_Questions(subjectActive, setQuestions, tags, personal);
         await get_chapters(subjectActive, setChapters);
@@ -632,6 +659,20 @@ const filteredAnswers = answers.filter(answer => {
 
     <View style={{ flexDirection: 'column', justifyContent: 'space-between', marginBottom: 10 }}>
   
+    <Text>S'exprimer au nom de :</Text>
+        <Picker
+          selectedValue={delegationUserId}
+          onValueChange={(itemValue) => {
+            setDelegationUserId(itemValue);
+            setDelegationUserId({ ...delegation, user: { id: itemValue } });
+          }}
+        >
+          {users.map((user) => (
+            <Picker.Item key={user.id} label={user.name} value={user.id} />
+          ))}
+        </Picker>
+
+
     <TouchableOpacity
       style={[
         globalStyles.globalButton_wide,

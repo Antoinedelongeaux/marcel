@@ -778,6 +778,7 @@ export async function get_project_contributors(id_subject) {
       return { ...contributor, name }; // Ajoute le nom au contributeur
     }));
 
+    console.log("contributorsWithName : ",contributorsWithName)
     return contributorsWithName;
     
   } catch (error) {
