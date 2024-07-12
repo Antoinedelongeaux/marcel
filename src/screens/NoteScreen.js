@@ -46,7 +46,8 @@ import noteIcon from '../../assets/icons/notes.png';
 import filterIcon from '../../assets/icons/filtre.png';
 import Modal from 'react-native-modal'; // Ajoutez cette ligne pour importer le composant Modal
 import { createAudioChunk, startRecording, stopRecording, uploadAudioToSupabase, delete_audio,playRecording_fromAudioFile, uploadImageToSupabase } from '../components/sound_handling'; // Ajoutez cette ligne
-import { transcribeAudio } from '../components/call_to_google';
+import { transcribeAudio } from '../components/call_to_whisper';
+//import { transcribeAudio } from '../components/call_to_google';
 import MicroIcon from '../../assets/icons/microphone-lines-solid.svg';
 import VolumeIcon from '../../assets/icons/volume_up_black_24dp.svg';
 import trash from '../../assets/icons/baseline_delete_outline_black_24dp.png';

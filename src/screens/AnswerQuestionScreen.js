@@ -4,7 +4,8 @@ import { Image, View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView,
 import { globalStyles } from '../../global';
 import { getMemories_Question_by_id, getMemories_Question, submitMemories_Answer, deleteMemories_Answer, get_user_name, update_answer_text } from '../components/data_handling'; // Assurez-vous d'implémenter deleteMemories_Answer
 import { createAudioChunk,record_answer, playRecording_fromAudioFile, delete_audio, startRecording, stopRecording, uploadAudioToSupabase, uploadImageToSupabase } from '../components/sound_handling';
-import { transcribeAudio } from '../components/call_to_google';
+import { transcribeAudio } from '../components/call_to_whisper';
+//import { transcribeAudio } from '../components/call_to_google';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { saveActiveSubjectId, getActiveSubjectId } from '../components/local_storage';
