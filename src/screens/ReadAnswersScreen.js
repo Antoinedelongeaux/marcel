@@ -57,7 +57,9 @@ import note from '../../assets/icons/notes.png';
 import NoteScreen from './NoteScreen';
 import plusIcon from '../../assets/icons/plus.png';
 import minusIcon from '../../assets/icons/minus.png';
-
+import doubleArrowIcon from '../../assets/icons/arrows_1.png';
+import leftArrowIcon from '../../assets/icons/left-arrow.png';
+import rightArrowIcon from '../../assets/icons/right-arrow.png';
 
 
 const windowWidth = Dimensions.get('window').width;
@@ -224,12 +226,19 @@ useEffect(() => {
 
 
 useEffect(() => {
+  
   if (!isLeftPanelVisible){
+    if(isLargeScreen){
     setRightPanelWidth(windowWidth - middlePanelWidth-10);
+  }else{
+    setRightPanelWidth(windowWidth)
+
+  }
   }
   if (isLeftPanelVisible){
     setRightPanelWidth(windowWidth - middlePanelWidth-550-10);
   }
+  console.log("console.log(RightPanelWidth) : ", rightPanelWidth)
 }, [middlePanelWidth,isLeftPanelVisible ]);
 
 
@@ -515,7 +524,17 @@ const copyToClipboard = (text) => {
     {openChapters[chapter.id] && (
       <>
         {questions.filter((q) => q.id_chapitre === chapter.id).map((question) => (
-          <TouchableOpacity key={question.id} style={styles.questionCard} onPress={() => toggleAnswersDisplay(question.id)}>
+          <TouchableOpacity
+          key={question.id}
+          style={[
+            styles.questionCard,
+            question.id === selectedQuestionId && { backgroundColor: 'lightblue' }
+          ]}
+          onPress={() => {
+            setSelectedQuestionId(question.id);
+            toggleAnswersDisplay(question.id);
+          }}
+        >
             <Text style={styles.questionText}>{question.question}</Text>
             {iconsVisible && (
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
@@ -600,11 +619,11 @@ const copyToClipboard = (text) => {
   )}
   {isLargeScreen && userStatus==="Editeur" && (
 <View
-  style={[styles.resizer, { right: rightPanelWidth -21 }]}
+  style={[styles.resizer, { right: rightPanelWidth -60 }]}
   onMouseDown={handleMouseDown}
 >
 
-<Text style={[styles.resizerText, { userSelect: 'none' }]}>{'< >'}</Text>
+<Image source={doubleArrowIcon} style={{ width: 120, height: 120, opacity: 0.5 }} />
 
 </View>
   )}
@@ -623,7 +642,33 @@ const copyToClipboard = (text) => {
     }
   ]}
 >
-  <Text style={styles.toggleLineText}>{isLeftPanelVisible ? '<' : '>'}</Text>
+{isLeftPanelVisible ?  
+  <Image 
+    source={leftArrowIcon} 
+    style={{ 
+      width: 60, 
+      height: 60, 
+      opacity: 0.5, 
+      transform: [{ translateX: -30 }] 
+    }} 
+  />
+  : 
+  <Image 
+    source={rightArrowIcon} 
+    style={{ 
+      width: 60, 
+      height: 60, 
+      opacity: 0.5, 
+      transform: [
+        //{ rotate: '180deg' }, 
+        { translateX: 30 }
+      ] 
+    }} 
+  />
+}
+
+
+
 </TouchableOpacity>
 
    
@@ -1181,7 +1226,9 @@ const styles = StyleSheet.create({
 
   toggleLine: {
     width: 10,
-    backgroundColor: '#ccc',
+    //backgroundColor: '#ccc',
+    backgroundColor: '#b1b3b5',
+    
     justifyContent: 'center',
     alignItems: 'center',
     cursor: 'pointer',
