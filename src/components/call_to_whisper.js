@@ -1,9 +1,7 @@
-import { Platform } from 'react-native';
-import * as FileSystem from 'expo-file-system';
 import axios from 'axios';
 import AudioBufferToWav from 'audiobuffer-to-wav';
 
-const BASE_URL = 'https://91.108.112.18:5001';  // Adresse de votre serveur
+const BASE_URL = 'http://91.108.112.18:5001';  // Adresse de votre serveur
 const MAX_PAYLOAD_SIZE = 10485760; // 10 MB
 const SEGMENT_DURATION = 30; // Segment duration in seconds
 
@@ -83,6 +81,10 @@ const transcribeSegment = async (audioFile) => {
 
 export const transcribeAudio = async (audioFileName) => {
   try {
+    // Appel au point de terminaison /test
+    //const testResponse = await axios.get(`${BASE_URL}/test`);
+    //console.log('Response from /test:', testResponse.data);
+
     const publicURL = `https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/audio/${audioFileName}`;
     console.log("Fetching audio file from:", publicURL);
 
