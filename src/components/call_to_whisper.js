@@ -1,17 +1,19 @@
 import axios from 'axios';
 import AudioBufferToWav from 'audiobuffer-to-wav';
 
-const BASE_URL = 'http://91.108.112.18:5001';  // Adresse de votre serveur
+const BASE_URL = 'https://91.108.112.18:5000';  // Adresse de votre serveur
 const MAX_PAYLOAD_SIZE = 10485760; // 10 MB
 const SEGMENT_DURATION = 30; // Segment duration in seconds
 
 const convertAudioBufferToWavBase64 = async (audioBuffer) => {
+  console.log('Converting audio buffer to WAV Base64');
   const wavBuffer = AudioBufferToWav(audioBuffer);
   const blob = new Blob([wavBuffer], { type: 'audio/wav' });
   return convertBlobToBase64(blob);
 };
 
 const convertBlobToBase64 = (blob) => {
+  console.log('Converting blob to Base64');
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onloadend = () => resolve(reader.result.split(',')[1]);
@@ -21,6 +23,7 @@ const convertBlobToBase64 = (blob) => {
 };
 
 const fetchAudioBuffer = async (url) => {
+  console.log('Fetching audio buffer from URL:', url);
   const response = await fetch(url);
   const arrayBuffer = await response.arrayBuffer();
   const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -28,6 +31,7 @@ const fetchAudioBuffer = async (url) => {
 };
 
 const getAudioMetadata = (audioBuffer) => {
+  console.log('Getting audio metadata');
   const sampleRate = audioBuffer.sampleRate;
   const numberOfChannels = audioBuffer.numberOfChannels;
   const duration = audioBuffer.duration;
@@ -40,10 +44,12 @@ const getAudioMetadata = (audioBuffer) => {
 };
 
 const calculateBase64SizeInBytes = (base64String) => {
+  console.log('Calculating Base64 size in bytes');
   return (base64String.length * (3 / 4)) - (base64String.indexOf('=') > 0 ? (base64String.length - base64String.indexOf('=')) : 0);
 };
 
 const splitAudioBuffer = (audioBuffer, segmentDuration) => {
+  console.log('Splitting audio buffer into segments');
   const segmentLength = segmentDuration * audioBuffer.sampleRate;
   const segments = [];
   for (let start = 0; start < audioBuffer.length; start += segmentLength) {
@@ -63,6 +69,7 @@ const splitAudioBuffer = (audioBuffer, segmentDuration) => {
 };
 
 const transcribeSegment = async (audioFile) => {
+  console.log('Transcribing audio segment');
   const formData = new FormData();
   formData.append('file', audioFile);
 
@@ -81,10 +88,7 @@ const transcribeSegment = async (audioFile) => {
 
 export const transcribeAudio = async (audioFileName) => {
   try {
-    // Appel au point de terminaison /test
-    //const testResponse = await axios.get(`${BASE_URL}/test`);
-    //console.log('Response from /test:', testResponse.data);
-
+    console.log('Transcribing audio:', audioFileName);
     const publicURL = `https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/audio/${audioFileName}`;
     console.log("Fetching audio file from:", publicURL);
 
