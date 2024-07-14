@@ -625,7 +625,9 @@ const filteredAnswers = answers.filter(answer => {
       }
     });
   }, [answers]);
-  
+  const closeFullscreenImage = () => {
+    setFullscreenImage(null);
+  };
 
   if (isLoading) {
     return (
@@ -954,7 +956,26 @@ const filteredAnswers = answers.filter(answer => {
                   </View>
                 )}
                 {item.answer !== "audio pas encore converti en texte" && (
+                  <>
+                  {item.image && (
+                    <>
+                    <TouchableOpacity onPress={() => setFullscreenImage(`https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/photos/${item.link_storage}`)}>
+            
+            
+                    <Image 
+                    source={{ uri: `https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/photos/${item.link_storage}` }} 
+                    style={{ width: '100%', height: 300, resizeMode: 'contain' }} 
+                  />
+                  <Text></Text>
+                  <Text style={{ justifyContent: 'center', textAlign: 'center' }}>{item.answer}</Text>
+                  
+                    </TouchableOpacity>
+                  </>
+                  )}
+                  {!item.image && (
                   <Text style={styles.answerText}>{item.answer}</Text>
+                )}
+                  </>
                 )}
               </>
             )}
