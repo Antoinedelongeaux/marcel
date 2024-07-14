@@ -1,7 +1,7 @@
 import axios from 'axios';
 import AudioBufferToWav from 'audiobuffer-to-wav';
 
-const BASE_URL = 'https://91.108.112.18:5000';  // Adresse de votre serveur
+const BASE_URL = 'https://srv495286.hstgr.cloud:5000';  // Adresse de votre serveur
 const MAX_PAYLOAD_SIZE = 10485760; // 10 MB
 const SEGMENT_DURATION = 30; // Segment duration in seconds
 
