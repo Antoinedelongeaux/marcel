@@ -1,15 +1,15 @@
-import React, { useState } from 'react'
-import { Button,TouchableOpacity, Text, Alert, StyleSheet, View, AppState, TextInput } from 'react-native'
-import { supabase } from '../lib/supabase'
-import { globalStyles } from '../../global'
+import React, { useState } from 'react';
+import { Button, TouchableOpacity, Text, Alert, StyleSheet, View, AppState, TextInput } from 'react-native';
+import { supabase } from '../lib/supabase';
+import { globalStyles } from '../../global';
 
 AppState.addEventListener('change', (state) => {
   if (state === 'active') {
-    supabase.auth.startAutoRefresh()
+    supabase.auth.startAutoRefresh();
   } else {
-    supabase.auth.stopAutoRefresh()
+    supabase.auth.stopAutoRefresh();
   }
-})
+});
 
 export default function Auth() {
   const [email, setEmail] = useState('');
@@ -19,80 +19,107 @@ export default function Auth() {
   const [lastName, setLastName] = useState('');
   const [loading, setLoading] = useState(false);
   const [isSigningUp, setIsSigningUp] = useState(false);
+  const [error, setError] = useState('');
+
+  const translateErrorMessage = (message) => {
+    if (message === 'User already registered') {
+      return 'Un utilisateur est déjà enregistré avec cette adresse email';
+    } else if (message === 'Invalid login credentials') {
+      return 'Erreur dans l\'email ou dans le mot de passe';
+    } else {
+      return message;
+    }
+  };
 
   const validateForm = () => {
     if (!email || !password || !confirmPassword || !firstName || !lastName) {
-      Alert.alert('Error', 'Please fill in all fields.');
+      setError('Veuillez remplir tous les champs.');
       return false;
     }
     if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match.');
+      setError('Les mots de passe ne correspondent pas.');
       return false;
     }
+    setError('');
     return true;
   };
 
   const signInWithEmail = async () => {
     setLoading(true);
+    setError('');
     const { error } = await supabase.auth.signInWithPassword({
       email: email,
       password: password,
     });
 
-    if (error) Alert.alert('Sign In Error', error.message);
+    if (error) {
+      setError(translateErrorMessage(error.message));
+    }
     setLoading(false);
   };
-  async function signUpWithEmail() {
+
+  const signUpWithEmail = async () => {
     if (!validateForm()) return;
     setLoading(true);
+    setError('');
 
     const { user, error: signUpError } = await supabase.auth.signUp({
       email: email,
       password: password,
     });
 
-
     if (signUpError) {
-      Alert.alert('Sign Up Error', signUpError.message);
+      setError(translateErrorMessage(signUpError.message));
       setLoading(false);
       return;
     }
+
     const { user_bis, error: signInError } = await supabase.auth.signInWithPassword({
       email: email,
       password: password,
     });
     if (signInError) {
-      Alert.alert('Sign In Error', signUpError.message);
+      setError(translateErrorMessage(signInError.message));
       setLoading(false);
       return;
     }
-    // Assuming the user is created successfully, now let's save their profile information
 
-
-
-    const full_name = `${firstName} ${lastName}`
-
-
-
+    const full_name = `${firstName} ${lastName}`;
 
     const { error: userError } = await supabase.from('users').insert([{ last_name: lastName, first_name: firstName }]);
     const { error: profileError } = await supabase.from('profiles').upsert([{ username: firstName, full_name: full_name }]);
 
     if (profileError || userError) {
-      console.log("Profile or User Insert Error", profileError?.message, userError?.message);
+      console.log("Erreur lors de l'insertion du profil ou de l'utilisateur", profileError?.message, userError?.message);
+      setError('Erreur lors de la création du profil. Veuillez réessayer.');
     } else {
-      Alert.alert('Merci', 'Votre compte à bien été créé. Bienvenue sur dans la communauté Séléné !');
+      Alert.alert('Merci', 'Votre compte a bien été créé. Bienvenue dans la communauté Séléné !');
     }
 
-
-
     setLoading(false);
-  }
+  };
+
+  const resetPassword = async () => {
+    if (!email) {
+      setError('Veuillez entrer votre adresse email.');
+      return;
+    }
+    setLoading(true);
+    setError('');
+    const { error } = await supabase.auth.resetPasswordForEmail(email);
+
+    if (error) {
+      setError(translateErrorMessage(error.message));
+    } else {
+      Alert.alert('Réinitialisation de mot de passe', 'Un email de réinitialisation de mot de passe a été envoyé.');
+    }
+    setLoading(false);
+  };
 
   return (
     <View style={globalStyles.container_center}>
       <View style={globalStyles.form}>
-        {/* Les champs Email et Mot de passe sont communs aux deux formulaires */}
+        {error ? <Text style={styles.errorText}>{error}</Text> : null}
         <TextInput
           onChangeText={setEmail}
           value={email}
@@ -110,7 +137,6 @@ export default function Auth() {
           autoCapitalize="none"
         />
 
-        {/* Afficher les champs supplémentaires pour l'inscription */}
         {isSigningUp && (
           <>
             <TextInput
@@ -138,26 +164,37 @@ export default function Auth() {
           </>
         )}
 
-        {/* Boutons pour basculer entre les modes et soumettre le formulaire */}
-        <View >
-  {isSigningUp ? (
-    <TouchableOpacity onPress={signUpWithEmail} disabled={loading} style={globalStyles.globalButton_wide}>
-      <Text style={globalStyles.globalButtonText}>Créer un compte</Text>
-    </TouchableOpacity>
-  ) : (
-    <TouchableOpacity onPress={signInWithEmail} disabled={loading} style={globalStyles.globalButton_wide}>
-      <Text style={globalStyles.globalButtonText}>Se connecter</Text>
-    </TouchableOpacity>
-  )}
-</View>
-<View >
-  <TouchableOpacity onPress={() => setIsSigningUp(!isSigningUp)} style={globalStyles.globalButton_wide}>
-    <Text style={globalStyles.globalButtonText}>
-      {isSigningUp ? "Vous avez déjà un compte ? Connectez-vous " : "Vous n'avez pas encore de compte ? Inscrivez-vous"}
-    </Text>
-  </TouchableOpacity>
-</View>
+        <View>
+          {isSigningUp ? (
+            <TouchableOpacity onPress={signUpWithEmail} disabled={loading} style={globalStyles.globalButton_wide}>
+              <Text style={globalStyles.globalButtonText}>Créer un compte</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity onPress={signInWithEmail} disabled={loading} style={globalStyles.globalButton_wide}>
+              <Text style={globalStyles.globalButtonText}>Se connecter</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+        <View>
+          <TouchableOpacity onPress={() => setIsSigningUp(!isSigningUp)} style={globalStyles.globalButton_wide}>
+            <Text style={globalStyles.globalButtonText}>
+              {isSigningUp ? "Vous avez déjà un compte ? Connectez-vous" : "Vous n'avez pas encore de compte ? Inscrivez-vous"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+        {!isSigningUp && (
+          <TouchableOpacity onPress={resetPassword} style={globalStyles.globalButton_wide}>
+            <Text style={globalStyles.globalButtonText}>Mot de passe oublié ?</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  errorText: {
+    color: 'red',
+    marginBottom: 10,
+  },
+});
