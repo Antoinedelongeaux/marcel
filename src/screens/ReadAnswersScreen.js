@@ -416,6 +416,17 @@ const copyToClipboard = (text) => {
     setIsSaving(false);
   };
   
+  const handleInsertLink = (answerId) => {
+    const quillInstance = editor.current.getEditor();
+    const range = quillInstance.getSelection();
+    if (range) {
+      quillInstance.clipboard.dangerouslyPasteHTML(
+        range.index,
+        `<a href="javascript:void(0)" onclick="selectAnswer(${answerId})">Lien vers réponse ${answerId}</a>`
+      );
+    }
+  };
+  
   
 
   useEffect(() => {
@@ -619,7 +630,7 @@ const copyToClipboard = (text) => {
   )}
   {isLargeScreen && userStatus==="Editeur" && (
 <View
-  style={[styles.resizer, { right: rightPanelWidth -60 }]}
+  style={[styles.resizer, { right: rightPanelWidth -30 }]}
   onMouseDown={handleMouseDown}
 >
 
@@ -630,46 +641,50 @@ const copyToClipboard = (text) => {
  
  
  <TouchableOpacity 
-  onPress={toggleLeftPanel} 
+  onPress={toggleLeftPanel}
   style={[
     styles.toggleLine, 
     { 
-      position: !isLargeScreen ? 'absolute' : 'relative', // Utilise position absolue uniquement pour les petits écrans
-      top: !isLargeScreen ? 0 : 'auto', // Utilise top 0 uniquement pour les petits écrans
-      bottom: !isLargeScreen ? 0 : 'auto', // Utilise bottom 0 uniquement pour les petits écrans
-      right: !isLargeScreen && isLeftPanelVisible ? 0 : 'auto', // Utilise right 0 uniquement pour les petits écrans et quand le panneau gauche est visible
-      left: !isLargeScreen && !isLeftPanelVisible ? 0 : 'auto' // Utilise left 0 uniquement pour les petits écrans et quand le panneau gauche n'est pas visible
+      position: !isLargeScreen ? 'absolute' : 'relative',
+      top: !isLargeScreen ? 0 : 'auto',
+      bottom: !isLargeScreen ? 0 : 'auto',
+      right: !isLargeScreen && isLeftPanelVisible ? 0 : 'auto',
+      left: !isLargeScreen && !isLeftPanelVisible ? 0 : 'auto'
     }
   ]}
 >
-{isLeftPanelVisible ?  
-  <Image 
-    source={leftArrowIcon} 
-    style={{ 
-      width: 60, 
-      height: 60, 
-      opacity: 0.5, 
-      transform: [{ translateX: -30 }] 
-    }} 
-  />
-  : 
-  <Image 
-    source={rightArrowIcon} 
-    style={{ 
-      width: 60, 
-      height: 60, 
-      opacity: 0.5, 
-      transform: [
-        //{ rotate: '180deg' }, 
-        { translateX: 30 }
-      ] 
-    }} 
-  />
-}
+  {isLeftPanelVisible ?  
+    <Image 
+      source={leftArrowIcon} 
+      style={[
+        styles.togglePanelButton,
+        { 
+          width: 60, 
+          height: 60, 
+          opacity: 0.5, 
+          transform: [{ translateX: -30 }],
+          backgroundColor: 'transparent'  
 
-
-
+        }
+      ]}
+    />
+    : 
+    <Image 
+      source={rightArrowIcon} 
+      style={[
+        styles.togglePanelButton,
+        { 
+          width: 60, 
+          height: 60, 
+          opacity: 0.5, 
+          transform: [{ translateX: 30 }],
+          backgroundColor: 'transparent'  
+        }
+      ]}
+    />
+  }
 </TouchableOpacity>
+
 
    
   {isLargeScreen && userStatus==="Editeur" && (
@@ -1170,27 +1185,30 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   togglePanelButton: {
-    width: 30,
-    backgroundColor: '#ccc',
-    justifyContent: 'center',
+    zIndex: 1000,
     alignItems: 'center',
-    cursor: 'pointer',
+    justifyContent: 'center',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    backgroundColor: 'transparent', // Définir le fond comme transparent
   },
+
   togglePanelButtonText: {
     fontSize: 18,
     fontWeight: 'bold',
   },
   resizer: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    //width: 10,
-    cursor: 'col-resize',
+    position: 'fixed',
+    right: 0,
+    width: 60,
+    top: '50%',
     backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 1,
+    display: 'flex',
   },
+
   resizerText: {
     fontWeight: 'bold',
     color: '#000', // Noir pour le contraste
@@ -1198,9 +1216,7 @@ const styles = StyleSheet.create({
 
   
   togglePanelButton: {
-    position: 'absolute',
-    top: 20,
-    //left: isLeftPanelVisible ? 200 : 0, // Adjust based on the sidebar width
+    position: 'fixed',
     zIndex: 1000,
     backgroundColor: '#007BFF',
     borderRadius: 25,
@@ -1212,7 +1228,11 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     alignItems: 'center',
     justifyContent: 'center',
+    display: 'flex',
+    top: '50%',
+    transform: 'translateY(-50%)',
   },
+  
   togglePanelButtonText: {
     color: '#fff',
     fontSize: 18,

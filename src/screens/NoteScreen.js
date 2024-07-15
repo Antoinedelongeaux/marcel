@@ -185,7 +185,22 @@ if(session.user){
   );
   
   
- 
+  const selectAnswer = (answerId) => {
+    const answer = answers.find((a) => a.id === answerId);
+    if (answer) {
+      setSelectedAnswers([answer.id]);
+      setEditingAnswerId(answer.id);
+      setEditingText(answer.answer);
+      Alert.alert('Réponse sélectionnée', 'Vous avez sélectionné une réponse spécifique.');
+    }
+  };
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      window.selectAnswer = selectAnswer;
+    }
+  }, [answers]);
+  
+  
 
   const refreshAnswers = async () => {
   
@@ -240,7 +255,17 @@ if(session.user){
       setSelectedChapter(selectedQuestionObj.id_chapitre.toString());
     }
   };
-
+  const handleInsertLink = (answerId) => {
+    const quillInstance = editor.current.getEditor();
+    const range = quillInstance.getSelection();
+    if (range) {
+      quillInstance.clipboard.dangerouslyPasteHTML(
+        range.index,
+        `<a href="javascript:void(0)" onclick="selectAnswer(${answerId})">Lien vers réponse ${answerId}</a>`
+      );
+    }
+  };
+  
 
   const handleAnswerMove = async (data) => {
     console.log("Drag end initiated with data:", data);
@@ -654,6 +679,12 @@ const filteredAnswers = answers.filter(answer => {
       <TouchableOpacity onPress={() => setModalVisible(true)} style={globalStyles.globalButton_wide}>
       <Text style={globalStyles.globalButtonText}>Ajouter une note</Text>
     </TouchableOpacity>
+    <TouchableOpacity
+  onPress={() => handleInsertLink(selectedQuestionId)}
+  style={styles.insertLinkButton}
+>
+  <Text style={styles.insertLinkButtonText}>Insérer le lien de sélection</Text>
+</TouchableOpacity>
    
     <Modal isVisible={isModalVisible}>
   <View style={styles.modalContainer}>
@@ -984,6 +1015,7 @@ const filteredAnswers = answers.filter(answer => {
             </Text>
           </View>
         </View>
+        
       </TouchableOpacity>
     );
   }}
