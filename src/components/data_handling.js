@@ -921,7 +921,7 @@ export async function getUserStatus(id_user,id_subject) {
     .eq('id_user', id_user)
     .single(); 
   if (fetchError) throw fetchError;
-  return status.authorized
+  return status
     }catch (errorUpdating ) {
     Alert.alert('Erreur lors de la prise en compte de la copie : ', errorUpdating.message);
   } 
