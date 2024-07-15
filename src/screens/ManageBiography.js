@@ -24,6 +24,8 @@ import edit from '../../assets/icons/pen-to-square-regular.svg';
 import Svg, { Path } from 'react-native-svg';
 import BookIcon from '../../assets/icons/book.svg';
 import note from '../../assets/icons/notes.png';
+import { Picker } from '@react-native-picker/picker';
+
 
 
 
@@ -47,6 +49,8 @@ export default function ProfileScreen({ route }) {
     const [newName, setNewName] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [contributors, setContributors] = useState([]);
+    const [contributorStates, setContributorStates] = useState({});
+
     const [showContributors, setShowContributors] = useState(false);
     const [showChangeProject, setShowChangeProject] = useState(false);
     const [showModal, setShowModal] = useState(false);
@@ -55,6 +59,23 @@ export default function ProfileScreen({ route }) {
     const [joinMessage, setJoinMessage] = useState("");
     const [selectedSubject, setSelectedSubject] = useState(null);
     const [isHovered, setIsHovered] = useState(false);
+
+    const [isLargeScreen, setIsLargeScreen] = useState(false);
+
+useEffect(() => {
+    const updateLayout = () => {
+        setIsLargeScreen(window.innerWidth > 768); // Exemple de seuil pour grand écran
+    };
+
+    window.addEventListener('resize', updateLayout);
+    updateLayout(); // Appeler une fois pour définir l'état initial
+
+    return () => {
+        window.removeEventListener('resize', updateLayout);
+    };
+}, []);
+
+
 
 
 
@@ -143,52 +164,48 @@ export default function ProfileScreen({ route }) {
     const fetchContributors = async () => {
         if (subject_active) {
             try {
-                console.log("subject_active_bis")
-                console.log(subject_active)
                 const result = await get_project_contributors(subject_active.id);
                 if (result.error) {
                     throw result.error;
                 }
-                console.log("result :", result)
+                const initialStates = result.reduce((acc, contributor) => {
+                    acc[contributor.id_user] = {
+                        access: contributor.access === 'Oui',
+                        notes: contributor.notes || 'Pas d\'accès',
+                        chapters: contributor.chapters || 'Pas d\'accès',
+                    };
+                    return acc;
+                }, {});
                 setContributors(result);
+                setContributorStates(initialStates);
             } catch (error) {
                 console.error("Error fetching project contributors:", error);
             }
         }
     };
+    
 
 
     const toggleAuthorization = async (contributor) => {
-        let newAuthorization;
-        switch (contributor.authorized) {
-            case 'Contributeur':
-                newAuthorization = 'Editeur';
-                break;
-            case 'Oui':
-                    newAuthorization = 'Contributeur';
-                    break;
-            case 'Editeur':
-                    newAuthorization = 'Non';
-                    break;
-            case 'Non':
-                newAuthorization = 'En attente';
-                break;
-            case 'En attente':
-                newAuthorization = 'Contributeur';
-                break;
-            default:
-                newAuthorization = 'En attente'; // Valeur par défaut si aucun cas n'est correspondant
-        }
-
+        const state = contributorStates[contributor.id_user];
         try {
-            await validate_project_contributors(subject_active.id, contributor.id_user, newAuthorization);
-            // Après la validation, rafraîchir la liste des contributeurs pour afficher la mise à jour
+            console.log("Accès doit être un boolean : ",state.access)
+            await validate_project_contributors(
+                subject_active.id,
+                contributor.id_user,
+                state.access,  // Utilise la valeur booléenne
+                state.notes,
+                state.chapters
+            );
             await fetchContributors();
         } catch (error) {
             console.error("Erreur lors de la mise à jour de l'autorisation:", error);
             Alert.alert("Erreur", "Impossible de mettre à jour l'autorisation du contributeur.");
         }
     };
+    
+    
+    
 
     const handleCreateProject = () => {
         if (!newName.trim()) {
@@ -325,21 +342,80 @@ export default function ProfileScreen({ route }) {
                 </View>
             )}
             {showContributors && (
-                <View style={globalStyles.container_wide}>
-                    {contributors?.length > 0 ? (
-                        contributors.map((contributor) => (
-                            <View key={contributor.id} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 10 }}>
-                                <Text>{contributor.name} - Accès au projet : </Text>
+            <View style={globalStyles.container_wide}>
+                {contributors?.length > 0 ? (
+                    <>
+                        {isLargeScreen && (
+                            <View style={styles.contributorRow}>
+                                <Text style={styles.pickerLabel}>Utilisateur</Text>
+                                <Text style={styles.pickerLabel}>Accès</Text>
+                                <Text style={styles.pickerLabel}>Notes</Text>
+                                <Text style={styles.pickerLabel}>Chapitres</Text>
+                                <Text style={styles.pickerLabel}> </Text>
+                            </View>
+                        )}
+                        {contributors.map((contributor) => (
+                            <View key={contributor.id_user} style={isLargeScreen ? styles.contributorRow : styles.contributorColumn}>
+                                <Text>{contributor.name}</Text>
+                                {!isLargeScreen && <Text style={styles.pickerLabel}>Accès :</Text>}
+                                <Picker
+                                    selectedValue={contributorStates[contributor.id_user]?.access ? 'Oui' : 'Non'}
+                                    onValueChange={(itemValue) => setContributorStates(prevState => ({
+                                        ...prevState,
+                                        [contributor.id_user]: {
+                                            ...prevState[contributor.id_user],
+                                            access: itemValue === 'Oui'
+                                        }
+                                    }))}
+                                    style={{ height: 50, width: 150 }}
+                                >
+                                    <Picker.Item label="Oui" value="Oui" />
+                                    <Picker.Item label="Non" value="Non" />
+                                </Picker>
+                                {!isLargeScreen && <Text style={styles.pickerLabel}>Notes :</Text>}
+                                <Picker
+                                    selectedValue={contributorStates[contributor.id_user]?.notes}
+                                    onValueChange={(itemValue) => setContributorStates(prevState => ({
+                                        ...prevState,
+                                        [contributor.id_user]: {
+                                            ...prevState[contributor.id_user],
+                                            notes: itemValue
+                                        }
+                                    }))}
+                                    style={{ height: 50, width: 150 }}
+                                >
+                                    <Picker.Item label="Pas d'accès" value="Pas d'accès" />
+                                    <Picker.Item label="Lecteur" value="Lecteur" />
+                                    <Picker.Item label="Contributeur" value="Contributeur" />
+                                </Picker>
+                                {!isLargeScreen && <Text style={styles.pickerLabel}>Chapitres :</Text>}
+                                <Picker
+                                    selectedValue={contributorStates[contributor.id_user]?.chapters}
+                                    onValueChange={(itemValue) => setContributorStates(prevState => ({
+                                        ...prevState,
+                                        [contributor.id_user]: {
+                                            ...prevState[contributor.id_user],
+                                            chapters: itemValue
+                                        }
+                                    }))}
+                                    style={{ height: 50, width: 150 }}
+                                >
+                                    <Picker.Item label="Pas d'accès" value="Pas d'accès" />
+                                    <Picker.Item label="Lecteur" value="Lecteur" />
+                                    <Picker.Item label="Auditeur" value="Auditeur" />
+                                    <Picker.Item label="Editeur" value="Editeur" />
+                                </Picker>
                                 <TouchableOpacity onPress={() => toggleAuthorization(contributor)}>
-                                    <Text style={{ color: '#007BFF' }}>{contributor.authorized}</Text>
+                                    <Text style={{ color: '#007BFF' }}>Mettre à jour</Text>
                                 </TouchableOpacity>
                             </View>
-                        ))
-                    ) : (
-                        <Text>Aucun contributeur pour ce projet</Text>
-                    )}
-                </View>
-            )}
+                        ))}
+                    </>
+                ) : (
+                    <Text>Aucun contributeur pour ce projet</Text>
+                )}
+            </View>
+        )}
     
             {/* Deuxième partie */}
             {subjects_active.length > 0 && (
@@ -645,7 +721,21 @@ const styles = StyleSheet.create({
         fontSize: 14, // Taille de police légèrement augmentée pour améliorer la lisibilité
         fontWeight: 'bold',
     },
-    
+    contributorRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 10,
+    },
+    contributorColumn: {
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        padding: 10,
+    },
+    pickerLabel: {
+        width: 150,
+        marginBottom: 5,
+    }
 
 
 })

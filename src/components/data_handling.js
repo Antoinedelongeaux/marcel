@@ -786,13 +786,13 @@ export async function get_project_contributors(id_subject) {
 
 
 
-export async function validate_project_contributors(id_subject,id_user,validation) {
+export async function validate_project_contributors(id_subject,id_user,access,notes,chapters) {
   // Exemple de pseudo code, à adapter selon votre logique d'application
   try {
 
     const { data, error } = await supabase
       .from('Memoires_contributors') 
-      .update({ authorized: validation})
+      .update({ access: access,notes:notes,chapters:chapters})
       .eq('id_user', id_user)
       .eq('id_subject', id_subject); 
 
