@@ -628,7 +628,7 @@ const copyToClipboard = (text) => {
       </View>
     </View>
   )}
-  {isLargeScreen && (userStatus.chapers==="Editeur" ||userStatus.chapers==="Lecteur") && (
+  {isLargeScreen && (userStatus.chapters==="Editeur" ||userStatus.chapters==="Lecteur"||userStatus.chapters==="Auditeur") && (
 <View
   style={[styles.resizer, { right: rightPanelWidth -30 }]}
   onMouseDown={handleMouseDown}
@@ -687,7 +687,7 @@ const copyToClipboard = (text) => {
 
 
    
-  {isLargeScreen && (userStatus.chapers==="Editeur" ||userStatus.chapers==="Lecteur") && (
+  {isLargeScreen && (userStatus.chapters==="Editeur" ||userStatus.chapters==="Lecteur"||userStatus.chapters==="Auditeur") && (
    <View style={isLargeScreen ? styles.middlePanelContainer : styles.fullWidth}>
    
    <View style={{ ...styles.MiddlePanel, width: middlePanelWidth }}>
