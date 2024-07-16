@@ -61,6 +61,7 @@ import minusIcon from '../../assets/icons/minus.png';
 import doubleArrowIcon from '../../assets/icons/arrows_1.png';
 import leftArrowIcon from '../../assets/icons/left-arrow.png';
 import rightArrowIcon from '../../assets/icons/right-arrow.png';
+import ReactHtmlParser from 'react-html-parser'; 
 
 
 const windowWidth = Dimensions.get('window').width;
@@ -782,10 +783,10 @@ const copyToClipboard = (text) => {
   ) : (
     <>
       {Platform.OS === 'web' ? (
-        <div>{content}</div>
+        <div>{ReactHtmlParser(content)}</div>
       ) : (
         <View>
-          <Text>{content}</Text>
+          <Text>{ReactHtmlParser(content)}</Text>
         </View>
       )}
     </>
