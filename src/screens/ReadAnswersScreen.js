@@ -166,7 +166,7 @@ const [toggleIcon, setToggleIcon] = useState(plusIcon);
     const fetchUserStatus = async () => {
       const status = await getUserStatus(session.user.id, subjectActive);
       setUserStatus(status);
-      const name = await getUserName(session.user.id);
+      const name = await get_user_name(session.user.id);
       setUserName(name);
       if (status.chapters=="Pas d'accès") {
         setMiddlePanelWidth(0);
@@ -491,7 +491,7 @@ const copyToClipboard = (text) => {
       </View>
       <View style={[{ position: 'fixed', top: '0%', left: '5%' }]}>
 <Text>
-          Bonjour {userName},
+          {userName!=='' && ("Bonjour "+ userName +",")}
            {userStatus.chapters!=="Pas d'accès" &&("vous êtes actuellement "+ userStatus.chapters + " du texte")}
 
 </Text>
