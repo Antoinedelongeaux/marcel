@@ -472,13 +472,7 @@ const copyToClipboard = (text) => {
 >
   <Image source={settings} style={{ width: 120, height: 120, opacity: 0.5 }} />
 </TouchableOpacity>
-<View style={[{ position: 'fixed', top: '0%', right: '5%' }]}>
-<Text>
-          Bonjour {session.user.id},
-          vous êtes actuellement {userStatus.chapters} du texte et {userStatus.chapters} des notes
 
-</Text>
-</View>
 
         {/*
         <TouchableOpacity onPress={() => navigateToScreen('ProfileScreen')} style={styles.navButton}>
@@ -492,6 +486,13 @@ const copyToClipboard = (text) => {
 
 
       </View>
+      <View style={[{ position: 'fixed', top: '0%', right: '5%' }]}>
+<Text>
+          Bonjour {session.user.id},
+          vous êtes actuellement {userStatus.chapters} du texte et {userStatus.chapters} des notes
+
+</Text>
+</View>
 {/*}
       <TouchableOpacity onPress={refreshPage} style={{ position: 'absolute', bottom: 30, right: 40 }}>
         <Image source={refresh} style={{ width: 60, height: 60, opacity: 1 }} />
