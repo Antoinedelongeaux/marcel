@@ -489,10 +489,10 @@ const copyToClipboard = (text) => {
 
 
       </View>
-      <View style={[{ position: 'fixed', top: '0%', right: '5%' }]}>
+      <View style={[{ position: 'fixed', top: '0%', left: '5%' }]}>
 <Text>
-          {userName && ("Bonjour "+ userName+",")}
-           {userStatus.chapters!=="Pas d'accès" &&("vous êtes actuellement "+ userStatus.chapters + "du texte")}
+          {userName!='' && ("Bonjour "+ userName+",")}
+           {userStatus.chapters!=="Pas d'accès" &&("vous êtes actuellement "+ userStatus.chapters + " du texte")}
 
 </Text>
 </View>
