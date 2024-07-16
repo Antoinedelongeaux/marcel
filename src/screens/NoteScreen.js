@@ -684,12 +684,7 @@ const filteredAnswers = answers.filter(answer => {
       <TouchableOpacity onPress={() => setModalVisible(true)} style={globalStyles.globalButton_wide}>
       <Text style={globalStyles.globalButtonText}>Ajouter une note</Text>
     </TouchableOpacity>
-    <TouchableOpacity
-  onPress={() => handleInsertLink(selectedQuestionId)}
-  style={styles.insertLinkButton}
->
-  <Text style={styles.insertLinkButtonText}>Insérer le lien de sélection</Text>
-</TouchableOpacity>
+    
    
     <Modal isVisible={isModalVisible}>
   <View style={styles.modalContainer}>

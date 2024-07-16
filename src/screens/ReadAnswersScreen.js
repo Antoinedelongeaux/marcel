@@ -172,6 +172,10 @@ const [question_reponse, setQuestion_reponse] = useState('réponse');
       }
       const name = await get_user_name(session.user.id);
       setUserName(name);
+      
+      if (status.access==false) {
+        navigateToScreen('ManageBiographyScreen')
+      }
       if (status.chapters=="Pas d'accès") {
         setMiddlePanelWidth(0);
       }
@@ -325,7 +329,7 @@ const copyToClipboard = (text) => {
       const answers = await getMemories_Answers_to_Question(questionId);
       if (answers) {
         setActiveQuestionAnswers({ [questionId]: answers });
-        refreshNoteScreen(question); // Ajoutez cette ligne pour rafraîchir NoteScreen
+        //refreshNoteScreen(question); // Ajoutez cette ligne pour rafraîchir NoteScreen
       }
     }
   };
@@ -459,6 +463,8 @@ const copyToClipboard = (text) => {
       </View>
     );
   }
+
+
 
   return (
     <View style={globalStyles.container}>
@@ -717,64 +723,75 @@ const copyToClipboard = (text) => {
 
 
 
-     <View style={styles.container}>
-       {Platform.OS === 'web' ? (
-         <>
-           <div id="toolbar"></div>
-           <View style={styles.toolbarContainer}>
+<View style={styles.container}>
+  {userStatus.chapters === "Editeur" ? (
+    <>
+      {Platform.OS === 'web' ? (
+        <>
+          <div id="toolbar"></div>
+          <View style={styles.toolbarContainer}>
+            <ReactQuill
+              ref={editor}
+              theme="snow"
+              modules={quillModules}
+              readOnly={false}
+              bounds={'#toolbar'}
+              value={content}
+              onChange={() => {
+                if (!isSaving && !isInitialLoad) setIsContentModified(true);
+              }}
+              onChangeSelection={() => setIsInitialLoad(false)}
+            />
+          </View>
+        </>
+      ) : (
+        <>
+          <RichEditor
+            ref={editor}
+            style={styles.editor}
+            initialContentHTML={content}
+            onChange={() => {
+              if (!isSaving && !isInitialLoad) setIsContentModified(true);
+            }}
+            onSelectionChange={() => setIsInitialLoad(false)}
+          />
+          <RichToolbar
+            editor={editor}
+            style={styles.toolbar}
+            iconTint="#000000"
+            selectedIconTint="#209cee"
+            selectedButtonStyle={{ backgroundColor: 'transparent' }}
+            actions={[
+              'bold',
+              'italic',
+              'underline',
+              'unorderedList',
+              'orderedList',
+              'insertLink',
+              'insertImage',
+              'blockQuote',
+              'undo',
+              'redo',
+              'save',
+            ]}
+            onSave={handleSaving}
+          />
+        </>
+      )}
+    </>
+  ) : (
+    <>
+      {Platform.OS === 'web' ? (
+        <div>{content}</div>
+      ) : (
+        <View>
+          <Text>{content}</Text>
+        </View>
+      )}
+    </>
+  )}
+</View>
 
- 
-           <ReactQuill
-  ref={editor}
-  theme="snow"
-  modules={quillModules}
-  readOnly={userStatus.chapters !== "Editeur"}
-  bounds={'#toolbar'}
-  value={content}
-  onChange={() => {
-    if (!isSaving && !isInitialLoad) setIsContentModified(true);
-  }}
-  onChangeSelection={() => setIsInitialLoad(false)}
-/>
-
-           </View>
-         </>
-       ) : (
-         <>
-           <RichEditor
-  ref={editor}
-  style={styles.editor}
-  initialContentHTML={content}
-  onChange={() => {
-    if (!isSaving && !isInitialLoad) setIsContentModified(true);
-  }}
-  onSelectionChange={() => setIsInitialLoad(false)}
-/>
-
-           <RichToolbar
-             editor={editor}
-             style={styles.toolbar}
-             iconTint="#000000"
-             selectedIconTint="#209cee"
-             selectedButtonStyle={{ backgroundColor: 'transparent' }}
-             actions={[
-               'bold',
-               'italic',
-               'underline',
-               'unorderedList',
-               'orderedList',
-               'insertLink',
-               'insertImage',
-               'blockQuote',
-               'undo',
-               'redo',
-               'save',
-             ]}
-             onSave={handleSaving}
-           />
-         </>
-       )}
-     </View>
    </View>
  </View>
  
