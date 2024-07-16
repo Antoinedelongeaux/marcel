@@ -714,7 +714,9 @@ const copyToClipboard = (text) => {
    
    <View style={{ ...styles.MiddlePanel, width: middlePanelWidth }}>
    <Text style={globalStyles.title}>
-  {question && question.question ? question.question : 'Veuillez sélectionner un chapitre à éditer'}
+  
+  {question && question.question ? question.question : 'Veuillez sélectionner un chapitre'}
+  
   {isContentModified && (
     <TouchableOpacity style={{ marginLeft: 10 }} onPress={handleSaving}>
       <Image source={save} style={{ width: 20, height: 20, opacity: 0.5 }} />
@@ -782,13 +784,17 @@ const copyToClipboard = (text) => {
     </>
   ) : (
     <>
-      {Platform.OS === 'web' ? (
+    {question && question.question && (
+    <>
+    {Platform.OS === 'web' ? (
         <div>{ReactHtmlParser(content)}</div>
       ) : (
         <View>
           <Text>{ReactHtmlParser(content)}</Text>
         </View>
       )}
+    </>
+    )}
     </>
   )}
 </View>
