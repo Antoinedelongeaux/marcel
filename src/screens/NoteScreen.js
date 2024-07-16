@@ -113,6 +113,7 @@ function NoteScreen({ route }) {
   ]);
 
   const question = route.params?.question.id || '';
+  const question_reponse = route.params?.question_reponse || 'reponse';
   const [selectedQuestion, setSelectedQuestion] = useState(question);
   const [selectedChapter, setSelectedChapter] = useState('');
   const [showFilters, setShowFilters] = useState(false); 
@@ -140,6 +141,8 @@ const [dragOverAnswer, setDragOverAnswer] = useState(null);
 const [voirTout,setVoirTout]=useState(false);
 const [users, setUsers] = useState([]);
 const [delegationUserId, setDelegationUserId] = useState(null);
+const [questionReponseFilter, setQuestionReponseFilter] = useState('');  // Ajoutez cette ligne
+
 
 useFetchActiveSubjectId(setSubjectActive, setSubject, navigation);
 
@@ -360,7 +363,6 @@ const filteredAnswers = answers.filter(answer => {
   const beforeDate = dateBefore ? new Date(dateBefore) : null;
   const afterDate = dateAfter ? new Date(dateAfter) : null;
 
-
   const userName = userNames[answer.id_user];
 
   return (
@@ -373,9 +375,11 @@ const filteredAnswers = answers.filter(answer => {
     (selectedChapter === '' || 
      (selectedChapter === 'none' && answer.id_question === null) || 
      (questionIdsForSelectedChapter.length === 0 || questionIdsForSelectedChapter.includes(answer.id_question?.toString()))) &&
-    (!selectedUserName || (userName && userName.toLowerCase().includes(selectedUserName.toLowerCase())))
+    (!selectedUserName || (userName && userName.toLowerCase().includes(selectedUserName.toLowerCase()))) &&
+    (questionReponseFilter === '' || answer.question_reponse === questionReponseFilter)  // Ajoutez cette ligne
   );
 });
+
 
 
 
@@ -494,8 +498,9 @@ const filteredAnswers = answers.filter(answer => {
       setTimeout(async () => {
         await refreshAnswers();
       }, 1000);
-    }
-  
+      
+    },
+    question_reponse
   );
   };
 
@@ -881,6 +886,18 @@ const filteredAnswers = answers.filter(answer => {
         </View>
       )}
     </View>
+    <View style={styles.dropdownContainer}>
+  <Picker
+    selectedValue={questionReponseFilter}
+    onValueChange={(itemValue) => setQuestionReponseFilter(itemValue)}
+    style={styles.dropdown}
+  >
+    <Picker.Item label="Tous" value="" />
+    <Picker.Item label="Question" value="question" />
+    <Picker.Item label="Réponse" value="réponse" />
+  </Picker>
+</View>
+
   </View>
 )}
 

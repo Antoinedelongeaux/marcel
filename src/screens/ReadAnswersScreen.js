@@ -153,6 +153,7 @@ function ReadQuestionsScreen({ route }) {
   const [iconsVisible, setIconsVisible] = useState(false);
   const[userName,setUserName] = useState('');
 const [toggleIcon, setToggleIcon] = useState(plusIcon);
+const [question_reponse, setQuestion_reponse] = useState('réponse');
 
 
 
@@ -166,6 +167,9 @@ const [toggleIcon, setToggleIcon] = useState(plusIcon);
     const fetchUserStatus = async () => {
       const status = await getUserStatus(session.user.id, subjectActive);
       setUserStatus(status);
+      if(status.chapters=="Auditeur"){
+        setQuestion_reponse('question')
+      }
       const name = await get_user_name(session.user.id);
       setUserName(name);
       if (status.chapters=="Pas d'accès") {
@@ -781,7 +785,7 @@ const copyToClipboard = (text) => {
 <View style={[styles.rightPanel, { width: rightPanelWidth }]}>
 <Text style={globalStyles.title}>Notes</Text> 
 
-<NoteScreen route={{ params: { session, question } }} />
+<NoteScreen route={{ params: { session, question,question_reponse } }} />
 
 {/*
 <Text> </Text>

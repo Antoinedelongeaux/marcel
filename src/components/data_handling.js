@@ -318,8 +318,9 @@ export async function deleteMemories_Answer(answerId) {
 }
 
 
-export async function submitMemories_Answer(answer, question, session, audio, name, image, connectionId, resetAnswerAndFetchQuestion) {
+export async function submitMemories_Answer(answer, question, session, audio, name, image, connectionId, resetAnswerAndFetchQuestion,question_reponse) {
   try {
+    console.log("question_reponse : ",question_reponse)
     const id_subject = await getActiveSubjectId();
     let ID_question = null;
 
@@ -341,7 +342,7 @@ export async function submitMemories_Answer(answer, question, session, audio, na
     const { error } = await supabase
       .from('Memoires_answers')
       .insert([
-        { id_question: ID_question, id_user: session?.user?.id, id_subject: id_subject, answer: response, audio: audio, link_storage: name, image: image, connection: connectionId, rank: rank }
+        { id_question: ID_question, id_user: session?.user?.id, id_subject: id_subject, answer: response, audio: audio, link_storage: name, image: image, connection: connectionId, rank: rank,question_reponse:question_reponse }
       ]);
 
     if (error) throw error;
