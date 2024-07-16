@@ -165,7 +165,7 @@ const [toggleIcon, setToggleIcon] = useState(plusIcon);
       const status = await getUserStatus(session.user.id, subjectActive);
       setUserStatus(status);
 
-      if (status=="Contributeur") {
+      if (status.chapters=="Pas d'accès") {
         setMiddlePanelWidth(0);
       }
     };
@@ -713,6 +713,7 @@ const copyToClipboard = (text) => {
   ref={editor}
   theme="snow"
   modules={quillModules}
+  readOnly={userStatus.chapters !== "Editeur"}
   bounds={'#toolbar'}
   value={content}
   onChange={() => {
