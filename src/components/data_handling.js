@@ -789,7 +789,7 @@ export async function get_project_contributors(id_subject) {
 export async function validate_project_contributors(id_subject,id_user,access,notes,chapters) {
   // Exemple de pseudo code, à adapter selon votre logique d'application
   try {
-
+ console.log("access : ",access)
     const { data, error } = await supabase
       .from('Memoires_contributors') 
       .update({ access: access,notes:notes,chapters:chapters})
@@ -798,6 +798,7 @@ export async function validate_project_contributors(id_subject,id_user,access,no
 
     if (error) throw error;
 
+    console.log("data : ",data)
     return data
     
   } catch (error) {
@@ -921,6 +922,7 @@ export async function getUserStatus(id_user,id_subject) {
     .eq('id_user', id_user)
     .single(); 
   if (fetchError) throw fetchError;
+  console.log("Status : ",status)
   return status
     }catch (errorUpdating ) {
     Alert.alert('Erreur lors de la prise en compte de la copie : ', errorUpdating.message);

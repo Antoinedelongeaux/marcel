@@ -170,12 +170,13 @@ useEffect(() => {
                 }
                 const initialStates = result.reduce((acc, contributor) => {
                     acc[contributor.id_user] = {
-                        access: contributor.access === 'Oui',
+                        access: contributor.access === true,
                         notes: contributor.notes || 'Pas d\'accès',
                         chapters: contributor.chapters || 'Pas d\'accès',
                     };
                     return acc;
                 }, {});
+               
                 setContributors(result);
                 setContributorStates(initialStates);
             } catch (error) {
@@ -189,7 +190,7 @@ useEffect(() => {
     const toggleAuthorization = async (contributor) => {
         const state = contributorStates[contributor.id_user];
         try {
-            console.log("Accès doit être un boolean : ",state.access)
+   
             await validate_project_contributors(
                 subject_active.id,
                 contributor.id_user,
@@ -341,82 +342,83 @@ useEffect(() => {
                     </TouchableOpacity>
                 </View>
             )}
-            {showContributors && (
-            <View style={globalStyles.container_wide}>
-                {contributors?.length > 0 ? (
-                    <>
-                        {isLargeScreen && (
-                            <View style={styles.contributorRow}>
-                                <Text style={styles.pickerLabel}>Utilisateur</Text>
-                                <Text style={styles.pickerLabel}>Accès</Text>
-                                <Text style={styles.pickerLabel}>Notes</Text>
-                                <Text style={styles.pickerLabel}>Chapitres</Text>
-                                <Text style={styles.pickerLabel}> </Text>
-                            </View>
-                        )}
-                        {contributors.map((contributor) => (
-                            <View key={contributor.id_user} style={isLargeScreen ? styles.contributorRow : styles.contributorColumn}>
-                                <Text>{contributor.name}</Text>
-                                {!isLargeScreen && <Text style={styles.pickerLabel}>Accès :</Text>}
-                                <Picker
-                                    selectedValue={contributorStates[contributor.id_user]?.access ? 'Oui' : 'Non'}
-                                    onValueChange={(itemValue) => setContributorStates(prevState => ({
-                                        ...prevState,
-                                        [contributor.id_user]: {
-                                            ...prevState[contributor.id_user],
-                                            access: itemValue === 'Oui'
-                                        }
-                                    }))}
-                                    style={{ height: 50, width: 150 }}
-                                >
-                                    <Picker.Item label="Oui" value="Oui" />
-                                    <Picker.Item label="Non" value="Non" />
-                                </Picker>
-                                {!isLargeScreen && <Text style={styles.pickerLabel}>Notes :</Text>}
-                                <Picker
-                                    selectedValue={contributorStates[contributor.id_user]?.notes}
-                                    onValueChange={(itemValue) => setContributorStates(prevState => ({
-                                        ...prevState,
-                                        [contributor.id_user]: {
-                                            ...prevState[contributor.id_user],
-                                            notes: itemValue
-                                        }
-                                    }))}
-                                    style={{ height: 50, width: 150 }}
-                                >
-                                    <Picker.Item label="Pas d'accès" value="Pas d'accès" />
-                                    <Picker.Item label="Lecteur" value="Lecteur" />
-                                    <Picker.Item label="Contributeur" value="Contributeur" />
-                                </Picker>
-                                {!isLargeScreen && <Text style={styles.pickerLabel}>Chapitres :</Text>}
-                                <Picker
-                                    selectedValue={contributorStates[contributor.id_user]?.chapters}
-                                    onValueChange={(itemValue) => setContributorStates(prevState => ({
-                                        ...prevState,
-                                        [contributor.id_user]: {
-                                            ...prevState[contributor.id_user],
-                                            chapters: itemValue
-                                        }
-                                    }))}
-                                    style={{ height: 50, width: 150 }}
-                                >
-                                    <Picker.Item label="Pas d'accès" value="Pas d'accès" />
-                                    <Picker.Item label="Lecteur" value="Lecteur" />
-                                    <Picker.Item label="Auditeur" value="Auditeur" />
-                                    <Picker.Item label="Editeur" value="Editeur" />
-                                </Picker>
-                                <TouchableOpacity onPress={() => toggleAuthorization(contributor)}>
-                                    <Text style={{ color: '#007BFF' }}>Mettre à jour</Text>
-                                </TouchableOpacity>
-                            </View>
-                        ))}
-                    </>
-                ) : (
-                    <Text>Aucun contributeur pour ce projet</Text>
-                )}
-            </View>
-        )}
+            {showContributors && (<View style={globalStyles.container_wide}> 
+            {contributors?.length > 0 ? (
+                <>
+                    {isLargeScreen && (
+                        <View style={styles.headerRow}>
+                            <Text style={styles.headerText}>Utilisateur</Text>
+                            <Text style={styles.headerText}>Accès</Text>
+                            <Text style={styles.headerText}>Notes</Text>
+                            <Text style={styles.headerText}>Chapitres</Text>
+                            <Text style={styles.headerText}> </Text>
+                        </View>
+                    )}
+                    {contributors.map((contributor) => (
+    <View key={contributor.id_user} style={isLargeScreen ? styles.contributorRow : styles.contributorColumn}>
+        <Text style={styles.contributorText}>{contributor.name}</Text>
+        {!isLargeScreen && <Text style={styles.labelText}>Accès :</Text>}
+        <Picker
+    selectedValue={contributorStates[contributor.id_user]?.access ? 'Oui' : 'Non'}
+    onValueChange={(itemValue) => setContributorStates(prevState => ({
+        ...prevState,
+        [contributor.id_user]: {
+            ...prevState[contributor.id_user],
+            access: itemValue === 'Oui'
+        }
+    }))}
+    style={styles.picker}
+>
+    <Picker.Item label="Oui" value="Oui" />
+    <Picker.Item label="Non" value="Non" />
+</Picker>
+
+
+        {!isLargeScreen && <Text style={styles.labelText}>Notes :</Text>}
+        <Picker
+            selectedValue={contributorStates[contributor.id_user]?.notes}
+            onValueChange={(itemValue) => setContributorStates(prevState => ({
+                ...prevState,
+                [contributor.id_user]: {
+                    ...prevState[contributor.id_user],
+                    notes: itemValue
+                }
+            }))}
+            style={styles.picker}
+        >
+            <Picker.Item label="Pas d'accès" value="Pas d'accès" />
+            <Picker.Item label="Lecteur" value="Lecteur" />
+            <Picker.Item label="Contributeur" value="Contributeur" />
+        </Picker>
+        {!isLargeScreen && <Text style={styles.labelText}>Chapitres :</Text>}
+        <Picker
+            selectedValue={contributorStates[contributor.id_user]?.chapters}
+            onValueChange={(itemValue) => setContributorStates(prevState => ({
+                ...prevState,
+                [contributor.id_user]: {
+                    ...prevState[contributor.id_user],
+                    chapters: itemValue
+                }
+            }))}
+            style={styles.picker}
+        >
+            <Picker.Item label="Pas d'accès" value="Pas d'accès" />
+            <Picker.Item label="Lecteur" value="Lecteur" />
+            <Picker.Item label="Auditeur" value="Auditeur" />
+            <Picker.Item label="Editeur" value="Editeur" />
+        </Picker>
+        <TouchableOpacity onPress={() => toggleAuthorization(contributor)}>
+            <Text style={styles.updateButton}>Mettre à jour</Text>
+        </TouchableOpacity>
+    </View>
+))}
+
+                </>
+            ) : (
+                <Text>Aucun contributeur pour ce projet</Text>
+            )}
     
+    </View>)}
             {/* Deuxième partie */}
             {subjects_active.length > 0 && (
                 <View>
@@ -721,22 +723,60 @@ const styles = StyleSheet.create({
         fontSize: 14, // Taille de police légèrement augmentée pour améliorer la lisibilité
         fontWeight: 'bold',
     },
+
+    headerRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingBottom: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: '#ccc',
+    },
+    headerText: {
+        fontWeight: 'bold',
+        fontSize: 16,
+        color: '#333',
+        flex: 1, // Ajoutez cette ligne
+        textAlign: 'center', // Pour centrer le texte dans chaque colonne
+    },
     contributorRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        padding: 10,
+        paddingVertical: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: '#ccc',
+        width: '100%', // Ajoutez cette ligne
     },
-    contributorColumn: {
-        flexDirection: 'column',
-        alignItems: 'flex-start',
-        padding: 10,
+    contributorText: {
+        fontSize: 16,
+        color: '#333',
+        flex: 1, // Ajoutez cette ligne
+        textAlign: 'center', // Pour centrer le texte dans chaque colonne
     },
-    pickerLabel: {
-        width: 150,
-        marginBottom: 5,
-    }
-
+    labelText: {
+        fontSize: 14,
+        color: '#666',
+        marginTop: 10,
+        flex: 1, // Ajoutez cette ligne
+        textAlign: 'center', // Pour centrer le texte dans chaque colonne
+    },
+    picker: {
+        height: 50,
+        width: '100%',
+        marginHorizontal:5,
+        backgroundColor: '#fff',
+        borderColor: '#ccc',
+        borderWidth: 1,
+        borderRadius: 4,
+        flex: 1, // Ajoutez cette ligne
+    },
+    updateButton: {
+        color: '#007BFF',
+        fontSize: 16,
+        marginTop: 10,
+        flex: 1, // Ajoutez cette ligne
+        textAlign: 'center', // Pour centrer le texte dans chaque colonne
+    },
 
 })
 
