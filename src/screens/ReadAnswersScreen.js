@@ -26,6 +26,7 @@ import {
   delete_chapter,
   edit_chapter,
   edit_question,
+  get_user_name,
   delete_question,
   get_Question_by_id,
   integration,
@@ -150,6 +151,7 @@ function ReadQuestionsScreen({ route }) {
   const [userStatus, setUserStatus] = useState('');
   const [isHovered, setIsHovered] = useState(false);
   const [iconsVisible, setIconsVisible] = useState(false);
+  const[userName,setUserName] = useState('');
 const [toggleIcon, setToggleIcon] = useState(plusIcon);
 
 
@@ -164,7 +166,8 @@ const [toggleIcon, setToggleIcon] = useState(plusIcon);
     const fetchUserStatus = async () => {
       const status = await getUserStatus(session.user.id, subjectActive);
       setUserStatus(status);
-
+      const name = await getUserName(session.user.id);
+      setUserName(name);
       if (status.chapters=="Pas d'accès") {
         setMiddlePanelWidth(0);
       }
@@ -488,8 +491,8 @@ const copyToClipboard = (text) => {
       </View>
       <View style={[{ position: 'fixed', top: '0%', right: '5%' }]}>
 <Text>
-          Bonjour {session.user.id},
-          vous êtes actuellement {userStatus.chapters} du texte et {userStatus.chapters} des notes
+          {userName && ("Bonjour "+ userName+",")}
+           {userStatus.chapters!=="Pas d'accès" &&("vous êtes actuellement "+ userStatus.chapters + "du texte")}
 
 </Text>
 </View>
