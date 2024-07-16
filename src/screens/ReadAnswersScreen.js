@@ -472,6 +472,13 @@ const copyToClipboard = (text) => {
 >
   <Image source={settings} style={{ width: 120, height: 120, opacity: 0.5 }} />
 </TouchableOpacity>
+<View style={[{ position: 'fixed', top: '0%', right: '5%' }]}>
+<Text>
+          Bonjour {session.user.id},
+          vous êtes actuellement {userStatus.chapters} du texte et {userStatus.chapters} des notes
+
+</Text>
+</View>
 
         {/*
         <TouchableOpacity onPress={() => navigateToScreen('ProfileScreen')} style={styles.navButton}>
