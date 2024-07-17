@@ -516,8 +516,10 @@ const copyToClipboard = (text) => {
       </View>
       <View style={[{ position: 'fixed', top: '0%', left: '5%' }]}>
 <Text>
+          {/*
           {userName!=='' && ("Bonjour "+ userName +",")}
            {userStatus.chapters!=="Pas d'accès" &&("vous êtes actuellement "+ userStatus.chapters + " du texte")}
+*/}
 
 </Text>
 </View>
@@ -821,7 +823,7 @@ const copyToClipboard = (text) => {
 {(isLargeScreen || !isLeftPanelVisible )&& ( 
 
 <View style={[styles.rightPanel, { width: rightPanelWidth }]}>
-<Text style={globalStyles.title}>Notes</Text> 
+
 
 <NoteScreen route={{ params: { session, question,question_reponse } }} />
 

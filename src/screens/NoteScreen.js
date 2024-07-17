@@ -680,11 +680,29 @@ const filteredAnswers = answers.filter(answer => {
     <Image source={{ uri: fullscreenImage }} style={styles.fullscreenImage} />
   </View>
 )}
+<View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+      
+      
+      <Text style={globalStyles.title}>  {!questionReponseFilter.includes('question')&&("Notes")} { !questionReponseFilter.includes('question')&& !questionReponseFilter.includes('réponse')&&(" & ")} {!questionReponseFilter.includes('réponse')&&("Questions")} </Text> 
+      <TouchableOpacity onPress={() => setShowDetails(!showDetails)} style={styles.filterIcon}>
+  <Image 
+    source={showDetails ? minusIcon : plusIcon} 
+    style={{ width: 25, height: 25, opacity: 0.5, marginVertical: 30 }} 
+  />
+</TouchableOpacity>
+      </View>
       {(question || voirTout) && (<>
+        {!questionReponseFilter.includes('question') &&(
       <TouchableOpacity onPress={() => setModalVisible(true)} style={globalStyles.globalButton_wide}>
       <Text style={globalStyles.globalButtonText}>Ajouter une note</Text>
     </TouchableOpacity>
-    
+    )}
+    {!questionReponseFilter.includes('réponse') &&(
+      <TouchableOpacity onPress={() => setModalVisible(true)} style={globalStyles.globalButton_wide}>
+      <Text style={globalStyles.globalButtonText}>Poser une question</Text>
+    </TouchableOpacity>
+    )}
+
    
     <Modal isVisible={isModalVisible}>
   <View style={styles.modalContainer}>
@@ -791,12 +809,7 @@ const filteredAnswers = answers.filter(answer => {
   <TouchableOpacity onPress={() => setShowFilters(!showFilters)} style={styles.filterIcon}>
     <Image source={filterIcon} style={{ width: 50, height: 50, opacity: 0.5, marginVertical : 30 }} />
   </TouchableOpacity>
-  <TouchableOpacity onPress={() => setShowDetails(!showDetails)} style={styles.filterIcon}>
-  <Image 
-    source={showDetails ? minusIcon : plusIcon} 
-    style={{ width: 50, height: 50, opacity: 0.5, marginVertical: 30 }} 
-  />
-</TouchableOpacity>
+  
 
 {/*
 {showDetails && (
