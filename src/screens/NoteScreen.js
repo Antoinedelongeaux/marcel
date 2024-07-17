@@ -809,26 +809,57 @@ const filteredAnswers = answers.filter(answer => {
 )}
 */}
 
-<View style={{ flexDirection: 'row', justifyContent: 'center' }}>
-      <TouchableOpacity
-        style={[
-          globalStyles.globalButton_wide,
-          questionReponseFilter === 'question' && styles.selectedToggle
-        ]}
-        onPress={() => setQuestionReponseFilter('question')}
-      >
-        <Text style={globalStyles.globalButtonText}>Questions</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[
-          globalStyles.globalButton_wide,
-          questionReponseFilter === 'reponse' && styles.selectedToggle
-        ]}
-        onPress={() => setQuestionReponseFilter('reponse')}
-      >
-        <Text style={globalStyles.globalButtonText}>Réponses</Text>
-      </TouchableOpacity>
-    </View>
+<View style={[styles.toggleTextContainer,  {flexDirection: 'column', justifyContent: 'center' }]}>
+  <View style={{flexDirection: 'row' }}>
+  <Text style={styles.toggleText}>Réponses </Text>
+  <TouchableOpacity
+    style={[
+      styles.toggleButton,
+      questionReponseFilter.includes('question') && styles.selectedToggle
+    ]}
+    onPress={() =>
+      setQuestionReponseFilter((prev) =>
+        prev.includes('question')
+          ? prev.replace('question', '')
+          : prev + 'question'
+      )
+    }
+  >
+    <View
+      style={[
+        styles.toggleButtonCircle,
+        questionReponseFilter.includes('question') && { left: 2 },
+        !questionReponseFilter.includes('question') && { right: 2 }
+      ]}
+    />
+  </TouchableOpacity>
+  </View>
+  <View style={{flexDirection: 'row' }}>
+  <Text style={styles.toggleText}>Questions</Text>
+  <TouchableOpacity
+    style={[
+      styles.toggleButton,
+      questionReponseFilter.includes('réponse') && styles.selectedToggle
+    ]}
+    onPress={() =>
+      setQuestionReponseFilter((prev) =>
+        prev.includes('réponse')
+          ? prev.replace('réponse', '')
+          : prev + 'réponse'
+      )
+    }
+  >
+    <View
+      style={[
+        styles.toggleButtonCircle,
+        questionReponseFilter.includes('réponse') && { left: 2 },
+        !questionReponseFilter.includes('réponse') && { right: 2 }
+      ]}
+    />
+  </TouchableOpacity>
+  </View>
+</View>
+
 </View>
 
 {showFilters && (
@@ -1257,6 +1288,35 @@ const styles = StyleSheet.create({
     backgroundColor: '#cce4e8',
     //borderWidth: 2,
     zIndex: 2,
+  },
+  toggleButton: {
+    width: 50,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#008080',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 2,
+  },
+  selectedToggle: {
+    backgroundColor: '#ccc',
+  },
+  toggleButtonCircle: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: '#fff',
+    position: 'absolute',
+  },
+  toggleTextContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  toggleText: {
+    marginHorizontal: 10,
+    fontSize: 16,
   },
   
 });
