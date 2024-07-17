@@ -5,6 +5,8 @@ const BASE_URL = 'https://srv495286.hstgr.cloud:5000';  // Adresse de votre serv
 const MAX_PAYLOAD_SIZE = 10485760; // 10 MB
 const SEGMENT_DURATION = 30; // Segment duration in seconds
 
+
+
 const convertAudioBufferToWavBase64 = async (audioBuffer) => {
   console.log('Converting audio buffer to WAV Base64');
   const wavBuffer = AudioBufferToWav(audioBuffer);
@@ -88,6 +90,7 @@ const transcribeSegment = async (audioFile) => {
 
 export const transcribeAudio = async (audioFileName) => {
   try {
+    console.log("Ceci prouve que l'on passe bien par Whisper")
     console.log('Transcribing audio:', audioFileName);
     const publicURL = `https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/audio/${audioFileName}`;
     console.log("Fetching audio file from:", publicURL);

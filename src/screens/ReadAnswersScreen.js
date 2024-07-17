@@ -95,6 +95,23 @@ const useFetchData = (id_user,subjectActive, setQuestions, tags, personal, setCh
 };
 
 
+const usePanelDimensions = (navigation) => {
+  const windowWidth = Dimensions.get('window').width;
+  const [middlePanelWidth, setMiddlePanelWidth] = useState(0.5 * windowWidth);
+  const [rightPanelWidth, setRightPanelWidth] = useState(windowWidth - middlePanelWidth - 550);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      const windowWidth = Dimensions.get('window').width;
+      setMiddlePanelWidth(0.5 * windowWidth);
+      setRightPanelWidth(windowWidth - middlePanelWidth - 550);
+    });
+
+    return unsubscribe;
+  }, [navigation]);
+
+  return { middlePanelWidth, setMiddlePanelWidth, rightPanelWidth, setRightPanelWidth, windowWidth };
+};
 
 
 function ReadQuestionsScreen({ route }) {
@@ -139,8 +156,8 @@ function ReadQuestionsScreen({ route }) {
   const [subject, setSubject] = useState([]);
   const editor = useRef();
   const [isLeftPanelVisible, setIsLeftPanelVisible] = useState(true);
-  const [middlePanelWidth, setMiddlePanelWidth] = useState(0.5*windowWidth )
-  const [rightPanelWidth, setRightPanelWidth] = useState(windowWidth - middlePanelWidth - 550);
+  //const [middlePanelWidth, setMiddlePanelWidth] = useState(0.5*windowWidth )
+  //const [rightPanelWidth, setRightPanelWidth] = useState(windowWidth - middlePanelWidth - 550);
   const [initialMouseX, setInitialMouseX] = useState(null);
   const [initialMiddlePanelWidth, setInitialMiddlePanelWidth] = useState(middlePanelWidth);
   const [question, setQuestion] = useState('');
@@ -155,10 +172,7 @@ function ReadQuestionsScreen({ route }) {
   const[userName,setUserName] = useState('');
 const [toggleIcon, setToggleIcon] = useState(plusIcon);
 const [question_reponse, setQuestion_reponse] = useState('réponse');
-
-
-
-  
+const { middlePanelWidth, setMiddlePanelWidth, rightPanelWidth, setRightPanelWidth, windowWidth } = usePanelDimensions(navigation);
 
 
   const [isDragging, setIsDragging] = useState(false);
