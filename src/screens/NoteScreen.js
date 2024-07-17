@@ -684,25 +684,72 @@ const filteredAnswers = answers.filter(answer => {
       
       
       <Text style={globalStyles.title}>  {!questionReponseFilter.includes('question')&&("Notes")} { !questionReponseFilter.includes('question')&& !questionReponseFilter.includes('réponse')&&(" & ")} {!questionReponseFilter.includes('réponse')&&("Questions")} </Text> 
-      <TouchableOpacity onPress={() => setShowDetails(!showDetails)} style={styles.filterIcon}>
-  <Image 
-    source={showDetails ? minusIcon : plusIcon} 
-    style={{ width: 25, height: 25, opacity: 0.5, marginVertical: 30 }} 
-  />
-</TouchableOpacity>
+      <View style={[styles.toggleTextContainer,  {flexDirection: 'column', justifyContent: 'center' }]}>
+  <View style={{flexDirection: 'row' }}>
+  <Text style={styles.toggleText}>Notes      </Text>
+  <TouchableOpacity
+    style={[
+      styles.toggleButton,
+      questionReponseFilter.includes('question') && styles.selectedToggle
+    ]}
+    onPress={() =>
+      setQuestionReponseFilter((prev) =>
+        prev.includes('question')
+          ? prev.replace('question', '')
+          : prev + 'question'
+      )
+    }
+  >
+    <View
+      style={[
+        styles.toggleButtonCircle,
+        questionReponseFilter.includes('question') && { left: 2 },
+        !questionReponseFilter.includes('question') && { right: 2 }
+      ]}
+    />
+  </TouchableOpacity>
+  </View>
+  <View style={{flexDirection: 'row' }}>
+  <Text style={styles.toggleText}>Questions</Text>
+  <TouchableOpacity
+    style={[
+      styles.toggleButton,
+      questionReponseFilter.includes('réponse') && styles.selectedToggle
+    ]}
+    onPress={() =>
+      setQuestionReponseFilter((prev) =>
+        prev.includes('réponse')
+          ? prev.replace('réponse', '')
+          : prev + 'réponse'
+      )
+    }
+  >
+    <View
+      style={[
+        styles.toggleButtonCircle,
+        questionReponseFilter.includes('réponse') && { left: 2 },
+        !questionReponseFilter.includes('réponse') && { right: 2 }
+      ]}
+    />
+  </TouchableOpacity>
+  </View>
+</View>
+      
       </View>
       {(question || voirTout) && (<>
+
+        <View style={{ flexDirection: 'row', justifyContent: 'center', marginBottom: 5 }}>
         {!questionReponseFilter.includes('question') &&(
-      <TouchableOpacity onPress={() => setModalVisible(true)} style={globalStyles.globalButton_wide}>
+      <TouchableOpacity onPress={() => setModalVisible(true)} style={globalStyles.globalButton_narrow}>
       <Text style={globalStyles.globalButtonText}>Ajouter une note</Text>
     </TouchableOpacity>
     )}
     {!questionReponseFilter.includes('réponse') &&(
-      <TouchableOpacity onPress={() => setModalVisible(true)} style={globalStyles.globalButton_wide}>
+      <TouchableOpacity onPress={() => setModalVisible(true)} style={globalStyles.globalButton_narrow}>
       <Text style={globalStyles.globalButtonText}>Poser une question</Text>
     </TouchableOpacity>
     )}
-
+</View>
    
     <Modal isVisible={isModalVisible}>
   <View style={styles.modalContainer}>
@@ -809,7 +856,14 @@ const filteredAnswers = answers.filter(answer => {
   <TouchableOpacity onPress={() => setShowFilters(!showFilters)} style={styles.filterIcon}>
     <Image source={filterIcon} style={{ width: 50, height: 50, opacity: 0.5, marginVertical : 30 }} />
   </TouchableOpacity>
-  
+
+  <TouchableOpacity onPress={() => setShowDetails(!showDetails)} style={styles.filterIcon}>
+  <Image 
+    source={showDetails ? minusIcon : plusIcon} 
+    style={{ width: 50, height: 50, opacity: 0.5, marginVertical: 30 }} 
+  />
+</TouchableOpacity>
+
 
 {/*
 {showDetails && (
@@ -822,56 +876,7 @@ const filteredAnswers = answers.filter(answer => {
 )}
 */}
 
-<View style={[styles.toggleTextContainer,  {flexDirection: 'column', justifyContent: 'center' }]}>
-  <View style={{flexDirection: 'row' }}>
-  <Text style={styles.toggleText}>Réponses </Text>
-  <TouchableOpacity
-    style={[
-      styles.toggleButton,
-      questionReponseFilter.includes('question') && styles.selectedToggle
-    ]}
-    onPress={() =>
-      setQuestionReponseFilter((prev) =>
-        prev.includes('question')
-          ? prev.replace('question', '')
-          : prev + 'question'
-      )
-    }
-  >
-    <View
-      style={[
-        styles.toggleButtonCircle,
-        questionReponseFilter.includes('question') && { left: 2 },
-        !questionReponseFilter.includes('question') && { right: 2 }
-      ]}
-    />
-  </TouchableOpacity>
-  </View>
-  <View style={{flexDirection: 'row' }}>
-  <Text style={styles.toggleText}>Questions</Text>
-  <TouchableOpacity
-    style={[
-      styles.toggleButton,
-      questionReponseFilter.includes('réponse') && styles.selectedToggle
-    ]}
-    onPress={() =>
-      setQuestionReponseFilter((prev) =>
-        prev.includes('réponse')
-          ? prev.replace('réponse', '')
-          : prev + 'réponse'
-      )
-    }
-  >
-    <View
-      style={[
-        styles.toggleButtonCircle,
-        questionReponseFilter.includes('réponse') && { left: 2 },
-        !questionReponseFilter.includes('réponse') && { right: 2 }
-      ]}
-    />
-  </TouchableOpacity>
-  </View>
-</View>
+
 
 </View>
 
