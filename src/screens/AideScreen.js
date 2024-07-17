@@ -149,7 +149,7 @@ export default function AideScreen({ route }) {
     return (
         <View style={globalStyles.container}>
             <View style={globalStyles.navigationContainer}>
-                <TouchableOpacity onPress={() => navigateToScreen('ReadAnswersScreen')} style={globalStyles.navButton}>
+                <TouchableOpacity onPress={() => navigateToScreen('Marcel')} style={globalStyles.navButton}>
                     <Image source={BookIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => navigateToScreen('ProfileScreen')} style={globalStyles.navButton}>

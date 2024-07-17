@@ -334,7 +334,7 @@ function ReadAnswersScreen({ route }) {
     <View style={{ flex: 1, backgroundColor: "#E8FFF6" }}>
       <ScrollView contentContainerStyle={styles.contentContainer}>
         <View style={styles.navigationContainer}>
-          <TouchableOpacity onPress={() => navigateToScreen('ReadAnswersScreen')} style={styles.navButton}>
+          <TouchableOpacity onPress={() => navigateToScreen('Marcel')} style={styles.navButton}>
             <Image source={ArrowLeftIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
           </TouchableOpacity>
           <TouchableOpacity onPress={refreshAnswers} style={styles.navButton}>

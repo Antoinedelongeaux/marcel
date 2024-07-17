@@ -25,7 +25,7 @@ export default function Account({ route }) {
     if (session && session.user ){
 
     
-      navigation.navigate('ReadAnswersScreen', { session });
+      navigation.navigate('Marcel', { session });
     
   }
   }, [session, navigation]);
@@ -51,7 +51,7 @@ export default function Account({ route }) {
       })}
     >
    
-      <Tab.Screen name="Récit" component={ReadAnswersScreen} initialParams={{ session }} />
+      <Tab.Screen name="Marcel" component={ReadAnswersScreen} initialParams={{ session }} />
       {/* 
       <Tab.Screen name="Aide" component={AideScreen} />
       <Tab.Screen name="Paramètres" component={ProfileScreen} initialParams={{ session }} />

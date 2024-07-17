@@ -76,7 +76,7 @@ const useFetchActiveSubjectId = (setSubjectActive, setSubject, navigation) => {
           const temp2 = await getSubject(temp);
           setSubject(temp2);
         } else {
-          navigation.navigate('ManageBiographyScreen');
+          navigation.navigate('Projets');
         }
       };
       fetchActiveSubjectId();
@@ -189,7 +189,7 @@ const { middlePanelWidth, setMiddlePanelWidth, rightPanelWidth, setRightPanelWid
       setUserName(name);
       
       if (status.access==false) {
-        navigateToScreen('ManageBiographyScreen')
+        navigateToScreen('Projets')
       }
       if (status.chapters=="Pas d'accès") {
         setMiddlePanelWidth(0);
@@ -493,7 +493,7 @@ const copyToClipboard = (text) => {
         </TouchableOpacity>
         */}
         <TouchableOpacity
-  onPress={() => navigateToScreen('ManageBiographyScreen')}
+  onPress={() => navigateToScreen('Projets')}
   style={[globalStyles.navButton, isHovered && globalStyles.navButton_over]}
   onMouseEnter={() => setIsHovered(true)}
   onMouseLeave={() => setIsHovered(false)}

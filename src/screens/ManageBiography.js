@@ -279,7 +279,7 @@ useEffect(() => {
             <View style={[globalStyles.navigationContainer, { position: 'fixed', bottom: '0%', width: '100%' }]}>
 
                 <TouchableOpacity
-  onPress={() => navigateToScreen('ReadAnswersScreen')} 
+  onPress={() => navigateToScreen('Marcel')} 
   style={[globalStyles.navButton, isHovered && globalStyles.navButton_over]}
   onMouseEnter={() => setIsHovered(true)}
   onMouseLeave={() => setIsHovered(false)}

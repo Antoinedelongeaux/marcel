@@ -52,7 +52,7 @@ function BiographyScreen() {
 
         <TouchableOpacity
           style={globalStyles.globalButton_wide}
-          onPress={() => navigateToScreen('ReadAnswersScreen')}>
+          onPress={() => navigateToScreen('Marcel')}>
           <Text style={globalStyles.globalButtonText}>Consulter la biographie</Text>
         </TouchableOpacity>
         <Text></Text>

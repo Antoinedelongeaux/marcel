@@ -105,7 +105,7 @@ function AskQuestionScreen({ route }) {
     <View style={{ flex: 1, backgroundColor: "#E8FFF6" }}>
     <ScrollView contentContainerStyle={styles.contentContainer}>
       <View style={styles.navigationContainer}>
-      <TouchableOpacity onPress={() => navigateToScreen('ReadAnswersScreen')} style={styles.navButton}>
+      <TouchableOpacity onPress={() => navigateToScreen('Marcel')} style={styles.navButton}>
       <View>
       <Image source={ArrowLeftIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
 
@@ -185,7 +185,7 @@ function AskQuestionScreen({ route }) {
   animationType="slide"
   transparent={true}
   visible={isChapterModalVisible}
-  onRequestClose={() => {setIsChapterModalVisible(false);navigateToScreen('ReadAnswersScreen')}}
+  onRequestClose={() => {setIsChapterModalVisible(false);navigateToScreen('Marcel')}}
 >
   <View style={styles.centeredView}>
     <View style={styles.modalView}>
@@ -197,7 +197,7 @@ function AskQuestionScreen({ route }) {
         onPress={() => {
           join_question_to_chapter(question.id, chapter.id);
           setIsChapterModalVisible(false);
-          navigateToScreen('ReadAnswersScreen')
+          navigateToScreen('Marcel')
         }}
         style={styles.modalButton}
       >
@@ -210,7 +210,7 @@ function AskQuestionScreen({ route }) {
 </ScrollView>
 
       <TouchableOpacity
-        onPress={() => {setIsChapterModalVisible(false);navigateToScreen('ReadAnswersScreen')}}
+        onPress={() => {setIsChapterModalVisible(false);navigateToScreen('Marcel')}}
         style={[globalStyles.globalButton_narrow]}
       >
         <Text style={styles.textStyle}>Fermer</Text>

@@ -188,7 +188,7 @@ export default function ProfileScreen({ route }) {
     return (
         <View style={globalStyles.container}>
             <View style={[globalStyles.navigationContainer, { position: 'fixed', bottom: '0%', width: '100%' }]}>
-                <TouchableOpacity onPress={() => navigateToScreen('ReadAnswersScreen')} 
+                <TouchableOpacity onPress={() => navigateToScreen('Marcel')} 
                     style={[globalStyles.navButton, isHovered1 && globalStyles.navButton_over]}
                     onMouseEnter={() => setIsHovered1(true)}
                     onMouseLeave={() => setIsHovered1(false)}>

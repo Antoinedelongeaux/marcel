@@ -21,12 +21,12 @@ function AppNavigator({ session }) {
       {session && session.user ? (
         <>
           <Stack.Screen name="Account" component={Account} initialParams={{ session }} />
-          <Stack.Screen name="NoteScreen" component={NoteScreen} initialParams={{ session }} />
+          <Stack.Screen name="Notes" component={NoteScreen} initialParams={{ session }} />
           <Stack.Screen name="BiographyScreen" component={BiographyScreen} />
           <Stack.Screen name="AideScreen" component={AideScreen} />
           <Stack.Screen name="ProfileScreen" component={ProfileScreen} initialParams={{ session }} />
-          <Stack.Screen name="ManageBiographyScreen" component={ManageBiographyScreen} initialParams={{ session }} />
-          <Stack.Screen name="ReadAnswersScreen" component={ReadAnswersScreen} initialParams={{ session }} />
+          <Stack.Screen name="Projets" component={ManageBiographyScreen} initialParams={{ session }} />
+          <Stack.Screen name="Marcel" component={ReadAnswersScreen} initialParams={{ session }} />
           <Stack.Screen name="AskQuestionScreen" component={AskQuestionScreen} initialParams={{ session }} />
           <Stack.Screen name="EditChapterScreen" component={EditChapterScreen} initialParams={{ session }} />
           <Stack.Screen name="AnswerQuestionScreen" component={AnswerQuestionScreen} initialParams={{ session }} />
