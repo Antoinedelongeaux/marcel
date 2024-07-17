@@ -797,6 +797,8 @@ const filteredAnswers = answers.filter(answer => {
     style={{ width: 50, height: 50, opacity: 0.5, marginVertical: 30 }} 
   />
 </TouchableOpacity>
+
+{/*
 {showDetails && (
 <TouchableOpacity onPress={() => linkAnswers(answers)} style={styles.filterIcon}>
   <Image 
@@ -805,9 +807,31 @@ const filteredAnswers = answers.filter(answer => {
   />
 </TouchableOpacity>
 )}
+*/}
+
+<View style={{ flexDirection: 'row', justifyContent: 'center' }}>
+      <TouchableOpacity
+        style={[
+          globalStyles.globalButton_wide,
+          questionReponseFilter === 'question' && styles.selectedToggle
+        ]}
+        onPress={() => setQuestionReponseFilter('question')}
+      >
+        <Text style={globalStyles.globalButtonText}>Questions</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[
+          globalStyles.globalButton_wide,
+          questionReponseFilter === 'reponse' && styles.selectedToggle
+        ]}
+        onPress={() => setQuestionReponseFilter('reponse')}
+      >
+        <Text style={globalStyles.globalButtonText}>Réponses</Text>
+      </TouchableOpacity>
+    </View>
 </View>
 
-{showFilters && ( 
+{showFilters && (
   <View style={styles.filterContainer}>
     <TextInput
       style={[styles.input, { backgroundColor: 'white' }]}
@@ -881,20 +905,10 @@ const filteredAnswers = answers.filter(answer => {
         </View>
       )}
     </View>
-    <View style={styles.dropdownContainer}>
-  <Picker
-    selectedValue={questionReponseFilter}
-    onValueChange={(itemValue) => setQuestionReponseFilter(itemValue)}
-    style={styles.dropdown}
-  >
-    <Picker.Item label="Tous" value="" />
-    <Picker.Item label="Question" value="question" />
-    <Picker.Item label="Réponse" value="réponse" />
-  </Picker>
-</View>
-
+    
   </View>
 )}
+
 
 <DraggableFlatList
   data={filteredAnswers}
