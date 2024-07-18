@@ -84,15 +84,18 @@ const useFetchActiveSubjectId = (setSubjectActive, setSubject, navigation) => {
   );
 };
 
-const useFetchData = (id_user,subjectActive, setQuestions, tags, personal, setChapters,setUserStatus) => {
+const useFetchData = async (id_user,subjectActive, setQuestions, tags, personal, setChapters,setUserStatus,userStatus) => {
   useEffect(() => {
     if (subjectActive != null) {
+   
       getMemories_Questions(subjectActive, setQuestions, tags, personal);
       get_chapters(subjectActive, setChapters);
-      setUserStatus(getUserStatus(id_user,subjectActive))
+      setUserStatus(getUserStatus(id_user,subjectActive)) 
     }
   }, [subjectActive, tags, personal]);
 };
+
+
 
 
 const usePanelDimensions = (navigation) => {
@@ -177,6 +180,14 @@ const { middlePanelWidth, setMiddlePanelWidth, rightPanelWidth, setRightPanelWid
 
   const [isDragging, setIsDragging] = useState(false);
   const [expandedAnswers, setExpandedAnswers] = useState({});
+
+  useEffect(() => { 
+    if (userStatus=="non trouvé") {
+      navigateToScreen('Projets')
+    }
+  
+  }, [userStatus])
+
 
   useEffect(() => {
     const fetchUserStatus = async () => {
@@ -264,7 +275,7 @@ useEffect(() => {
   if (isLeftPanelVisible){
     setRightPanelWidth(windowWidth - middlePanelWidth-550-10);
   }
-  console.log("console.log(RightPanelWidth) : ", rightPanelWidth)
+
 }, [middlePanelWidth,isLeftPanelVisible ]);
 
 
@@ -297,7 +308,7 @@ const copyToClipboard = (text) => {
 
   useFetchActiveSubjectId(setSubjectActive, setSubject, navigation);
 
-  useFetchData(session.user.id,subjectActive, setQuestions, tags, personal, setChapters,setUserStatus);
+  useFetchData(session.user.id,subjectActive, setQuestions, tags, personal, setChapters,setUserStatus,userStatus);
 
 
   const toggleChapter = (chapterId) => {
@@ -484,7 +495,7 @@ const copyToClipboard = (text) => {
   return (
     <View style={globalStyles.container}>
       
-      <View style={[globalStyles.navigationContainer, { position: 'fixed', bottom: '0%', width: '100%' }]}>
+      <View style={[globalStyles.navigationContainer, { position: 'fixed', bottom: '0%', alignSelf: 'center' }]}>
 
 
         {/*

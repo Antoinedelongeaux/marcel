@@ -914,23 +914,30 @@ export async function integration(id_answer) {
 
 }
 
-export async function getUserStatus(id_user,id_subject) {
+export async function getUserStatus(id_user, id_subject) {
   try {
     const { data: status, error: fetchError } = await supabase
-    .from('Memoires_contributors')
-    .select('authorized,access,notes,chapters')
-    .eq('id_subject', id_subject)
-    .eq('id_user', id_user)
-    .single(); 
-  if (fetchError) throw fetchError;
-  console.log("Status : ",status)
-  return status
-    }catch (errorUpdating ) {
-    Alert.alert('Erreur lors de la prise en compte de la copie : ', errorUpdating.message);
-  } 
+      .from('Memoires_contributors')
+      .select('authorized,access,notes,chapters')
+      .eq('id_subject', id_subject)
+      .eq('id_user', id_user)
+      .single();
 
 
+    
+
+    if (status==null) {
+
+      return "non trouvé";
+    }
+    if (fetchError) throw fetchError;
+    return status;
+  } catch (error) {
+    Alert.alert('Erreur lors de la prise en compte de la copie : ', error.message);
+    return "non trouvé";
+  }
 }
+
 
 
 import { v4 as uuidv4 } from 'uuid';

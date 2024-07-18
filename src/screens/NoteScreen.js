@@ -113,7 +113,7 @@ function NoteScreen({ route }) {
   ]);
 
   const question = route.params?.question.id || '';
-  const question_reponse = route.params?.question_reponse || 'reponse';
+  const question_reponse = route.params?.question_reponse || 'réponse';
   const [selectedQuestion, setSelectedQuestion] = useState(question);
   const [selectedChapter, setSelectedChapter] = useState('');
   const [showFilters, setShowFilters] = useState(false); 
@@ -142,7 +142,7 @@ const [voirTout,setVoirTout]=useState(false);
 const [users, setUsers] = useState([]);
 const [delegationUserId, setDelegationUserId] = useState(null);
 const [questionReponseFilter, setQuestionReponseFilter] = useState('');  // Ajoutez cette ligne
-
+const [answerAndQuestion, setAnswerAndQuestion] = useState(question_reponse);
 
 useFetchActiveSubjectId(setSubjectActive, setSubject, navigation);
 
@@ -400,7 +400,7 @@ const filteredAnswers = answers.filter(answer => {
       }
     }
 
-    await submitMemories_Answer(note, null, delegationUserId, !!audio, audio);
+    await submitMemories_Answer(note, null, delegationUserId, !!audio, audio,null,resetAnswerAndFetchQuestion,answerAndQuestion);
     setNote('');
     setModalVisible(false);
     // Rafraîchir les notes
@@ -500,7 +500,8 @@ const filteredAnswers = answers.filter(answer => {
       }, 1000);
       
     },
-    question_reponse
+    answerAndQuestion
+
   );
   };
 
@@ -681,71 +682,74 @@ const filteredAnswers = answers.filter(answer => {
   </View>
 )}
 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-      
-      
-      <Text style={globalStyles.title}>  {!questionReponseFilter.includes('question')&&("Notes")} { !questionReponseFilter.includes('question')&& !questionReponseFilter.includes('réponse')&&(" & ")} {!questionReponseFilter.includes('réponse')&&("Questions")} </Text> 
-      <View style={[styles.toggleTextContainer,  {flexDirection: 'column', justifyContent: 'center' }]}>
-  <View style={{flexDirection: 'row' }}>
-  <Text style={styles.toggleText}>Notes      </Text>
-  <TouchableOpacity
-    style={[
-      styles.toggleButton,
-      questionReponseFilter.includes('question') && styles.selectedToggle
-    ]}
-    onPress={() =>
-      setQuestionReponseFilter((prev) =>
-        prev.includes('question')
-          ? prev.replace('question', '')
-          : prev + 'question'
-      )
-    }
-  >
-    <View
-      style={[
-        styles.toggleButtonCircle,
-        questionReponseFilter.includes('question') && { left: 2 },
-        !questionReponseFilter.includes('question') && { right: 2 }
-      ]}
-    />
-  </TouchableOpacity>
-  </View>
-  <View style={{flexDirection: 'row' }}>
-  <Text style={styles.toggleText}>Questions</Text>
-  <TouchableOpacity
-    style={[
-      styles.toggleButton,
-      questionReponseFilter.includes('réponse') && styles.selectedToggle
-    ]}
-    onPress={() =>
-      setQuestionReponseFilter((prev) =>
-        prev.includes('réponse')
-          ? prev.replace('réponse', '')
-          : prev + 'réponse'
-      )
-    }
-  >
-    <View
-      style={[
-        styles.toggleButtonCircle,
-        questionReponseFilter.includes('réponse') && { left: 2 },
-        !questionReponseFilter.includes('réponse') && { right: 2 }
-      ]}
-    />
-  </TouchableOpacity>
+  <Text style={globalStyles.title}>
+    {!questionReponseFilter.includes('question') && ("Notes")}
+    {!questionReponseFilter.includes('question') && !questionReponseFilter.includes('réponse') && (" & ")}
+    {!questionReponseFilter.includes('réponse') && ("Questions")}
+  </Text> 
+  <View style={[styles.toggleTextContainer, { flexDirection: 'column', justifyContent: 'center' }]}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+      <Text style={styles.toggleText}>Notes </Text>
+      <TouchableOpacity
+        style={[
+          styles.toggleButton,
+          questionReponseFilter.includes('question') && styles.selectedToggle
+        ]}
+        onPress={() =>
+          setQuestionReponseFilter((prev) =>
+            prev.includes('question')
+              ? prev.replace('question', '')
+              : prev + 'question'
+          )
+        }
+      >
+        <View
+          style={[
+            styles.toggleButtonCircle,
+            questionReponseFilter.includes('question') ? { left: 2 } : { right: 2 }
+          ]}
+        />
+      </TouchableOpacity>
+    </View>
+    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+      <Text style={styles.toggleText}>Questions</Text>
+      <TouchableOpacity
+        style={[
+          styles.toggleButton,
+          questionReponseFilter.includes('réponse') && styles.selectedToggle
+        ]}
+        onPress={() =>
+          setQuestionReponseFilter((prev) =>
+            prev.includes('réponse')
+              ? prev.replace('réponse', '')
+              : prev + 'réponse'
+          )
+        }
+      >
+        <View
+          style={[
+            styles.toggleButtonCircle,
+            questionReponseFilter.includes('réponse') ? { left: 2 } : { right: 2 }
+          ]}
+        />
+      </TouchableOpacity>
+    </View>
   </View>
 </View>
-      
-      </View>
+
+
+
+
       {(question || voirTout) && (<>
 
         <View style={{ flexDirection: 'row', justifyContent: 'center', marginBottom: 5 }}>
         {!questionReponseFilter.includes('question') &&(
-      <TouchableOpacity onPress={() => setModalVisible(true)} style={globalStyles.globalButton_narrow}>
+      <TouchableOpacity onPress={() => {setAnswerAndQuestion("réponse");setModalVisible(true)}} style={globalStyles.globalButton_narrow}>
       <Text style={globalStyles.globalButtonText}>Ajouter une note</Text>
     </TouchableOpacity>
     )}
     {!questionReponseFilter.includes('réponse') &&(
-      <TouchableOpacity onPress={() => setModalVisible(true)} style={globalStyles.globalButton_narrow}>
+      <TouchableOpacity onPress={() => {setAnswerAndQuestion("question"); setModalVisible(true)}} style={globalStyles.globalButton_narrow}>
       <Text style={globalStyles.globalButtonText}>Poser une question</Text>
     </TouchableOpacity>
     )}
@@ -786,7 +790,7 @@ const filteredAnswers = answers.filter(answer => {
         <Image source={MicroIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
         <Text style={globalStyles.globalButtonText}>
             
-          {isRecording ? "Arrêter l'enregistrement" : "Répondre"}
+          {isRecording ? "Arrêter l'enregistrement" : "Commencer l'enregistrement"}
           
         </Text>
       </View>
@@ -1335,6 +1339,7 @@ const styles = StyleSheet.create({
   toggleText: {
     marginHorizontal: 10,
     fontSize: 16,
+    width: 100,
   },
   
 });

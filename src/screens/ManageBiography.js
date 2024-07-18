@@ -276,7 +276,7 @@ useEffect(() => {
 
     return (
         <View style={globalStyles.container}>
-            <View style={[globalStyles.navigationContainer, { position: 'fixed', bottom: '0%', width: '100%' }]}>
+            <View style={[globalStyles.navigationContainer, { position: 'fixed', bottom: '0%', alignSelf: 'center' }]}>
 
                 <TouchableOpacity
   onPress={() => navigateToScreen('Marcel')} 
