@@ -50,12 +50,14 @@ import { transcribeAudio } from '../components/call_to_whisper';
 //import { transcribeAudio } from '../components/call_to_google';
 import MicroIcon from '../../assets/icons/microphone-lines-solid.svg';
 import VolumeIcon from '../../assets/icons/volume_up_black_24dp.svg';
+import captionIcon from '../../assets/icons/caption.png';
 import trash from '../../assets/icons/baseline_delete_outline_black_24dp.png';
 import closeIcon from '../../assets/icons/close.png'; 
 import edit from '../../assets/icons/pen-to-square-regular.svg';
 import eyeIcon from '../../assets/icons/view.png';
 import plusIcon from '../../assets/icons/plus.png';
 import minusIcon from '../../assets/icons/minus.png';
+import questionIcon from '../../assets/icons/question.png';
 import linkIcon from '../../assets/icons/link.png';
 import AttachIcon from '../../assets/icons/attach.png';
 import { v4 as uuidv4 } from 'uuid';
@@ -143,6 +145,8 @@ const [users, setUsers] = useState([]);
 const [delegationUserId, setDelegationUserId] = useState(null);
 const [questionReponseFilter, setQuestionReponseFilter] = useState('');  // Ajoutez cette ligne
 const [answerAndQuestion, setAnswerAndQuestion] = useState(question_reponse);
+const [transcribingId, setTranscribingId] = useState(null);
+
 
 useFetchActiveSubjectId(setSubjectActive, setSubject, navigation);
 
@@ -577,6 +581,15 @@ const filteredAnswers = answers.filter(answer => {
     });
   };
   
+  const handleCaptionClick = async (answerId) => {
+    setTranscribingId(answerId);
+    const answerToUpdate = answers.find(ans => ans.id === answerId);
+    if (answerToUpdate) {
+      await update_answer_text(answerToUpdate.id, "audio pas encore converti en texte");
+      await refreshAnswers();
+      setTranscribingId(null);
+    }
+  };
   
 
   const handleUploadAudio = async () => {
@@ -1024,10 +1037,19 @@ const filteredAnswers = answers.filter(answer => {
                     </TouchableOpacity>
                   )}
                   {item.audio && (
+                    <>
                     <TouchableOpacity onPress={() => playRecording_fromAudioFile(item.link_storage)} style={styles.playButton}>
                       <Image source={VolumeIcon} style={{ width: 35, height: 35, opacity: 0.5, marginHorizontal: 15 }} />
                     </TouchableOpacity>
+                    <TouchableOpacity onPress={() => handleCaptionClick(item.id)} style={styles.playButton}>
+                        <Image source={captionIcon} style={{ width: 25, height: 25, opacity: 0.5, marginHorizontal: 15 }} />
+                      </TouchableOpacity>
+
+                    </>
                   )}
+                  
+                  
+                  
                   {item.image && (
                     <TouchableOpacity onPress={() => setFullscreenImage(`https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/photos/${item.link_storage}`)}>
                       <Image source={eyeIcon} style={{ width: 35, height: 35, opacity: 0.5, marginHorizontal: 15 }} />
@@ -1083,7 +1105,10 @@ const filteredAnswers = answers.filter(answer => {
                   </>
                   )}
                   {!item.image && (
+                    <View style={{ flexDirection: 'row'}}>
+                     {item.question_reponse == "question" && (<Image source={questionIcon} style={{ width: 36, height: 36, opacity: 0.5, marginLeft: 15 }} />)}
                   <Text style={styles.answerText}>{item.answer}</Text>
+                  </View>
                 )}
                   </>
                 )}
