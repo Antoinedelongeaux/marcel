@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation} from '@react-navigation/native';
+import { useParams } from 'react-router-dom';
 import {
   Image,
   Modal,
@@ -32,6 +33,7 @@ import {
   integration,
   getUserStatus,
  save_question,
+ isExistingChapter,
 } from '../components/data_handling';
 import { useFocusEffect } from '@react-navigation/native';
 import { getActiveSubjectId } from '../components/local_storage';
@@ -64,7 +66,7 @@ import rightArrowIcon from '../../assets/icons/right-arrow.png';
 import ReactHtmlParser from 'react-html-parser'; 
 
 
-const windowWidth = Dimensions.get('window').width;
+
 
 const useFetchActiveSubjectId = (setSubjectActive, setSubject, navigation) => {
   useFocusEffect(
@@ -98,28 +100,16 @@ const useFetchData = async (id_user,subjectActive, setQuestions, tags, personal,
 
 
 
-const usePanelDimensions = (navigation) => {
-  const windowWidth = Dimensions.get('window').width;
-  const [middlePanelWidth, setMiddlePanelWidth] = useState(0.5 * windowWidth);
-  const [rightPanelWidth, setRightPanelWidth] = useState(windowWidth - middlePanelWidth - 550);
 
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      const windowWidth = Dimensions.get('window').width;
-      setMiddlePanelWidth(0.5 * windowWidth);
-      setRightPanelWidth(windowWidth - middlePanelWidth - 550);
-    });
-
-    return unsubscribe;
-  }, [navigation]);
-
-  return { middlePanelWidth, setMiddlePanelWidth, rightPanelWidth, setRightPanelWidth, windowWidth };
-};
 
 
 function ReadQuestionsScreen({ route }) {
   const navigation = useNavigation();
   const session = route.params?.session;
+  const { suffix } = useParams();
+  console.log("suffix : ",suffix)
+
+
 
   const [questions, setQuestions] = useState([]);
   const [subjectActive, setSubjectActive] = useState(null);
@@ -159,8 +149,7 @@ function ReadQuestionsScreen({ route }) {
   const [subject, setSubject] = useState([]);
   const editor = useRef();
   const [isLeftPanelVisible, setIsLeftPanelVisible] = useState(true);
-  //const [middlePanelWidth, setMiddlePanelWidth] = useState(0.5*windowWidth )
-  //const [rightPanelWidth, setRightPanelWidth] = useState(windowWidth - middlePanelWidth - 550);
+
   const [initialMouseX, setInitialMouseX] = useState(null);
   const [initialMiddlePanelWidth, setInitialMiddlePanelWidth] = useState(middlePanelWidth);
   const [question, setQuestion] = useState('');
@@ -175,16 +164,86 @@ function ReadQuestionsScreen({ route }) {
   const[userName,setUserName] = useState('');
 const [toggleIcon, setToggleIcon] = useState(plusIcon);
 const [question_reponse, setQuestion_reponse] = useState('réponse');
-const { middlePanelWidth, setMiddlePanelWidth, rightPanelWidth, setRightPanelWidth, windowWidth } = usePanelDimensions(navigation);
+
+  const windowWidth = Dimensions.get('window').width;
+  const [middlePanelWidth, setMiddlePanelWidth] = useState(0.5*windowWidth )
+  const [rightPanelWidth, setRightPanelWidth] = useState(windowWidth - middlePanelWidth - 550);
+
 
 
   const [isDragging, setIsDragging] = useState(false);
   const [expandedAnswers, setExpandedAnswers] = useState({});
 
+  useEffect(async() => {
+    
+    check =   await isExistingChapter(suffix)
+    if(check) {
+      navigateToScreen('AnswerQuestionScreen', { questionId: suffix })
+
+    }
+
+  }, [suffix]);
+
+    useEffect(() => {
+      const fetchUserStatus = async () => {
+        const status = await getUserStatus(session.user.id, subjectActive);
+        setUserStatus(status);
+        if(status.chapters=="Auditeur"){
+          setQuestion_reponse('question')
+        }
+        const name = await get_user_name(session.user.id);
+        setUserName(name);
+        
+        if (status.access==false) {
+          navigateToScreen('Projets')
+        }
+        if (status.chapters=="Pas d'accès") {
+          setMiddlePanelWidth(0);
+        }
+      };
+      if (subjectActive) {
+        fetchUserStatus();
+      }
+
+
+
+      const unsubscribe = navigation.addListener('focus', () => {
+        const windowWidth = Dimensions.get('window').width;
+        setMiddlePanelWidth(0.5 * windowWidth);
+  
+  if(userStatus.chapters == "Pas d'accès"){
+        setRightPanelWidth(windowWidth  - 550);
+  } else {
+    setRightPanelWidth(windowWidth - middlePanelWidth - 550);
+  }
+      });
+  
+      return unsubscribe;
+    }, [navigation,userStatus]);
+  
+ 
+    useEffect(() => {
+  if(userStatus.chapters == "Pas d'accès"){
+        setRightPanelWidth(windowWidth  - 550);
+  } else {
+    setRightPanelWidth(windowWidth - middlePanelWidth - 550);
+  }
+    }, [userStatus]);
+  
+
+
+
+
+
+
+
+
+
   useEffect(() => { 
     if (userStatus=="non trouvé") {
       navigateToScreen('Projets')
     }
+
   
   }, [userStatus])
 
@@ -276,7 +335,7 @@ useEffect(() => {
     setRightPanelWidth(windowWidth - middlePanelWidth-550-10);
   }
 
-}, [middlePanelWidth,isLeftPanelVisible ]);
+}, [middlePanelWidth,isLeftPanelVisible,userStatus ]);
 
 
 const toggleLeftPanel = () => {

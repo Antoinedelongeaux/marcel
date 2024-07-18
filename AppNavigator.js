@@ -1,5 +1,6 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
+import { useParams } from 'react-router-dom'; // Importer useParams
 import Auth from './src/navigation/Auth';
 import Account from './src/navigation/Account';
 import BiographyScreen from './src/screens/BiographyScreen';
@@ -16,6 +17,9 @@ import InvitationScreen from './src/screens/InvitationScreen';
 const Stack = createStackNavigator();
 
 function AppNavigator({ session }) {
+  const { suffix } = useParams(); // Utiliser useParams pour extraire le suffixe
+  console.log("suffix : ", suffix);
+
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {session && session.user ? (

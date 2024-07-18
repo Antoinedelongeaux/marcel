@@ -2,32 +2,13 @@ import 'react-native-url-polyfill/auto';
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from './src/lib/supabase';
 import { NavigationContainer } from '@react-navigation/native';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import AppNavigator from './AppNavigator';
 
 export default function App() {
   const [session, setSession] = useState(null);
   const ref = useRef(null);
-/*
-  const linking = {
-    prefixes: [
-      'https://marcel-eight.vercel.app',
-      'http://localhost:8081',
-      'https://redesigned-parakeet-544gx7qrgqv2v9qj-8081.app.github.dev',
-    ],
-    config: {
-      screens: {
-        Home: '/',
-        InvitationScreen: {
-          path: 'invitation/:id_invitation',
-          parse: {
-            id_invitation: (id) => `${id}`,
-          },
-        },
-        // Ajouter d'autres routes si nécessaire
-      },
-    },
-  };
-*/
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
@@ -39,8 +20,13 @@ export default function App() {
   }, []);
 
   return (
-    <NavigationContainer ref={ref} /*linking={linking}*/>
-      <AppNavigator session={session} />
-    </NavigationContainer>
+    <BrowserRouter> {/* Envelopper NavigationContainer avec BrowserRouter */}
+      <NavigationContainer ref={ref}>
+        <Routes> {/* Utiliser Routes pour définir les itinéraires */}
+          <Route path="/*" element={<AppNavigator session={session} />} /> {/* Définir un itinéraire global */}
+          <Route path="/:suffix/*" element={<AppNavigator session={session} />} /> {/* Définir un itinéraire avec suffix */}
+        </Routes>
+      </NavigationContainer>
+    </BrowserRouter>
   );
 }

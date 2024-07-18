@@ -1023,3 +1023,25 @@ export async function moveAnswer(id_answer,new_rank) {
   Alert.alert("Erreur", errorUpdating.message);
 }
 }
+
+
+
+export async function isExistingChapter(id_question) { 
+  try {
+
+
+    const { data, error: errorExisting } = await supabase
+      .from('Memoires_questions')
+      .select('*')
+      .eq('id', id_question);
+
+    if (data.length >0) {
+      return true
+
+    }
+    return false
+} catch (errorExisting) {
+  Alert.alert("Erreur", errorExisting.message);
+}
+}
+
