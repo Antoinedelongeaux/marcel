@@ -46,6 +46,7 @@
     "react-html-parser": "^2.0.2",
     "react-native": "0.73.6",
     "react-native-audio-recorder-player": "^3.6.7",
+    "react-native-dotenv": "^3.4.11",
     "react-native-draggable-flatlist": "^4.0.1",
     "react-native-dropdown-select-list": "^2.0.5",
     "react-native-elements": "^3.4.3",
