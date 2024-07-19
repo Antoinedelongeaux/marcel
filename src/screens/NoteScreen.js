@@ -486,12 +486,13 @@ const filteredAnswers = answers.filter(answer => {
         const baseName = `${Date.now()}`;
         const { uri, duration } = await stopRecording(recording, `${baseName}.mp3`);
   
-        const chunks = Math.ceil(duration / 30);
+        const maxDuration = 60;  // Durée maximale d'un morceau en secondes
+        const chunks = Math.ceil(duration / maxDuration);
         const connectionId = uuidv4();
   
         for (let i = 0; i < chunks; i++) {
-          const start = i * 30;
-          const end = (i + 1) * 30 > duration ? duration : (i + 1) * 30;
+          const start = i * maxDuration;
+          const end = (i + 1) * maxDuration > duration ? duration : (i + 1) * maxDuration;
           const chunkName = `${baseName}_part_${i + 1}.mp3`;
   
           const chunkUri = await createAudioChunk(uri, chunkName, start, end);
@@ -500,7 +501,7 @@ const filteredAnswers = answers.filter(answer => {
       } catch (error) {
         console.error('Error during handleRecording:', error);
       } finally {
-        console.log("Voilà c'est fait")
+        setPleaseWait(false);
       }
     } else {
       const temp = await startRecording();
@@ -508,6 +509,7 @@ const filteredAnswers = answers.filter(answer => {
       setIsRecording(true);
     }
   };
+  
 
   const handleUpdateAnswer = async (answerId, newText) => {
     try {
@@ -543,13 +545,12 @@ const filteredAnswers = answers.filter(answer => {
     await refreshAnswers();
   };
 
-  const handleAnswerSubmit = async (name, isMedia, uri = null,isImage,connectionID) => {
-    setModalVisible(false)
-    let transcribedText = isMedia ? "audio pas encore converti en texte" : answer;
-    if (isImage){
-      transcribedText = "Ceci est une photographie"
+  const handleAnswerSubmit = async (name, isMedia, uri = null, isImage = false, connectionID = null) => {
+    let transcribedText = isMedia ? "audio à convertir en texte" : answer;
+    if (isImage) {
+      transcribedText = "Ceci est une photographie";
     }
-
+  
     if (isMedia && uri) {
       let uploadedFileName;
       if (name.endsWith('.mp3')) {
@@ -557,22 +558,20 @@ const filteredAnswers = answers.filter(answer => {
       } else {
         uploadedFileName = await uploadImageToSupabase(uri, name);
       }
-      
+  
       if (!uploadedFileName) {
         Alert.alert("Erreur", `Échec du téléchargement du fichier ${name.endsWith('.mp3') ? 'audio' : 'image'}`);
         return;
       }
     }
-
-    await submitMemories_Answer(transcribedText, question, delegationUserId, isMedia, name,isImage, connectionID,async () => {
+  
+    await submitMemories_Answer(transcribedText, question, delegationUserId, isMedia, name, isImage, connectionID, async () => {
       setAnswer('');
       setTimeout(async () => {
         await refreshAnswers();
       }, 1000);
-      
     },
     answerAndQuestion
-
   );
   };
 
@@ -668,7 +667,7 @@ const filteredAnswers = answers.filter(answer => {
   
       if (!result.canceled) {
         let uri, name, mimeType;
-
+  
         if (result.output && result.output.length > 0) {
           const file = result.output[0];
           uri = URL.createObjectURL(file);
@@ -692,16 +691,24 @@ const filteredAnswers = answers.filter(answer => {
           try {
             const duration = await getAudioDuration(uri); // Modifié pour récupérer directement la durée
             console.log("Audio duration:", duration);
-            const chunks = Math.ceil(duration / 30);
+            const maxDuration = 60;  // Durée maximale d'un morceau en secondes
+            const chunks = Math.ceil(duration / maxDuration);
             const connectionId = uuidv4();
   
             for (let i = 0; i < chunks; i++) {
-              const start = i * 30;
-              const end = (i + 1) * 30 > duration ? duration : (i + 1) * 30;
+              const start = i * maxDuration;
+              const end = (i + 1) * maxDuration > duration ? duration : (i + 1) * maxDuration;
               const chunkName = `${name}_part_${i + 1}.mp3`;
   
+              console.log(`Creating chunk: ${chunkName} from ${start} to ${end}`);
               const chunkUri = await createAudioChunk(uri, chunkName, start, end);
-              await handleAnswerSubmit(chunkName, true, chunkUri, false, connectionId);
+  
+              if (chunkUri) {
+                console.log(`Uploading chunk: ${chunkName}`);
+                await handleAnswerSubmit(chunkName, true, chunkUri, false, connectionId);
+              } else {
+                console.error(`Failed to create chunk: ${chunkName}`);
+              }
             }
           } catch (e) {
             console.error("Error getting audio duration:", e);
@@ -718,6 +725,7 @@ const filteredAnswers = answers.filter(answer => {
       Alert.alert("Erreur", "Une erreur s'est produite lors de la sélection du fichier");
     }
   };
+  
   
   
     

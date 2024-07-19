@@ -582,6 +582,8 @@ export const createAudioChunk = async (uri, chunkName, start, end) => {
       const wavData = audioBufferToWav(chunkBuffer);
       const blob = new Blob([wavData], { type: 'audio/wav' });
       const chunkUri = URL.createObjectURL(blob);
+
+      console.log(`Created chunk: ${chunkName} with duration ${end - start} seconds`);
       return chunkUri;
     } else {
       // Native handling
@@ -608,6 +610,7 @@ export const createAudioChunk = async (uri, chunkName, start, end) => {
             const base64Audio = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
             const slicedAudio = base64Audio.slice(startMillis, endMillis);
             await FileSystem.writeAsStringAsync(chunkUri, slicedAudio, { encoding: FileSystem.EncodingType.Base64 });
+            console.log(`Created chunk: ${chunkName} with duration ${end - start} seconds`);
             resolve(chunkUri);
           } catch (error) {
             reject(error);
@@ -620,6 +623,8 @@ export const createAudioChunk = async (uri, chunkName, start, end) => {
     return null;
   }
 };
+
+
 
 // Helper function to convert AudioBuffer to WAV
 const audioBufferToWav = (buffer) => {

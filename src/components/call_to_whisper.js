@@ -2,10 +2,8 @@ import axios from 'axios';
 import AudioBufferToWav from 'audiobuffer-to-wav';
 
 const BASE_URL = 'https://srv495286.hstgr.cloud:5000';  // Adresse de votre serveur
-const MAX_PAYLOAD_SIZE = 10485760; // 10 MB
-const SEGMENT_DURATION = 30; // Segment duration in seconds
-
-
+const MAX_PAYLOAD_SIZE = 10485760 * 2; // 10 MB
+const SEGMENT_DURATION = 60; // Segment duration in seconds
 
 const convertAudioBufferToWavBase64 = async (audioBuffer) => {
   console.log('Converting audio buffer to WAV Base64');
@@ -65,6 +63,7 @@ const splitAudioBuffer = (audioBuffer, segmentDuration) => {
       const channelData = audioBuffer.getChannelData(channel);
       segment.copyToChannel(channelData.subarray(start, end), channel, 0);
     }
+    console.log(`Segment ${segments.length + 1} - Start: ${start}, End: ${end}, Length: ${segment.length}`);
     segments.push(segment);
   }
   return segments;
@@ -90,7 +89,7 @@ const transcribeSegment = async (audioFile) => {
 
 export const transcribeAudio = async (audioFileName) => {
   try {
-    console.log("Ceci prouve que l'on passe bien par Whisper")
+    console.log("Ceci prouve que l'on passe bien par Whisper");
     console.log('Transcribing audio:', audioFileName);
     const publicURL = `https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/audio/${audioFileName}`;
     console.log("Fetching audio file from:", publicURL);
@@ -98,6 +97,8 @@ export const transcribeAudio = async (audioFileName) => {
     const audioBuffer = await fetchAudioBuffer(publicURL);
     const segments = splitAudioBuffer(audioBuffer, SEGMENT_DURATION);
     let fullTranscription = '';
+
+    console.log(`Total segments to transcribe: ${segments.length}`);
 
     for (let i = 0; i < segments.length; i++) {
       const segmentBase64 = await convertAudioBufferToWavBase64(segments[i]);
@@ -114,6 +115,7 @@ export const transcribeAudio = async (audioFileName) => {
       fullTranscription += segmentTranscription + ' ';
     }
 
+    console.log('Full transcription:', fullTranscription.trim());
     return fullTranscription.trim();
   } catch (error) {
     console.error('Error in transcribeAudio:', error.message);
