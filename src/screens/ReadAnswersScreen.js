@@ -152,8 +152,11 @@ function ReadQuestionsScreen({ route }) {
   const [content, setContent] = useState('<p>Commencez à écrire ici...</p>');
   const [isEditorReady, setEditorReady] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isShareModalVisible, setIsShareModalVisible] = useState(false);
+
 
   useEffect(() => {
+    if(suffix){
     const fetchChapter = async () => {
       const check = await isExistingChapter(suffix);
       if (check) {
@@ -162,6 +165,7 @@ function ReadQuestionsScreen({ route }) {
     };
   
     fetchChapter();
+  }
   }, [suffix]);
   
 
@@ -376,12 +380,20 @@ function ReadQuestionsScreen({ route }) {
   useEffect(() => {
     if (Object.keys(activeQuestionAnswers)[0]) {
       const loadData = async () => {
+     
         if (question && question.full_text && question.full_text.ops) {
           const converter = new QuillDeltaToHtmlConverter(question.full_text.ops, {});
           const html = converter.convert();
           setContent(html);
         } else {
-          console.error('Data is not in the expected format:', question.full_text);
+          if (question && question.full_text ) {
+
+            setContent(question.full_text );
+          } else {
+            
+            
+            console.error('Data is not in the expected format:', question.full_text);
+          }
         }
         setIsLoading(false);
       };

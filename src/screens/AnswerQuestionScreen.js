@@ -33,6 +33,7 @@ import { v4 as uuidv4 } from 'uuid';
 function ReadAnswersScreen({ route }) {
   const navigation = useNavigation();
   const id_question = route.params.questionId;
+  
   const session = route.params.session;
   const [question, setQuestion] = useState(null);
   const [owner, setOwner] = useState(null);
@@ -72,10 +73,10 @@ function ReadAnswersScreen({ route }) {
         setSubject_active(temp);
       };
       fetchActiveSubjectId();
-      if (session && subject_active != null) {
+     
         getMemories_Question_by_id(id_question, setQuestion, setAnswers, setOwner);
-      }
-    }, [session, subject_active, navigation])
+      
+    }, [ navigation])
   );
 
   const handleRecording = async () => {
@@ -163,7 +164,8 @@ function ReadAnswersScreen({ route }) {
       setTimeout(async () => {
         await refreshAnswers();
       }, 1000);
-    }
+    },
+    "réponse"
   
   );
   };
@@ -334,7 +336,7 @@ function ReadAnswersScreen({ route }) {
     <View style={{ flex: 1, backgroundColor: "#E8FFF6" }}>
       <ScrollView contentContainerStyle={styles.contentContainer}>
         <View style={styles.navigationContainer}>
-          <TouchableOpacity onPress={() => navigateToScreen('Marcel')} style={styles.navButton}>
+          <TouchableOpacity onPress={() => window.location.href = 'https://marcel-eight.vercel.app/'} style={styles.navButton}>
             <Image source={ArrowLeftIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
           </TouchableOpacity>
           <TouchableOpacity onPress={refreshAnswers} style={styles.navButton}>

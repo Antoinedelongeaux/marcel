@@ -320,7 +320,7 @@ export async function deleteMemories_Answer(answerId) {
 
 export async function submitMemories_Answer(answer, question, session, audio, name, image, connectionId, resetAnswerAndFetchQuestion,question_reponse) {
   try {
-    console.log("question_reponse : ",question_reponse)
+
     const id_subject = await getActiveSubjectId();
     let ID_question = null;
 
@@ -1026,24 +1026,104 @@ export async function moveAnswer(id_answer,new_rank) {
 
 
 
-export async function isExistingChapter(id_question) { 
+export async function linkAnalysis(suffix) { 
   try {
-
-
+    // Vérification pour les questions
     const { data, error: errorExisting } = await supabase
-      .from('Memoires_questions')
+      .from('Memoires_magic_link')
       .select('*')
-      .eq('id', id_question);
+      .eq('id', suffix)
+      .eq('nature', 'question')
+      .eq('expired', false)
+      .single();
 
-    if (data.length >0) {
-      return true
 
+    if (data) {
+      return { nature: 'question', id_question: data.id_question };
     }
-    return false
-} catch (errorExisting) {
-  Alert.alert("Erreur", errorExisting.message);
+
+    // Vérification pour les sujets
+    const { data: data_subject, error: errorExisting_subject } = await supabase
+      .from('Memoires_magic_link')
+      .select('*')
+      .eq('id', suffix)
+      .eq('nature', 'subject')
+      .eq('expired', false)
+      .single();
+
+    console.log("subject : ", data_subject);
+
+    if (data_subject) {
+      return { nature: 'subject', id_subject: data_subject.id_subject };
+    }
+
+    return { nature: 'normal' };
+  } catch (error) {
+    console.error("Erreur : ", error);
+    return { nature: 'error', message: error.message };
+  }
 }
+
+export async function getExistingLink(id_target,id_question_id_subject) { 
+  try {
+    // Vérification pour les questions
+    const { data, error: errorExisting } = await supabase
+      .from('Memoires_magic_link')
+      .select('*')
+      .eq(id_question_id_subject, id_target);
+
+      console.log("link bis : ",data)
+      return data;
+    
+  } catch (error) {
+    console.error("Erreur : ", error);
+    return { nature: 'error', message: error.message };
+  }
 }
+
+export async function updateExistingLink(id_link,expired) { 
+  try {
+    // Vérification pour les questions
+    const { data, error: errorUpdate } = await supabase
+      .from('Memoires_magic_link')
+      .update({ expired: expired }) 
+      .eq('id', id_link);
+
+      return data;
+    
+  } catch (errorUpdate) {
+    console.error("Erreur : ", errorUpdate);
+    return { nature: 'error', message: errorUpdate.message };
+  }
+}
+
+export async function createNewLink(id_target, id_question_id_subject) { 
+  try {
+    let link;
+    const insertData = id_question_id_subject === 'id_question' 
+      ? { nature: 'question', id_question: id_target }
+      : { nature: 'subject', id_subject: id_target };
+
+    const { data, error: errorCreatingLink } = await supabase
+      .from('Memoires_magic_link')
+      .insert([insertData])
+      .single();
+
+    if (errorCreatingLink) {
+      throw errorCreatingLink;
+    }
+
+    link = data;
+    return link;
+  } catch (errorCreatingLink) {
+    console.error("Erreur : ", errorCreatingLink);
+    return { nature: 'error', message: errorCreatingLink.message };
+  }
+}
+
+
+
+
 
 export async function update_answer_owner(id_answer,id_user) {
   try {

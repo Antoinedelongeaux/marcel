@@ -1,6 +1,8 @@
-import React from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useParams } from 'react-router-dom'; // Importer useParams
+import { useNavigation } from '@react-navigation/native';
 import Auth from './src/navigation/Auth';
 import Account from './src/navigation/Account';
 import BiographyScreen from './src/screens/BiographyScreen';
@@ -13,15 +15,61 @@ import ReadAnswersScreen from './src/screens/ReadAnswersScreen';
 import ManageBiographyScreen from './src/screens/ManageBiography';
 import NoteScreen from './src/screens/NoteScreen';
 import InvitationScreen from './src/screens/InvitationScreen';
+import {
+  linkAnalysis,
+} from './src/components/data_handling';
 
 const Stack = createStackNavigator();
 
 function AppNavigator({ session }) {
+  const navigation = useNavigation();
+  const [check, setCheck] = useState({nature : 'en cours'});
   const { suffix } = useParams(); // Utiliser useParams pour extraire le suffixe
-  console.log("suffix : ", suffix);
+
+
+  
+
+  useEffect(() => {
+
+    if(suffix){
+    const fetchSuffixData= async () => {
+      setCheck(await linkAnalysis(suffix));
+    
+     
+    };
+  
+    fetchSuffixData();
+  }
+
+
+  }, [suffix]);
+  
+  useEffect(() => {
+
+    if(suffix){
+    const fetchSuffixData= async () => {
+      setCheck(await linkAnalysis(suffix));
+    
+     
+    };
+  
+    fetchSuffixData();
+  }
+
+
+  }, [suffix]);
+
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
+
+      {check.nature==='question' ? (
+        
+        <Stack.Screen name="AnswerQuestionScreen" component={AnswerQuestionScreen} initialParams={{ questionId : check.id_question }}/>
+        
+      ):(
+
+<>
       {session && session.user ? (
         <>
           <Stack.Screen name="Account" component={Account} initialParams={{ session }} />
@@ -39,6 +87,9 @@ function AppNavigator({ session }) {
       ) : (
         <Stack.Screen name="Auth" component={Auth} />
       )}
+    </>
+    )}
+    
       <Stack.Screen name="InvitationScreen" component={InvitationScreen} />
     </Stack.Navigator>
   );

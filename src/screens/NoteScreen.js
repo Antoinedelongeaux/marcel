@@ -34,6 +34,9 @@ import {
   moveAnswer,
   get_project_contributors,
   update_answer_owner,
+  getExistingLink,
+  updateExistingLink,
+  createNewLink,
 } from '../components/data_handling';
 
 import { useFocusEffect } from '@react-navigation/native';
@@ -66,6 +69,7 @@ import Upload from '../../assets/icons/upload.png';
 import * as DocumentPicker from 'expo-document-picker';
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import Clipboard from '@react-native-clipboard/clipboard';
+import shareIcon from '../../assets/icons/share.png';
 
 
 
@@ -118,6 +122,9 @@ function NoteScreen({ route }) {
   ]);
 
   const question = route.params?.question.id || '';
+  const [link,setLink]=useState([]);
+
+
   const question_reponse = route.params?.question_reponse || 'réponse';
   const [selectedQuestion, setSelectedQuestion] = useState(question);
   const [selectedChapter, setSelectedChapter] = useState('');
@@ -152,6 +159,9 @@ const [transcribingId, setTranscribingId] = useState(null);
 const [isAssignModalVisible, setIsAssignModalVisible] = useState(false);
 const [selectedAnswerId, setSelectedAnswerId] = useState(null);
 const [selectedUserId, setSelectedUserId] = useState(null);
+const [isShareModalVisible, setIsShareModalVisible] = useState(false);
+
+
 
 
 useFetchActiveSubjectId(setSubjectActive, setSubject, navigation);
@@ -175,6 +185,39 @@ useEffect(() => {
     fetchUsers();
   }
 }, [subjectActive]);
+
+useEffect(() => {
+  if (question) {
+
+  const fetchData = async () => {
+    setLink(await getExistingLink(question, "id_question"));
+  };
+  
+  fetchData();
+  
+}
+}, [question]);
+
+const copyLinkToClipboard = (text) => {
+  Clipboard.setString(text);
+  Alert.alert('Lien copié dans le presse-papier', text);
+};
+
+const toggleLinkStatus = async () => {
+  
+  if (link[0]) {
+    const newExpired = !link[0].expired;
+    await updateExistingLink(link[0].id,newExpired) ;
+    setLink({ ...link, expired: newExpired });
+    Alert.alert(newExpired ? 'Lien activé' : 'Lien désactivé');
+  } else {
+    const newLink = await createNewLink(question,'id_question')
+    setLink(await getExistingLink(question,'id_question'));
+    setIsShareModalVisible(false)
+    }
+  
+};
+
 
 
 useEffect(() => {
@@ -894,16 +937,21 @@ const filteredAnswers = answers.filter(answer => {
 
 
 <View style={{ flexDirection: 'row', justifyContent: 'center', marginBottom: 5 }}>
-  <TouchableOpacity onPress={() => setShowFilters(!showFilters)} style={styles.filterIcon}>
-    <Image source={filterIcon} style={{ width: 50, height: 50, opacity: 0.5, marginVertical : 30 }} />
-  </TouchableOpacity>
-
-  <TouchableOpacity onPress={() => setShowDetails(!showDetails)} style={styles.filterIcon}>
+<TouchableOpacity onPress={() => setShowDetails(!showDetails)} style={styles.filterIcon}>
   <Image 
     source={showDetails ? minusIcon : plusIcon} 
     style={{ width: 50, height: 50, opacity: 0.5, marginVertical: 30 }} 
   />
 </TouchableOpacity>
+  <TouchableOpacity onPress={() => setShowFilters(!showFilters)} style={styles.filterIcon}>
+    <Image source={filterIcon} style={{ width: 50, height: 50, opacity: 0.5, marginVertical : 30 }} />
+  </TouchableOpacity>
+
+  
+  <TouchableOpacity onPress={() => setIsShareModalVisible(true)} style={styles.filterIcon}>
+  <Image source={shareIcon} style={{ width: 50, height: 50, opacity: 0.5, marginVertical : 30 }} />
+</TouchableOpacity>
+
 
 
 {/*
@@ -1210,6 +1258,44 @@ const filteredAnswers = answers.filter(answer => {
   </View>
 </Modal>
 
+<Modal
+  animationType="slide"
+  transparent={true}
+  visible={isShareModalVisible}
+  onRequestClose={() => setIsShareModalVisible(false)}
+>
+<View style={styles.modalContainer}>
+    
+      <Text style={styles.modalText}>
+      {'\n'}
+        Vous pouvez partager un lien qui permettra à votre proche de contribuer au projet sans identification préalable. {'\n'}
+        {'\n'}
+        Attention, n'importe qui ayant ce lien aura un accès libre aux contributions propres aux chapitres considérés, tant que vous laissez le lien de partage actif.
+        {'\n'}
+        {'\n'}
+      </Text>
+  
+      {link[0] ? (
+        <>
+          <TouchableOpacity style={globalStyles.globalButton_wide} onPress={() => copyLinkToClipboard("https://marcel-eight.vercel.app/"+link[0].id)}>
+            <Text style={globalStyles.globalButtonText}>Copier le lien dans le presse-papier</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={globalStyles.globalButton_wide} onPress={toggleLinkStatus}>
+            <Text style={globalStyles.globalButtonText}>{link[0].expired ? 'Réactiver le lien' : 'Désactiver le lien'}</Text>
+          </TouchableOpacity>
+        </>
+      ) : (
+        <TouchableOpacity style={globalStyles.globalButton_wide} onPress={toggleLinkStatus}>
+          <Text style={globalStyles.globalButtonText}>Créer un lien de partage</Text>
+        </TouchableOpacity>
+      )}
+      <TouchableOpacity style={[globalStyles.globalButton_wide]} onPress={() => setIsShareModalVisible(false)}>
+        <Text style={globalStyles.globalButtonText}>Fermer</Text>
+      </TouchableOpacity>
+    
+  </View>
+</Modal>
 
 
 <View>
