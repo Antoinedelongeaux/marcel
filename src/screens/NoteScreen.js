@@ -836,6 +836,7 @@ const filteredAnswers = answers.filter(answer => {
 </View>
    
     <Modal isVisible={isModalVisible}>
+    <View style={styles.overlay}>
   <View style={styles.modalContainer}>
     <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.closeButton}>
       <Image source={closeIcon} style={styles.closeIcon} />
@@ -933,6 +934,7 @@ const filteredAnswers = answers.filter(answer => {
   </View>      
 
   </View>
+</View>
 </Modal>
 
 
@@ -1239,6 +1241,7 @@ const filteredAnswers = answers.filter(answer => {
 )}
 
 <Modal isVisible={isAssignModalVisible}>
+<View style={styles.overlay}>
   <View style={styles.modalContainer}>
     <TouchableOpacity onPress={() => setIsAssignModalVisible(false)} style={styles.closeButton}>
       <Image source={closeIcon} style={styles.closeIcon} />
@@ -1256,6 +1259,7 @@ const filteredAnswers = answers.filter(answer => {
       <Text style={globalStyles.globalButtonText}>Attribuer</Text>
     </TouchableOpacity>
   </View>
+  </View>
 </Modal>
 
 <Modal
@@ -1264,8 +1268,11 @@ const filteredAnswers = answers.filter(answer => {
   visible={isShareModalVisible}
   onRequestClose={() => setIsShareModalVisible(false)}
 >
+<View style={styles.overlay}>
 <View style={styles.modalContainer}>
-    
+<TouchableOpacity onPress={() => setIsShareModalVisible(false)} style={styles.closeButton}>
+      <Image source={closeIcon} style={styles.closeIcon} />
+    </TouchableOpacity>
       <Text style={styles.modalText}>
       {'\n'}
         Vous pouvez partager un lien qui permettra à votre proche de contribuer au projet sans identification préalable. {'\n'}
@@ -1290,10 +1297,9 @@ const filteredAnswers = answers.filter(answer => {
           <Text style={globalStyles.globalButtonText}>Créer un lien de partage</Text>
         </TouchableOpacity>
       )}
-      <TouchableOpacity style={[globalStyles.globalButton_wide]} onPress={() => setIsShareModalVisible(false)}>
-        <Text style={globalStyles.globalButtonText}>Fermer</Text>
-      </TouchableOpacity>
+
     
+  </View>
   </View>
 </Modal>
 
@@ -1522,7 +1528,9 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 10,
     alignSelf: 'center',
+    zIndex: 20,
   },
+  
   closeButton: {
     position: 'absolute',
     top: 10,
@@ -1539,6 +1547,21 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     textAlign: 'center',
   },
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  
+  
   
 });
 
