@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
-import { useNavigation} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useParams } from 'react-router-dom';
 import {
   Image,
@@ -8,7 +8,6 @@ import {
   Platform,
   TextInput,
   Alert,
-  Button,
   View,
   Text,
   TouchableOpacity,
@@ -32,8 +31,8 @@ import {
   get_Question_by_id,
   integration,
   getUserStatus,
- save_question,
- isExistingChapter,
+  save_question,
+  isExistingChapter,
 } from '../components/data_handling';
 import { useFocusEffect } from '@react-navigation/native';
 import { getActiveSubjectId } from '../components/local_storage';
@@ -65,16 +64,13 @@ import leftArrowIcon from '../../assets/icons/left-arrow.png';
 import rightArrowIcon from '../../assets/icons/right-arrow.png';
 import ReactHtmlParser from 'react-html-parser'; 
 
-
-
-
 const useFetchActiveSubjectId = (setSubjectActive, setSubject, navigation) => {
   useFocusEffect(
-    React.useCallback(() => {
+    useCallback(() => {
       const fetchActiveSubjectId = async () => {
         const temp = await getActiveSubjectId();
         setSubjectActive(temp);
-        if (temp != null) {
+        if (temp) {
           const temp2 = await getSubject(temp);
           setSubject(temp2);
         } else {
@@ -86,31 +82,20 @@ const useFetchActiveSubjectId = (setSubjectActive, setSubject, navigation) => {
   );
 };
 
-const useFetchData = async (id_user,subjectActive, setQuestions, tags, personal, setChapters,setUserStatus,userStatus) => {
+const useFetchData = (id_user, subjectActive, setQuestions, tags, personal, setChapters, setUserStatus) => {
   useEffect(() => {
-    if (subjectActive != null) {
-   
+    if (subjectActive) {
       getMemories_Questions(subjectActive, setQuestions, tags, personal);
       get_chapters(subjectActive, setChapters);
-      setUserStatus(getUserStatus(id_user,subjectActive)) 
+      getUserStatus(id_user, subjectActive).then(setUserStatus);
     }
   }, [subjectActive, tags, personal]);
 };
-
-
-
-
-
-
 
 function ReadQuestionsScreen({ route }) {
   const navigation = useNavigation();
   const session = route.params?.session;
   const { suffix } = useParams();
-  console.log("suffix : ",suffix)
-
-
-
   const [questions, setQuestions] = useState([]);
   const [subjectActive, setSubjectActive] = useState(null);
   const [tags, setTags] = useState([
@@ -131,29 +116,23 @@ function ReadQuestionsScreen({ route }) {
   const [newChapterTitle, setNewChapterTitle] = useState('');
   const [isModalNewQuestionVisible, setIsModalNewQuestionVisible] = useState(false);
   const [newQuestionTitle, setNewQuestionTitle] = useState('');
-
-
-
   const [isChapterModalVisible, setIsChapterModalVisible] = useState(false);
   const [selectedQuestionId, setSelectedQuestionId] = useState(null);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [isEditChapterModalVisible, setIsEditChapterModalVisible] = useState(false);
-
   const [editChapterId, setEditChapterId] = useState(null);
   const [editChapterTitle, setEditChapterTitle] = useState('');
   const [editQuestionId, setEditQuestionId] = useState(null);
   const [editQuestionTitle, setEditQuestionTitle] = useState('');
-
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [deletionDetails, setDeletionDetails] = useState({ id: null, isChapter: true });
   const [subject, setSubject] = useState([]);
   const editor = useRef();
   const [isLeftPanelVisible, setIsLeftPanelVisible] = useState(true);
-
   const [initialMouseX, setInitialMouseX] = useState(null);
   const [initialMiddlePanelWidth, setInitialMiddlePanelWidth] = useState(middlePanelWidth);
   const [question, setQuestion] = useState('');
-  const [hasUnclassifiedQuestions,setHasUnclassifiedQuestions] = useState(false);  
+  const [hasUnclassifiedQuestions, setHasUnclassifiedQuestions] = useState(false);
   const [isContentModified, setIsContentModified] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -161,191 +140,143 @@ function ReadQuestionsScreen({ route }) {
   const [userStatus, setUserStatus] = useState('');
   const [isHovered, setIsHovered] = useState(false);
   const [iconsVisible, setIconsVisible] = useState(false);
-  const[userName,setUserName] = useState('');
-const [toggleIcon, setToggleIcon] = useState(plusIcon);
-const [question_reponse, setQuestion_reponse] = useState('réponse');
-
+  const [userName, setUserName] = useState('');
+  const [toggleIcon, setToggleIcon] = useState(plusIcon);
+  const [question_reponse, setQuestion_reponse] = useState('réponse');
   const windowWidth = Dimensions.get('window').width;
-  const [middlePanelWidth, setMiddlePanelWidth] = useState(0.5*windowWidth )
+  const [middlePanelWidth, setMiddlePanelWidth] = useState(0.5 * windowWidth);
   const [rightPanelWidth, setRightPanelWidth] = useState(windowWidth - middlePanelWidth - 550);
-
-
-
   const [isDragging, setIsDragging] = useState(false);
   const [expandedAnswers, setExpandedAnswers] = useState({});
+  const isLargeScreen = windowWidth > 768;
+  const [content, setContent] = useState('<p>Commencez à écrire ici...</p>');
+  const [isEditorReady, setEditorReady] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(async() => {
-    
-    check =   await isExistingChapter(suffix)
-    if(check) {
-      navigateToScreen('AnswerQuestionScreen', { questionId: suffix })
-
-    }
-
-  }, [suffix]);
-
-    useEffect(() => {
-      const fetchUserStatus = async () => {
-        const status = await getUserStatus(session.user.id, subjectActive);
-        setUserStatus(status);
-        if(status.chapters=="Auditeur"){
-          setQuestion_reponse('question')
-        }
-        const name = await get_user_name(session.user.id);
-        setUserName(name);
-        
-        if (status.access==false) {
-          navigateToScreen('Projets')
-        }
-        if (status.chapters=="Pas d'accès") {
-          setMiddlePanelWidth(0);
-        }
-      };
-      if (subjectActive) {
-        fetchUserStatus();
+  useEffect(() => {
+    const fetchChapter = async () => {
+      const check = await isExistingChapter(suffix);
+      if (check) {
+        navigateToScreen('AnswerQuestionScreen', { questionId: suffix });
       }
-
-
-
-      const unsubscribe = navigation.addListener('focus', () => {
-        const windowWidth = Dimensions.get('window').width;
-        setMiddlePanelWidth(0.5 * windowWidth);
+    };
   
-  if(userStatus.chapters == "Pas d'accès"){
-        setRightPanelWidth(windowWidth  - 550);
-  } else {
-    setRightPanelWidth(windowWidth - middlePanelWidth - 550);
-  }
-      });
+    fetchChapter();
+  }, [suffix]);
   
-      return unsubscribe;
-    }, [navigation,userStatus]);
-  
- 
-    useEffect(() => {
-  if(userStatus.chapters == "Pas d'accès"){
-        setRightPanelWidth(windowWidth  - 550);
-  } else {
-    setRightPanelWidth(windowWidth - middlePanelWidth - 550);
-  }
-    }, [userStatus]);
-  
-
-
-
-
-
-
-
-
-
-  useEffect(() => { 
-    if (userStatus=="non trouvé") {
-      navigateToScreen('Projets')
-    }
-
-  
-  }, [userStatus])
-
 
   useEffect(() => {
     const fetchUserStatus = async () => {
       const status = await getUserStatus(session.user.id, subjectActive);
       setUserStatus(status);
-      if(status.chapters=="Auditeur"){
-        setQuestion_reponse('question')
+      if (status.chapters === 'Auditeur') {
+        setQuestion_reponse('question');
       }
       const name = await get_user_name(session.user.id);
       setUserName(name);
-      
-      if (status.access==false) {
-        navigateToScreen('Projets')
+      if (!status.access) {
+        navigateToScreen('Projets');
       }
-      if (status.chapters=="Pas d'accès") {
+      if (status.chapters === "Pas d'accès") {
         setMiddlePanelWidth(0);
       }
     };
     if (subjectActive) {
       fetchUserStatus();
     }
-  }, [session.user.id, subjectActive]);
+    const unsubscribe = navigation.addListener('focus', () => {
+      const windowWidth = Dimensions.get('window').width;
+      setMiddlePanelWidth(0.5 * windowWidth);
+      if (userStatus.chapters === "Pas d'accès") {
+        setRightPanelWidth(windowWidth - 550);
+      } else {
+        setRightPanelWidth(windowWidth - middlePanelWidth - 550);
+      }
+    });
+    return unsubscribe;
+  }, [navigation, userStatus]);
 
+  useEffect(() => {
+    if (userStatus.chapters === "Pas d'accès") {
+      setRightPanelWidth(windowWidth - 550);
+    } else {
+      setRightPanelWidth(windowWidth - middlePanelWidth - 550);
+    }
+  }, [userStatus]);
+
+  useEffect(() => {
+    if (userStatus === "non trouvé") {
+      navigateToScreen('Projets');
+    }
+  }, [userStatus]);
 
   useEffect(() => {
     if (question.id) {
       toggleAnswersDisplay(question.id);
     }
   }, [question]);
-const handleMouseDown = (e) => {
-  setIsDragging(true);
-  setInitialMouseX(e.clientX);
-  setInitialMiddlePanelWidth(middlePanelWidth);
-};
 
-useEffect(() => {
+  const handleMouseDown = (e) => {
+    setIsDragging(true);
+    setInitialMouseX(e.clientX);
+    setInitialMiddlePanelWidth(middlePanelWidth);
+  };
+
+  useEffect(() => {
     setHasUnclassifiedQuestions(questions.some((q) => q.id_chapitre === null));
-}, [questions]);
+  }, [questions]);
 
-const handleMouseMove = (e) => {
-  if (!isDragging) return;
-  const deltaX = e.clientX - initialMouseX;
-  const newWidth = initialMiddlePanelWidth + deltaX;
-  if (newWidth > 100 && newWidth < windowWidth - 100) {
-    setMiddlePanelWidth(newWidth);
-  }
-};
+  const handleMouseMove = (e) => {
+    if (!isDragging) return;
+    const deltaX = e.clientX - initialMouseX;
+    const newWidth = initialMiddlePanelWidth + deltaX;
+    if (newWidth > 100 && newWidth < windowWidth - 100) {
+      setMiddlePanelWidth(newWidth);
+    }
+  };
 
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
 
-const handleMouseUp = () => {
-  setIsDragging(false);
-};
-
-
-useEffect(() => {
-  if (Platform.OS === 'web') {
-    const quillInstance = editor.current?.getEditor();
-    if (quillInstance) {
-      quillInstance.on('text-change', () => {
-        setIsContentModified(true);
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      const quillInstance = editor.current?.getEditor();
+      if (quillInstance) {
+        quillInstance.on('text-change', () => {
+          setIsContentModified(true);
+        });
+      }
+    } else {
+      editor.current?.registerToolbar((event) => {
+        if (event === 'text-change') {
+          setIsContentModified(true);
+        }
       });
     }
-  } else {
-    // Ajouter un gestionnaire pour RichEditor si nécessaire
-    editor.current?.registerToolbar((event) => {
-      if (event === 'text-change') {
-        setIsContentModified(true);
+  }, [editor]);
+
+  useEffect(() => {
+    if (!isLeftPanelVisible) {
+      if (isLargeScreen) {
+        setRightPanelWidth(windowWidth - middlePanelWidth - 10);
+      } else {
+        setRightPanelWidth(windowWidth);
       }
-    });
-  }
-}, [editor]);
+    }
+    if (isLeftPanelVisible) {
+      setRightPanelWidth(windowWidth - middlePanelWidth - 550 - 10);
+    }
+  }, [middlePanelWidth, isLeftPanelVisible, userStatus]);
 
+  const toggleLeftPanel = () => {
+    setIsLeftPanelVisible(!isLeftPanelVisible);
+  };
 
-
-useEffect(() => {
-  
-  if (!isLeftPanelVisible){
-    if(isLargeScreen){
-    setRightPanelWidth(windowWidth - middlePanelWidth-10);
-  }else{
-    setRightPanelWidth(windowWidth)
-
-  }
-  }
-  if (isLeftPanelVisible){
-    setRightPanelWidth(windowWidth - middlePanelWidth-550-10);
-  }
-
-}, [middlePanelWidth,isLeftPanelVisible,userStatus ]);
-
-
-const toggleLeftPanel = () => {
-  setIsLeftPanelVisible(!isLeftPanelVisible);
-};
-
-const copyToClipboard = (text) => {
-  Clipboard.setString(text);
-  Alert.alert('Copié dans le presse-papier', text);
-};
+  const copyToClipboard = (text) => {
+    Clipboard.setString(text);
+    Alert.alert('Copié dans le presse-papier', text);
+  };
 
   const quillModules = {
     toolbar: {
@@ -364,11 +295,8 @@ const copyToClipboard = (text) => {
     },
   };
 
-
   useFetchActiveSubjectId(setSubjectActive, setSubject, navigation);
-
-  useFetchData(session.user.id,subjectActive, setQuestions, tags, personal, setChapters,setUserStatus,userStatus);
-
+  useFetchData(session.user.id, subjectActive, setQuestions, tags, personal, setChapters, setUserStatus);
 
   const toggleChapter = (chapterId) => {
     setOpenChapters((prevOpenChapters) => ({
@@ -378,9 +306,9 @@ const copyToClipboard = (text) => {
   };
 
   const navigateToScreen = (screenName, params) => {
-  //const navigation = useNavigation();
-  navigation.navigate(screenName, params);
-};
+    navigation.navigate(screenName, params);
+  };
+
   const toggleTag = (tag) => {
     const updatedTags = tags.includes(tag) ? tags.filter((t) => t !== tag) : [...tags, tag];
     setTags(updatedTags);
@@ -414,16 +342,9 @@ const copyToClipboard = (text) => {
       const answers = await getMemories_Answers_to_Question(questionId);
       if (answers) {
         setActiveQuestionAnswers({ [questionId]: answers });
-        //refreshNoteScreen(question); // Ajoutez cette ligne pour rafraîchir NoteScreen
       }
     }
   };
-  
-  const refreshNoteScreen = (question) => {
-    // Ici, vous pouvez appeler une fonction de rafraîchissement dans le composant NoteScreen si nécessaire
-  };
-  
-  
 
   const confirmDeletion = (id, isChapter = true) => {
     setDeletionDetails({ id, isChapter });
@@ -431,24 +352,17 @@ const copyToClipboard = (text) => {
   };
 
   const refreshPage = async () => {
-    if (subjectActive != null) {
+    if (subjectActive) {
       await getMemories_Questions(subjectActive, setQuestions, tags, personal);
-
       await get_chapters(subjectActive, setChapters);
-      //setActiveQuestionAnswers({});
     } else {
       Alert.alert('Erreur', 'Aucun sujet actif sélectionné. Veuillez sélectionner un sujet pour rafraîchir les données.');
     }
   };
 
-  const isLargeScreen = windowWidth > 768;
-
-  const [content, setContent] = useState('<p>Commencez à écrire ici...</p>');
-  const [isEditorReady, setEditorReady] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-
   useEffect(() => {
-    if (editor.current && isEditorReady) {
+
+    if (editor.current && isEditorReady && !isContentModified) {
       if (Platform.OS === 'web') {
         editor.current.getEditor().setContents(content);
       } else {
@@ -460,41 +374,35 @@ const copyToClipboard = (text) => {
   
 
   useEffect(() => {
-
     if (Object.keys(activeQuestionAnswers)[0]) {
-  
       const loadData = async () => {
-
-
         if (question && question.full_text && question.full_text.ops) {
           const converter = new QuillDeltaToHtmlConverter(question.full_text.ops, {});
           const html = converter.convert();
           setContent(html);
         } else {
-          console.error('Data is not in the expected format:', data.full_text);
+          console.error('Data is not in the expected format:', question.full_text);
         }
         setIsLoading(false);
       };
 
       loadData();
     }
-
     setIsLoading(false);
-  }, [activeQuestionAnswers,question]);
+  }, [activeQuestionAnswers, question]);
 
   const handleSaving = async () => {
     setIsSaving(true);
     if (Platform.OS === 'web') {
       try {
         const quillInstance = editor.current.getEditor();
-        const content = quillInstance.getContents();
-        setContent(content)
-  
+        const content_new = quillInstance.getContents();
+        setContent(content_new);
         const { error: errorUpdating } = await supabase
           .from('Memoires_questions')
           .update({ full_text: content })
           .match({ id: Object.keys(activeQuestionAnswers)[0] });
-  
+
         if (errorUpdating) {
           console.error('Error updating:', errorUpdating);
         } else {
@@ -505,29 +413,16 @@ const copyToClipboard = (text) => {
         console.error('Failed to save content:', error);
       }
     } else {
-      const content = editor.current.getContent();
-      console.log('Saving content:', content);
+      const content_new = editor.current.getContent();
+
+      setContent(content_new);
       setIsContentModified(false);
     }
     setIsSaving(false);
   };
-  
-  const handleInsertLink = (answerId) => {
-    const quillInstance = editor.current.getEditor();
-    const range = quillInstance.getSelection();
-    if (range) {
-      quillInstance.clipboard.dangerouslyPasteHTML(
-        range.index,
-        `<a href="javascript:void(0)" onclick="selectAnswer(${answerId})">Lien vers réponse ${answerId}</a>`
-      );
-    }
-  };
-  
-  
 
   useEffect(() => {
     if (isDragging) {
-
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', handleMouseUp);
     } else {
@@ -539,7 +434,6 @@ const copyToClipboard = (text) => {
       window.removeEventListener('mouseup', handleMouseUp);
     };
   }, [isDragging]);
-  
 
   if (isLoading) {
     return (
@@ -549,414 +443,273 @@ const copyToClipboard = (text) => {
     );
   }
 
-
-
   return (
     <View style={globalStyles.container}>
-      
       <View style={[globalStyles.navigationContainer, { position: 'fixed', bottom: '0%', alignSelf: 'center' }]}>
-
-
-        {/*
-        <TouchableOpacity onPress={refreshPage} style={styles.navButton}>
-          <Image source={refresh} style={{ width: 60, height: 60, opacity: 1 }} />
-        </TouchableOpacity>
-        */}
         <TouchableOpacity
-  onPress={() => navigateToScreen('Projets')}
-  style={[globalStyles.navButton, isHovered && globalStyles.navButton_over]}
-  onMouseEnter={() => setIsHovered(true)}
-  onMouseLeave={() => setIsHovered(false)}
->
-  <Image source={settings} style={{ width: 120, height: 120, opacity: 0.5 }} />
-</TouchableOpacity>
-
-
-        {/*
-        <TouchableOpacity onPress={() => navigateToScreen('ProfileScreen')} style={styles.navButton}>
-          <Image source={PersonIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
+          onPress={() => navigateToScreen('Projets')}
+          style={[globalStyles.navButton, isHovered && globalStyles.navButton_over]}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
+          <Image source={settings} style={{ width: 120, height: 120, opacity: 0.5 }} />
         </TouchableOpacity>
-        
-        <TouchableOpacity onPress={() => navigateToScreen('AideScreen')} style={styles.navButton}>
-          <Image source={help} style={{ width: 60, height: 60, opacity: 0.5 }} />
-        </TouchableOpacity>
-        */}
-
-
       </View>
       <View style={[{ position: 'fixed', top: '0%', left: '5%' }]}>
-<Text>
-          {/*
-          {userName!=='' && ("Bonjour "+ userName +",")}
-           {userStatus.chapters!=="Pas d'accès" &&("vous êtes actuellement "+ userStatus.chapters + " du texte")}
-*/}
-
-</Text>
-</View>
-{/*}
-      <TouchableOpacity onPress={refreshPage} style={{ position: 'absolute', bottom: 30, right: 40 }}>
-        <Image source={refresh} style={{ width: 60, height: 60, opacity: 1 }} />
-      </TouchableOpacity>
-
-      */}
-
+        <Text></Text>
+      </View>
 
       <View style={isLargeScreen ? styles.largeScreenContainer : styles.smallScreenContainer}>
-  {isLeftPanelVisible && (
-    <View style={isLargeScreen ? styles.leftPanel : styles.fullWidth}>
-      <View style={globalStyles.container_wide}> 
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-    <Text style={globalStyles.title}>{subject.title}</Text>
-    <TouchableOpacity onPress={() => {
-      setIconsVisible(!iconsVisible);
-      setToggleIcon(iconsVisible ? plusIcon : minusIcon);
-    }}>
-      <Image source={toggleIcon} style={{ width: 25, height: 25, opacity: 0.5, marginVertical: 5 }} />
-    </TouchableOpacity>
-  </View>
-<Text> </Text>
-      <ScrollView>
-      {(hasUnclassifiedQuestions ? [{ id: null, title: 'Chapitres non classés' }] : []).concat(chapters).map((chapter) => (
-  <View key={chapter.id || 'non-chapitre'}>
-    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-      <TouchableOpacity onPress={() => toggleChapter(chapter.id)}>
-        <Text style={globalStyles.title_chapter}>{chapter.title}</Text>
-      </TouchableOpacity>
-      {iconsVisible && (
-      <View style={{ flexDirection: 'row' }}>
-        <TouchableOpacity
-          onPress={() => {
-            setEditChapterId(chapter.id);
-            setEditChapterTitle(chapter.title);
-            setIsEditModalVisible(true);
-          }}
-          style={{ marginRight: 10 }}
-        >
-          <Image source={edit} style={{ width: 20, height: 20, opacity: 0.5 }} />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => confirmDeletion(chapter.id, true)} style={{ marginRight: 10 }}>
-          <Image source={trash} style={{ width: 25, height: 25, opacity: 0.5 }} />
-        </TouchableOpacity>
-      </View>
-      )}
-    </View>
-    {openChapters[chapter.id] && (
-      <>
-        {questions.filter((q) => q.id_chapitre === chapter.id).map((question) => (
-          <TouchableOpacity
-          key={question.id}
-          style={[
-            styles.questionCard,
-            question.id === selectedQuestionId && { backgroundColor: 'lightblue' }
-          ]}
-          onPress={() => {
-            setSelectedQuestionId(question.id);
-            toggleAnswersDisplay(question.id);
-          }}
-        >
-            <Text style={styles.questionText}>{question.question}</Text>
-            {iconsVisible && (
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-              <Text style={styles.answersCount}>{question.answers_count} réponses</Text>
-              
-              <View style={{ flexDirection: 'row' }}>
-              <TouchableOpacity
-          onPress={() => {
-            setEditQuestionId(question.id);
-            setEditQuestionTitle(question.question);
-            setIsEditChapterModalVisible(true);
-          }}
-          style={{ marginRight: 10 }}
-        >
-          <Image source={edit} style={{ width: 20, height: 20, opacity: 0.5 }} />
-        </TouchableOpacity>
-                <TouchableOpacity onPress={() => handleAssociateQuestion(question.id)} style={styles.associateButton}>
-                  <Image source={LinkIcon} style={{ width: 18, height: 18, opacity: 0.5 }} />
+        {isLeftPanelVisible && (
+          <View style={isLargeScreen ? styles.leftPanel : styles.fullWidth}>
+            <View style={globalStyles.container_wide}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Text style={globalStyles.title}>{subject.title}</Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    setIconsVisible(!iconsVisible);
+                    setToggleIcon(iconsVisible ? plusIcon : minusIcon);
+                  }}
+                >
+                  <Image source={toggleIcon} style={{ width: 25, height: 25, opacity: 0.5, marginVertical: 5 }} />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => confirmDeletion(question.id, false)} style={styles.deleteButton}>
-                  <Image source={trash} style={{ width: 25, height: 25, opacity: 0.5 }} />
+              </View>
+              <Text></Text>
+              <ScrollView>
+                {(hasUnclassifiedQuestions ? [{ id: null, title: 'Chapitres non classés' }] : []).concat(chapters).map((chapter) => (
+                  <View key={chapter.id || 'non-chapitre'}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <TouchableOpacity onPress={() => toggleChapter(chapter.id)}>
+                        <Text style={globalStyles.title_chapter}>{chapter.title}</Text>
+                      </TouchableOpacity>
+                      {iconsVisible && (
+                        <View style={{ flexDirection: 'row' }}>
+                          <TouchableOpacity
+                            onPress={() => {
+                              setEditChapterId(chapter.id);
+                              setEditChapterTitle(chapter.title);
+                              setIsEditModalVisible(true);
+                            }}
+                            style={{ marginRight: 10 }}
+                          >
+                            <Image source={edit} style={{ width: 20, height: 20, opacity: 0.5 }} />
+                          </TouchableOpacity>
+                          <TouchableOpacity onPress={() => confirmDeletion(chapter.id, true)} style={{ marginRight: 10 }}>
+                            <Image source={trash} style={{ width: 25, height: 25, opacity: 0.5 }} />
+                          </TouchableOpacity>
+                        </View>
+                      )}
+                    </View>
+                    {openChapters[chapter.id] && (
+                      <>
+                        {questions.filter((q) => q.id_chapitre === chapter.id).map((question) => (
+                          <TouchableOpacity
+                            key={question.id}
+                            style={[styles.questionCard, question.id === selectedQuestionId && { backgroundColor: 'lightblue' }]}
+                            onPress={() => {
+                              setSelectedQuestionId(question.id);
+                              toggleAnswersDisplay(question.id);
+                            }}
+                          >
+                            <Text style={styles.questionText}>{question.question}</Text>
+                            {iconsVisible && (
+                              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                <Text style={styles.answersCount}>{question.answers_count} réponses</Text>
+                                <View style={{ flexDirection: 'row' }}>
+                                  <TouchableOpacity
+                                    onPress={() => {
+                                      setEditQuestionId(question.id);
+                                      setEditQuestionTitle(question.question);
+                                      setIsEditChapterModalVisible(true);
+                                    }}
+                                    style={{ marginRight: 10 }}
+                                  >
+                                    <Image source={edit} style={{ width: 20, height: 20, opacity: 0.5 }} />
+                                  </TouchableOpacity>
+                                  <TouchableOpacity onPress={() => handleAssociateQuestion(question.id)} style={styles.associateButton}>
+                                    <Image source={LinkIcon} style={{ width: 18, height: 18, opacity: 0.5 }} />
+                                  </TouchableOpacity>
+                                  <TouchableOpacity onPress={() => confirmDeletion(question.id, false)} style={styles.deleteButton}>
+                                    <Image source={trash} style={{ width: 25, height: 25, opacity: 0.5 }} />
+                                  </TouchableOpacity>
+                                </View>
+                              </View>
+                            )}
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}></View>
+                          </TouchableOpacity>
+                        ))}
+                      </>
+                    )}
+                  </View>
+                ))}
+                <View>
+                  <Text></Text>
+                  <Text></Text>
+                </View>
+              </ScrollView>
+              <View style={{ flexDirection: 'column', justifyContent: 'space-between', padding: 10 }}>
+                <TouchableOpacity style={globalStyles.globalButton_wide} onPress={() => setIsModalVisible(true)}>
+                  <Text style={globalStyles.globalButtonText}>Nouvelle partie</Text>
                 </TouchableOpacity>
+                <TouchableOpacity style={globalStyles.globalButton_wide} onPress={() => setIsModalNewQuestionVisible(true)}>
+                  <Text style={globalStyles.globalButtonText}>Nouveau chapitre</Text>
+                </TouchableOpacity>
+                <View>
+                  <Text></Text>
+                  <Text></Text>
+                  <Text></Text>
+                  <Text></Text>
+                  <Text></Text>
+                  <Text></Text>
+                  <Text></Text>
+                  <Text></Text>
+                  <Text></Text>
+                </View>
               </View>
             </View>
-            )}
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            {/*
-            {userStatus==='Editeur'&&(
-            
-            <TouchableOpacity
-              onPress={() => {
-                navigateToScreen('EditChapterScreen', {questionId :question.id} );
-              }}
-              style={[globalStyles.globalButton_narrow, { backgroundColor: '#b1b3b5'}]}
-            >
-              <Text style={globalStyles.globalButtonText}>Lire</Text>
-            </TouchableOpacity>
-            
-            )}
-            */}
-            
-              </View>
-          </TouchableOpacity>
-        ))}
-      </>
-    )}
-  </View>
-))}
-<View>
-  <Text> </Text>
-  <Text> </Text>
-</View>
-
-
-      </ScrollView>
-    
-      <View style={{ flexDirection: 'column', justifyContent: 'space-between', padding: 10 }}>
-        <TouchableOpacity style={globalStyles.globalButton_wide} onPress={() => setIsModalVisible(true)}>
-          <Text style={globalStyles.globalButtonText}>Nouvelle partie</Text>
-        </TouchableOpacity>
-
-
-        <TouchableOpacity style={globalStyles.globalButton_wide} onPress={() => setIsModalNewQuestionVisible(true)}>
-          <Text style={globalStyles.globalButtonText}>Nouveau chapitre</Text>
-        </TouchableOpacity>
-        <View>
-  <Text> </Text>
-  <Text> </Text>
-  <Text> </Text>
-  <Text> </Text>
-  <Text> </Text>
-  <Text> </Text>
-  <Text> </Text>
-  <Text> </Text>
-  <Text> </Text>
-</View>
-
-    
-      </View>
-      </View>
-    </View>
-  )}
-  {isLargeScreen && (userStatus.chapters==="Editeur" ||userStatus.chapters==="Lecteur"||userStatus.chapters==="Auditeur") && (
-<View
-  style={[styles.resizer, { right: rightPanelWidth -30 }]}
-  onMouseDown={handleMouseDown}
->
-
-<Image source={doubleArrowIcon} style={{ width: 120, height: 120, opacity: 0.5 }} />
-
-</View>
-  )}
- 
- 
- <TouchableOpacity 
-  onPress={toggleLeftPanel}
-  style={[
-    styles.toggleLine, 
-    { 
-      position: !isLargeScreen ? 'absolute' : 'relative',
-      top: !isLargeScreen ? 0 : 'auto',
-      bottom: !isLargeScreen ? 0 : 'auto',
-      right: !isLargeScreen && isLeftPanelVisible ? 0 : 'auto',
-      left: !isLargeScreen && !isLeftPanelVisible ? 0 : 'auto'
-    }
-  ]}
->
-  {isLeftPanelVisible ?  
-    <Image 
-      source={leftArrowIcon} 
-      style={[
-        styles.togglePanelButton,
-        { 
-          width: 60, 
-          height: 60, 
-          opacity: 0.5, 
-          transform: [{ translateX: -30 }],
-          backgroundColor: 'transparent'  
-
-        }
-      ]}
-    />
-    : 
-    <Image 
-      source={rightArrowIcon} 
-      style={[
-        styles.togglePanelButton,
-        { 
-          width: 60, 
-          height: 60, 
-          opacity: 0.5, 
-          transform: [{ translateX: 30 }],
-          backgroundColor: 'transparent'  
-        }
-      ]}
-    />
-  }
-</TouchableOpacity>
-
-
-   
-  {isLargeScreen && (userStatus.chapters==="Editeur" ||userStatus.chapters==="Lecteur"||userStatus.chapters==="Auditeur") && (
-   <View style={isLargeScreen ? styles.middlePanelContainer : styles.fullWidth}>
-   
-   <View style={{ ...styles.MiddlePanel, width: middlePanelWidth }}>
-   <Text style={globalStyles.title}>
-  
-  {question && question.question ? question.question : 'Veuillez sélectionner un chapitre'}
-  
-  {isContentModified && (
-    <TouchableOpacity style={{ marginLeft: 10 }} onPress={handleSaving}>
-      <Image source={save} style={{ width: 20, height: 20, opacity: 0.5 }} />
-    </TouchableOpacity>
-  )}
-</Text>
-
-
-
-<View style={styles.container}>
-  {userStatus.chapters === "Editeur" ? (
-    <>
-      {Platform.OS === 'web' ? (
-        <>
-          <div id="toolbar"></div>
-          <View style={styles.toolbarContainer}>
-            <ReactQuill
-              ref={editor}
-              theme="snow"
-              modules={quillModules}
-              readOnly={false}
-              bounds={'#toolbar'}
-              value={content}
-              onChange={() => {
-                if (!isSaving && !isInitialLoad) setIsContentModified(true);
-              }}
-              onChangeSelection={() => setIsInitialLoad(false)}
-            />
           </View>
-        </>
-      ) : (
-        <>
-          <RichEditor
+        )}
+        {isLargeScreen && (userStatus.chapters === "Editeur" || userStatus.chapters === "Lecteur" || userStatus.chapters === "Auditeur") && (
+          <View style={[styles.resizer, { right: rightPanelWidth - 30 }]} onMouseDown={handleMouseDown}>
+            <Image source={doubleArrowIcon} style={{ width: 120, height: 120, opacity: 0.5 }} />
+          </View>
+        )}
+        <TouchableOpacity
+          onPress={toggleLeftPanel}
+          style={[
+            styles.toggleLine,
+            {
+              position: !isLargeScreen ? 'absolute' : 'relative',
+              top: !isLargeScreen ? 0 : 'auto',
+              bottom: !isLargeScreen ? 0 : 'auto',
+              right: !isLargeScreen && isLeftPanelVisible ? 0 : 'auto',
+              left: !isLargeScreen && !isLeftPanelVisible ? 0 : 'auto'
+            }
+          ]}
+        >
+          {isLeftPanelVisible ? (
+            <Image
+              source={leftArrowIcon}
+              style={[
+                styles.togglePanelButton,
+                {
+                  width: 60,
+                  height: 60,
+                  opacity: 0.5,
+                  transform: [{ translateX: -30 }],
+                  backgroundColor: 'transparent'
+                }
+              ]}
+            />
+          ) : (
+            <Image
+              source={rightArrowIcon}
+              style={[
+                styles.togglePanelButton,
+                {
+                  width: 60,
+                  height: 60,
+                  opacity: 0.5,
+                  transform: [{ translateX: 30 }],
+                  backgroundColor: 'transparent'
+                }
+              ]}
+            />
+          )}
+        </TouchableOpacity>
+        {isLargeScreen && (userStatus.chapters === "Editeur" || userStatus.chapters === "Lecteur" || userStatus.chapters === "Auditeur") && (
+          <View style={isLargeScreen ? styles.middlePanelContainer : styles.fullWidth}>
+            <View style={{ ...styles.MiddlePanel, width: middlePanelWidth }}>
+              <Text style={globalStyles.title}>
+                {question && question.question ? question.question : 'Veuillez sélectionner un chapitre'}
+                {isContentModified && (
+                  <TouchableOpacity style={{ marginLeft: 10 }} onPress={handleSaving}>
+                    <Image source={save} style={{ width: 20, height: 20, opacity: 0.5 }} />
+                  </TouchableOpacity>
+                )}
+              </Text>
+              <View style={styles.container}>
+                {userStatus.chapters === "Editeur" ? (
+                  <>
+                    {Platform.OS === 'web' ? (
+      <>
+        <div id="toolbar"></div>
+        <View style={styles.toolbarContainer}>
+          <ReactQuill
             ref={editor}
-            style={styles.editor}
-            initialContentHTML={content}
-            onChange={() => {
-              if (!isSaving && !isInitialLoad) setIsContentModified(true);
+            theme="snow"
+            modules={quillModules}
+            readOnly={false}
+            bounds={'#toolbar'}
+            value={content}
+            onChange={(newContent) => {
+              if (!isSaving) {
+                setContent(newContent);
+                setIsContentModified(true);
+              }
             }}
-            onSelectionChange={() => setIsInitialLoad(false)}
+            onChangeSelection={() => setIsInitialLoad(false)}
           />
-          <RichToolbar
-            editor={editor}
-            style={styles.toolbar}
-            iconTint="#000000"
-            selectedIconTint="#209cee"
-            selectedButtonStyle={{ backgroundColor: 'transparent' }}
-            actions={[
-              'bold',
-              'italic',
-              'underline',
-              'unorderedList',
-              'orderedList',
-              'insertLink',
-              'insertImage',
-              'blockQuote',
-              'undo',
-              'redo',
-              'save',
-            ]}
-            onSave={handleSaving}
-          />
-        </>
-      )}
-    </>
-  ) : (
-    <>
-    {question && question.question && (
-    <>
-    {Platform.OS === 'web' ? (
-        <div>{ReactHtmlParser(content)}</div>
-      ) : (
-        <View>
-          <Text>{ReactHtmlParser(content)}</Text>
         </View>
-      )}
-    </>
-    )}
-    </>
-  )}
-</View>
-
-   </View>
- </View>
- 
-  )}
-
-{(isLargeScreen || !isLeftPanelVisible )&& ( 
-
-<View style={[styles.rightPanel, { width: rightPanelWidth }]}>
-
-
-<NoteScreen route={{ params: { session, question,question_reponse } }} />
-
-{/*
-<Text> </Text>
-<View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-  <Text> </Text>
-  <Text>Montrer les notes déjà intégrées</Text>
-  <Switch
-    value={showIntegratedNotes}
-    onValueChange={(value) => {setShowIntegratedNotes(value); refreshPage();}}
-  />
-  <Text> </Text>
-</View>
-<Text> </Text>
-      <ScrollView>
-        <>
-        {Object.keys(activeQuestionAnswers).map((questionId) => (
-          <>
-            <TouchableOpacity
-              key={questionId}
-              onPress={() => {
-                navigateToScreen('AnswerQuestionScreen', { questionId });
-              }}
-              style={globalStyles.globalButton_wide}
-            >
-              <Text style={globalStyles.globalButtonText}>Répondre</Text>
-            </TouchableOpacity>
-            
-           </>
-          ))}
-        {Object.keys(activeQuestionAnswers).map((questionId) =>
-  activeQuestionAnswers[questionId]
-    ?.filter((answer) => showIntegratedNotes || !answer.used)
-    .map((answer, index) => (
-      <View key={index} style={styles.answerCard}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 }}>
-          <Text>{new Date(answer.created_at).toLocaleDateString()} {new Date(answer.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
-          <TouchableOpacity onPress={() => {copyToClipboard(answer.answer);integration(answer.id); refreshPage();}}>
-            <Image source={copyIcon} style={{ width: 20, height: 20, opacity: 0.5 }} />
-          </TouchableOpacity>
-        </View>
-        <Text style={styles.answerText}>{answer.answer}</Text>
+      </>
+    ) : (
+                      <>
+                        <RichEditor
+                          ref={editor}
+                          style={styles.editor}
+                          initialContentHTML={content}
+                          onChange={() => {
+                            if (!isSaving && !isInitialLoad) setIsContentModified(true);
+                          }}
+                          onSelectionChange={() => setIsInitialLoad(false)}
+                        />
+                        <RichToolbar
+                          editor={editor}
+                          style={styles.toolbar}
+                          iconTint="#000000"
+                          selectedIconTint="#209cee"
+                          selectedButtonStyle={{ backgroundColor: 'transparent' }}
+                          actions={[
+                            'bold',
+                            'italic',
+                            'underline',
+                            'unorderedList',
+                            'orderedList',
+                            'insertLink',
+                            'insertImage',
+                            'blockQuote',
+                            'undo',
+                            'redo',
+                            'save',
+                          ]}
+                          onSave={handleSaving}
+                        />
+                      </>
+                    )}
+                  </>
+                ) : (
+                  question && question.question && (
+                    <>
+                      {Platform.OS === 'web' ? (
+                        <div>{ReactHtmlParser(content)}</div>
+                      ) : (
+                        <View>
+                          <Text>{ReactHtmlParser(content)}</Text>
+                        </View>
+                      )}
+                    </>
+                  )
+                )}
+              </View>
+            </View>
+          </View>
+        )}
+        {(isLargeScreen || !isLeftPanelVisible) && (
+          <View style={[styles.rightPanel, { width: rightPanelWidth }]}>
+            <NoteScreen route={{ params: { session, question, question_reponse } }} />
+          </View>
+        )}
       </View>
-    ))
-)}
-
-
-         
-
-
-        </>
-      </ScrollView>
-    */}
-    </View>
-
-
-
-  
-  )}
-</View>
-
-
       <Modal
         animationType="slide"
         transparent={true}
@@ -967,7 +720,7 @@ const copyToClipboard = (text) => {
           <View style={styles.modalView}>
             <ScrollView>
               <Text>Placer le chapitre dans la partie :</Text>
-              <Text> </Text>
+              <Text></Text>
               {chapters.map((chapter) => (
                 <TouchableOpacity
                   key={chapter.id}
@@ -987,8 +740,12 @@ const copyToClipboard = (text) => {
           </View>
         </View>
       </Modal>
-
-      <Modal animationType="slide" transparent={true} visible={isModalVisible} onRequestClose={() => setIsModalVisible(!isModalVisible)}>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isModalVisible}
+        onRequestClose={() => setIsModalVisible(!isModalVisible)}
+      >
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
             <Text style={styles.modalText}>Nouvelle partie</Text>
@@ -1015,8 +772,12 @@ const copyToClipboard = (text) => {
           </View>
         </View>
       </Modal>
-
-      <Modal animationType="slide" transparent={true} visible={isModalNewQuestionVisible} onRequestClose={() => setIsModalNewQuestionVisible(!isModalNewQuestionVisible)}>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isModalNewQuestionVisible}
+        onRequestClose={() => setIsModalNewQuestionVisible(!isModalNewQuestionVisible)}
+      >
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
             <Text style={styles.modalText}>Nouveau Chapitre</Text>
@@ -1033,7 +794,7 @@ const copyToClipboard = (text) => {
                 setSelectedQuestionId(question.id);
                 setIsModalNewQuestionVisible(!isModalNewQuestionVisible);
                 setNewQuestionTitle('');
-                setIsChapterModalVisible(true)
+                setIsChapterModalVisible(true);
                 refreshPage();
               }}
             >
@@ -1045,10 +806,12 @@ const copyToClipboard = (text) => {
           </View>
         </View>
       </Modal>
-
-
-
-      <Modal animationType="slide" transparent={true} visible={isEditModalVisible} onRequestClose={() => setIsEditModalVisible(false)}>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isEditModalVisible}
+        onRequestClose={() => setIsEditModalVisible(false)}
+      >
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
             <Text style={styles.modalText}>Éditer Chapitre</Text>
@@ -1081,8 +844,12 @@ const copyToClipboard = (text) => {
           </View>
         </View>
       </Modal>
-
-      <Modal animationType="slide" transparent={true} visible={isEditChapterModalVisible} onRequestClose={() => setIsEditChapterModalVisible(false)}>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isEditChapterModalVisible}
+        onRequestClose={() => setIsEditChapterModalVisible(false)}
+      >
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
             <Text style={styles.modalText}>Éditer Chapitre</Text>
@@ -1115,9 +882,12 @@ const copyToClipboard = (text) => {
           </View>
         </View>
       </Modal>
-
-
-      <Modal animationType="slide" transparent={true} visible={deleteModalVisible} onRequestClose={() => setDeleteModalVisible(!deleteModalVisible)}>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={deleteModalVisible}
+        onRequestClose={() => setDeleteModalVisible(!deleteModalVisible)}
+      >
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
             <Text style={styles.modalText}>
@@ -1146,14 +916,9 @@ const copyToClipboard = (text) => {
       </Modal>
     </View>
   );
-
-
-
-
 }
 
 const styles = StyleSheet.create({
-
   largeScreenContainer: {
     flexDirection: 'row',
     flex: 1,
@@ -1168,18 +933,14 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
   },
   MiddlePanel: {
- 
     padding: 10,
     borderRightWidth: 1,
     borderColor: '#ccc',
   },
   rightPanel: {
-    //flex: 1,
     padding: 10,
-    marginRight: 5, // Ajoutez cette ligne pour la marge à droite
-
+    marginRight: 5,
   },
-  
   fullWidth: {
     width: '100%',
   },
@@ -1213,9 +974,6 @@ const styles = StyleSheet.create({
   },
   deleteButton: {
     marginRight: 5,
-  },
-  toggleAnswersButton: {
-    alignSelf: 'flex-end',
   },
   centeredView: {
     flex: 1,
@@ -1268,28 +1026,7 @@ const styles = StyleSheet.create({
     shadowRadius: 2.62,
     elevation: 4,
     width: '90%',
-    alignSelf: 'center', 
-  
-  },
-  unSelectedTag: {
-    backgroundColor: '#b1b3b5',
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-    paddingHorizontal: 10,
-    marginBottom: 20,
-  },
-  input: {
-    flex: 1,
-    height: 40,
-    padding: 10,
-  },
-  icon: {
-    marginLeft: 10,
+    alignSelf: 'center',
   },
   container: {
     flex: 1,
@@ -1315,10 +1052,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     top: '50%',
-    transform: 'translateY(-50%)',
-    backgroundColor: 'transparent', // Définir le fond comme transparent
+    transform: [{ translateY: -30 }], // Assurez-vous que translateY soit un nombre
+    backgroundColor: 'transparent',
+    position: 'fixed', // Utilisez 'fixed' pour positionner par rapport à l'écran
   },
-
   togglePanelButtonText: {
     fontSize: 18,
     fontWeight: 'bold',
@@ -1334,62 +1071,19 @@ const styles = StyleSheet.create({
     zIndex: 1,
     display: 'flex',
   },
-
-  resizerText: {
-    fontWeight: 'bold',
-    color: '#000', // Noir pour le contraste
-  },
-
-  
-  togglePanelButton: {
-    position: 'fixed',
-    zIndex: 1000,
-    backgroundColor: '#007BFF',
-    borderRadius: 25,
-    padding: 10,
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    alignItems: 'center',
-    justifyContent: 'center',
-    display: 'flex',
-    top: '50%',
-    transform: 'translateY(-50%)',
-  },
-  
-  togglePanelButtonText: {
-    color: '#fff',
-    fontSize: 18,
-  },
-  panelTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-
   toggleLine: {
     width: 10,
-    //backgroundColor: '#ccc',
     backgroundColor: '#b1b3b5',
-    
     justifyContent: 'center',
     alignItems: 'center',
     cursor: 'pointer',
     height: '100%',
     zIndex: 1,
   },
-  toggleLineText: {
-    color: '#fff', // Blanc pour contraster avec la ligne noire
-    fontWeight: 'bold',
-  },
   middlePanelContainer: {
     flexDirection: 'row',
     flex: 1,
   },
-  
 });
 
 export default ReadQuestionsScreen;

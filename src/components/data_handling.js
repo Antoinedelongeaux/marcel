@@ -1045,3 +1045,18 @@ export async function isExistingChapter(id_question) {
 }
 }
 
+export async function update_answer_owner(id_answer,id_user) {
+  try {
+
+
+
+    const { data, error: errorUpdating } = await supabase
+      .from('Memoires_answers')
+      .update({ id_user: id_user }) // Assurez-vous que `answer` contient la nouvelle valeur de la réponse
+      .eq('id', id_answer);
+
+    return
+} catch (errorUpdating) {
+  Alert.alert("Erreur", errorUpdating.message);
+}
+}

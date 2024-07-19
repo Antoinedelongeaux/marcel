@@ -6113,7 +6113,7 @@ expo-updates@~0.24.13:
     fbemitter "^3.0.0"
     resolve-from "^5.0.0"
 
-expo@^50.0.0:
+expo@^50.0.19:
   version "50.0.19"
   resolved "https://registry.npmjs.org/expo/-/expo-50.0.19.tgz"
   integrity sha512-9weIVMGylJhNVN41mId1c1Kog3VmGA28oY0RpJKdJNrKGt5NKQAXV26TIwxw/PyDG1J4q2T/wZZoK+F1C64aIw==

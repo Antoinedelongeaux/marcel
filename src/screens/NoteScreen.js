@@ -33,6 +33,7 @@ import {
   disconnectAnswers,
   moveAnswer,
   get_project_contributors,
+  update_answer_owner,
 } from '../components/data_handling';
 
 import { useFocusEffect } from '@react-navigation/native';
@@ -64,6 +65,8 @@ import { v4 as uuidv4 } from 'uuid';
 import Upload from '../../assets/icons/upload.png';
 import * as DocumentPicker from 'expo-document-picker';
 import DraggableFlatList from 'react-native-draggable-flatlist';
+import Clipboard from '@react-native-clipboard/clipboard';
+
 
 
 
@@ -146,6 +149,9 @@ const [delegationUserId, setDelegationUserId] = useState(null);
 const [questionReponseFilter, setQuestionReponseFilter] = useState('');  // Ajoutez cette ligne
 const [answerAndQuestion, setAnswerAndQuestion] = useState(question_reponse);
 const [transcribingId, setTranscribingId] = useState(null);
+const [isAssignModalVisible, setIsAssignModalVisible] = useState(false);
+const [selectedAnswerId, setSelectedAnswerId] = useState(null);
+const [selectedUserId, setSelectedUserId] = useState(null);
 
 
 useFetchActiveSubjectId(setSubjectActive, setSubject, navigation);
@@ -191,6 +197,20 @@ if(session.user){
     }, [navigation])
   );
   
+  const handleAssignOwner = (answerId) => {
+    setSelectedAnswerId(answerId);
+    setIsAssignModalVisible(true);
+  };
+  
+  const handleUpdateOwner = async () => {
+    if (selectedAnswerId && selectedUserId) {
+      await update_answer_owner(selectedAnswerId, selectedUserId);
+      setIsAssignModalVisible(false);
+      refreshAnswers();
+    } else {
+      Alert.alert("Erreur", "Veuillez sélectionner un utilisateur.");
+    }
+  };
   
   const selectAnswer = (answerId) => {
     const answer = answers.find((a) => a.id === answerId);
@@ -207,6 +227,10 @@ if(session.user){
     }
   }, [answers]);
   
+  const copyToClipboard = (text) => {
+    Clipboard.setString(text);
+    Alert.alert("Texte copié", "Le texte a été copié dans le presse-papiers.");
+  };
   
 
   const refreshAnswers = async () => {
@@ -1014,54 +1038,19 @@ const filteredAnswers = answers.filter(answer => {
         )}
           <View style={{ flex: 1 }}>
             {showDetails && (
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 }}>
-                {isLargeScreen && (
-                  <>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20}}>
+                
+
                     <Text style={{ fontWeight: 'bold' }}>
                       {new Date(item.created_at).toLocaleDateString()} {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </Text>
+                    {isLargeScreen && (
                     <Text style={{ fontWeight: 'bold' }}>
                       {chapter ? chapter.title + " - " : ''} {question ? question.question : ''}
                     </Text>
-                  </>
+                  
                 )}
-                <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
-                  {item.answer !== "audio pas encore converti en texte" && item.id !== editingAnswerId && (
-                    <TouchableOpacity
-                      onPress={() => {
-                        setEditingAnswerId(item.id);
-                        setEditingText(item.answer);
-                      }}
-                    >
-                      <Image source={edit} style={{ width: 28, height: 28, opacity: 0.5 }} />
-                    </TouchableOpacity>
-                  )}
-                  {item.audio && (
-                    <>
-                    <TouchableOpacity onPress={() => playRecording_fromAudioFile(item.link_storage)} style={styles.playButton}>
-                      <Image source={VolumeIcon} style={{ width: 35, height: 35, opacity: 0.5, marginHorizontal: 15 }} />
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => handleCaptionClick(item.id)} style={styles.playButton}>
-                        <Image source={captionIcon} style={{ width: 25, height: 25, opacity: 0.5, marginHorizontal: 15 }} />
-                      </TouchableOpacity>
-
-                    </>
-                  )}
-                  
-                  
-                  
-                  {item.image && (
-                    <TouchableOpacity onPress={() => setFullscreenImage(`https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/photos/${item.link_storage}`)}>
-                      <Image source={eyeIcon} style={{ width: 35, height: 35, opacity: 0.5, marginHorizontal: 15 }} />
-                    </TouchableOpacity>
-                  )}
-                  <TouchableOpacity onPress={() => { copyToClipboard(item.answer); integration(item.id); refreshAnswers(); }}>
-                    <Image source={copyIcon} style={{ width: 27, height: 27, opacity: 0.5, marginHorizontal: 15 }} />
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={() => handleDeleteAnswer(item.id)}>
-                    <Image source={trash} style={{ width: 36, height: 36, opacity: 0.5, marginLeft: 15 }} />
-                  </TouchableOpacity>
-                </View>
+ 
               </View>
             )}
             {item.id === editingAnswerId ? (
@@ -1114,9 +1103,62 @@ const filteredAnswers = answers.filter(answer => {
                 )}
               </>
             )}
-            <Text style={{ textAlign: 'right', marginTop: 10, fontStyle: 'italic' }}>
+
+
+<View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 20 }}>
+
+{showDetails && (
+   
+                
+                <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+                  {item.answer !== "audio pas encore converti en texte" && item.id !== editingAnswerId && (
+                    <TouchableOpacity
+                      onPress={() => {
+                        setEditingAnswerId(item.id);
+                        setEditingText(item.answer);
+                      }}
+                    >
+                      <Image source={edit} style={{ width: 28, height: 28, opacity: 0.5 }} />
+                    </TouchableOpacity>
+                  )}
+                  {item.audio && (
+                    <>
+                    <TouchableOpacity onPress={() => playRecording_fromAudioFile(item.link_storage)} style={styles.playButton}>
+                      <Image source={VolumeIcon} style={{ width: 35, height: 35, opacity: 0.5, marginHorizontal: 15 }} />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => handleCaptionClick(item.id)} style={styles.playButton}>
+                        <Image source={captionIcon} style={{ width: 25, height: 25, opacity: 0.5, marginHorizontal: 15 }} />
+                      </TouchableOpacity>
+
+                    </>
+                  )}
+                  
+                  
+                  
+                  {item.image && (
+                    <TouchableOpacity onPress={() => setFullscreenImage(`https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/photos/${item.link_storage}`)}>
+                      <Image source={eyeIcon} style={{ width: 35, height: 35, opacity: 0.5, marginHorizontal: 15 }} />
+                    </TouchableOpacity>
+                  )}
+                  <TouchableOpacity onPress={() => { copyToClipboard(item.answer); integration(item.id); refreshAnswers(); }}>
+                    <Image source={copyIcon} style={{ width: 27, height: 27, opacity: 0.5, marginHorizontal: 15 }} />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => handleDeleteAnswer(item.id)}>
+                    <Image source={trash} style={{ width: 36, height: 36, opacity: 0.5, marginLeft: 15 }} />
+                  </TouchableOpacity>
+                </View>
+              
+            )}
+
+{!showDetails && (
+<Text></Text>
+)}
+
+
+            <Text style={{ textAlign: 'right', marginTop: 10, fontStyle: 'italic' }} onPress={() => handleAssignOwner(item.id)}>
               {userNames[item.id_user]}
             </Text>
+            </View>
           </View>
         </View>
         
@@ -1147,6 +1189,28 @@ const filteredAnswers = answers.filter(answer => {
     </View>
   </>
 )}
+
+<Modal isVisible={isAssignModalVisible}>
+  <View style={styles.modalContainer}>
+    <TouchableOpacity onPress={() => setIsAssignModalVisible(false)} style={styles.closeButton}>
+      <Image source={closeIcon} style={styles.closeIcon} />
+    </TouchableOpacity>
+    <Text style={styles.modalTitle}>Attribuer à un utilisateur</Text>
+    <Picker
+      selectedValue={selectedUserId}
+      onValueChange={(itemValue) => setSelectedUserId(itemValue)}
+    >
+      {users.map((user) => (
+        <Picker.Item key={user.id_user} label={user.name} value={user.id_user} />
+      ))}
+    </Picker>
+    <TouchableOpacity onPress={handleUpdateOwner} style={globalStyles.globalButton_wide}>
+      <Text style={globalStyles.globalButtonText}>Attribuer</Text>
+    </TouchableOpacity>
+  </View>
+</Modal>
+
+
 
 <View>
   <Text> </Text>
@@ -1365,6 +1429,29 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
     fontSize: 16,
     width: 100,
+  },
+  modalContainer: {
+    backgroundColor: 'white',
+    width: '90%',
+    padding: 20,
+    borderRadius: 10,
+    alignSelf: 'center',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    zIndex: 10,
+  },
+  closeIcon: {
+    width: 24,
+    height: 24,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
   },
   
 });
