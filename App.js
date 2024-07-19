@@ -4,6 +4,7 @@ import { supabase } from './src/lib/supabase';
 import { NavigationContainer } from '@react-navigation/native';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import AppNavigator from './AppNavigator';
+import { HashRouter as Router } from 'react-router-dom';
 
 export default function App() {
   const [session, setSession] = useState(null);
