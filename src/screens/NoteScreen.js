@@ -37,6 +37,7 @@ import {
   getExistingLink,
   updateExistingLink,
   createNewLink,
+  updateAnswer
 } from '../components/data_handling';
 
 import { useFocusEffect } from '@react-navigation/native';
@@ -1082,6 +1083,7 @@ const filteredAnswers = answers.filter(answer => {
   }}
       >
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        {/*
         {showDetails && (
           <CheckBox
             value={isSelected}
@@ -1094,6 +1096,7 @@ const filteredAnswers = answers.filter(answer => {
             }}
           />
         )}
+        */}
           <View style={{ flex: 1 }}>
             {showDetails && (
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20}}>
@@ -1168,43 +1171,98 @@ const filteredAnswers = answers.filter(answer => {
 {showDetails && (
    
                 
-                <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
-                  {item.answer !== "audio pas encore converti en texte" && item.id !== editingAnswerId && (
-                    <TouchableOpacity
-                      onPress={() => {
-                        setEditingAnswerId(item.id);
-                        setEditingText(item.answer);
-                      }}
-                    >
-                      <Image source={edit} style={{ width: 28, height: 28, opacity: 0.5 }} />
-                    </TouchableOpacity>
-                  )}
-                  {item.audio && (
-                    <>
-                    <TouchableOpacity onPress={() => playRecording_fromAudioFile(item.link_storage)} style={styles.playButton}>
-                      <Image source={VolumeIcon} style={{ width: 35, height: 35, opacity: 0.5, marginHorizontal: 15 }} />
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => handleCaptionClick(item.id)} style={styles.playButton}>
-                        <Image source={captionIcon} style={{ width: 25, height: 25, opacity: 0.5, marginHorizontal: 15 }} />
-                      </TouchableOpacity>
+<>
 
-                    </>
-                  )}
-                  
-                  
-                  
-                  {item.image && (
-                    <TouchableOpacity onPress={() => setFullscreenImage(`https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/photos/${item.link_storage}`)}>
-                      <Image source={eyeIcon} style={{ width: 35, height: 35, opacity: 0.5, marginHorizontal: 15 }} />
-                    </TouchableOpacity>
-                  )}
-                  <TouchableOpacity onPress={() => { copyToClipboard(item.answer); integration(item.id); refreshAnswers(); }}>
-                    <Image source={copyIcon} style={{ width: 27, height: 27, opacity: 0.5, marginHorizontal: 15 }} />
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={() => handleDeleteAnswer(item.id)}>
-                    <Image source={trash} style={{ width: 36, height: 36, opacity: 0.5, marginLeft: 15 }} />
-                  </TouchableOpacity>
-                </View>
+   {item.answer !== "audio pas encore converti en texte" && item.id !== editingAnswerId && (
+     <TouchableOpacity
+       onPress={() => {
+         setEditingAnswerId(item.id);
+         setEditingText(item.answer);
+       }}
+     >
+       <Image source={edit} style={{ width: 28, height: 28, opacity: 0.5 }} />
+       {isLargeScreen && <Text>Editer</Text>}
+     </TouchableOpacity>
+   )}
+   {item.audio && (
+     <>
+     <TouchableOpacity onPress={() => playRecording_fromAudioFile(item.link_storage)} style={styles.playButton}>
+       <Image source={VolumeIcon} style={{ width: 35, height: 35, opacity: 0.5, marginHorizontal: 15 }} />
+       {isLargeScreen && <Text>Ecouter</Text>}
+     </TouchableOpacity>
+     <TouchableOpacity onPress={() => handleCaptionClick(item.id)} style={styles.playButton}>
+         <Image source={captionIcon} style={{ width: 25, height: 25, opacity: 0.5, marginHorizontal: 15 }} />
+         {isLargeScreen && <Text>Retranscrire</Text>}
+       </TouchableOpacity>
+ 
+     </>
+   )}
+   {item.image && (
+     <TouchableOpacity onPress={() => setFullscreenImage(`https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/photos/${item.link_storage}`)}>
+       <Image source={eyeIcon} style={{ width: 35, height: 35, opacity: 0.5, marginHorizontal: 15 }} />
+       {isLargeScreen && <Text>Voir</Text>}
+     </TouchableOpacity>
+   )}
+   <TouchableOpacity onPress={() => { copyToClipboard(item.answer); integration(item.id); refreshAnswers(); }}>
+     <Image source={copyIcon} style={{ width: 27, height: 27, opacity: 0.5, marginHorizontal: 15 }} />
+     {isLargeScreen && <Text>Copier</Text>}
+   </TouchableOpacity>
+ 
+   <View style={{flexDirection: 'column', alignItems: 'center' }}>
+   <TouchableOpacity
+  style={[styles.toggleButton, item.used && styles.selectedToggle]}
+  onPress={async () => {
+    await updateAnswer(item.id, 'used', !item.used);
+    const updatedAnswers = answers.map(answer =>
+      answer.id === item.id ? { ...answer, used: !answer.used } : answer
+    );
+    setAnswers(updatedAnswers);
+  }}
+>
+  <View style={{ flexDirection: 'column', alignItems: 'center' }}>
+    <View style={[
+      styles.toggleButtonCircle,
+      { left: item.used ? 2 : null, right: !item.used ? 2 : null }
+    ]} />
+    
+  </View>
+  <Text style={[styles.toggleText, { marginTop: 5 }]}> </Text>
+</TouchableOpacity>
+<Text >{item.used ? 'Utilisé' : 'Non utilisé'}</Text>
+</View>
+<View style={{flexDirection: 'column', alignItems: 'center' }}>
+<TouchableOpacity
+  style={[styles.toggleButton, item.quality && styles.selectedToggle]}
+  onPress={async () => {
+    await updateAnswer(item.id, 'quality', !item.quality);
+    const updatedAnswers = answers.map(answer =>
+      answer.id === item.id ? { ...answer, quality: !answer.quality } : answer
+    );
+    setAnswers(updatedAnswers);
+  }}
+>
+  <View style={{flexDirection: 'column', alignItems: 'center' }}>
+    <View style={[
+      styles.toggleButtonCircle,
+      { left: item.quality ? 2 : null, right: !item.quality ? 2 : null }
+    ]} />
+    
+  </View>
+  <Text style={[styles.toggleText, { marginTop: 5 }]}> </Text>
+</TouchableOpacity>
+<Text >{item.quality ? 'Relu' : 'Non relu'}</Text>
+</View>
+
+
+
+   
+
+   <TouchableOpacity onPress={() => handleDeleteAnswer(item.id)}>
+     <Image source={trash} style={{ width: 36, height: 36, opacity: 0.5, marginLeft: 15 }} />
+     {isLargeScreen && <Text>Supprimer</Text>}
+   </TouchableOpacity>
+ 
+   </>
               
             )}
 

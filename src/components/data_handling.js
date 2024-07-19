@@ -897,21 +897,22 @@ export async function delete_question(id_question) {
 
 
 
-export async function integration(id_answer) {
+export async function updateAnswer(id_answer, column_to_update, value) {
   try {
+    const updates = {};
+    updates[column_to_update] = value;
+
     const { error: errorUpdating } = await supabase
-        .from('Memoires_answers')
-        .update({ used: true })
-        .match({ id: id_answer});
+      .from('Memoires_answers')
+      .update(updates)
+      .match({ id: id_answer });
 
-
-
-
-  }catch (errorUpdating ) {
-    Alert.alert('Erreur lors de la prise en compte de la copie : ', errorUpdating.message);
-  } 
-
-
+    if (errorUpdating) {
+      throw errorUpdating;
+    }
+  } catch (errorUpdating) {
+    Alert.alert('Erreur lors de la mise à jour : ', errorUpdating.message);
+  }
 }
 
 export async function getUserStatus(id_user, id_subject) {
