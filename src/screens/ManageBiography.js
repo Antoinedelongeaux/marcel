@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useNavigation } from '@react-navigation/native';
 import { Modal, Image, View, StyleSheet, Button, Text, Alert, Keyboard, TouchableWithoutFeedback, TextInput, TouchableOpacity } from 'react-native'
 import { globalStyles } from '../../global'
-import { listSubjects, joinSubject, getSubjects, get_project, create_project, get_project_contributors, validate_project_contributors, get_project_by_id, getSubjects_pending } from '../components/data_handling';
+import { listSubjects, joinSubject, getSubjects, get_project, create_project, get_project_contributors, validate_project_contributors, get_project_by_id, getSubjects_pending, getExistingLink,updateExistingLink,createNewLink,remember_active_subject,get_Profile } from '../components/data_handling';
 import { saveActiveSubjectId, getActiveSubjectId } from '../components/local_storage';
 import { Ionicons } from '@expo/vector-icons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -25,6 +25,8 @@ import Svg, { Path } from 'react-native-svg';
 import BookIcon from '../../assets/icons/book.svg';
 import note from '../../assets/icons/notes.png';
 import { Picker } from '@react-native-picker/picker';
+import Clipboard from '@react-native-clipboard/clipboard';
+
 
 
 
@@ -61,6 +63,7 @@ export default function ProfileScreen({ route }) {
     const [isHovered, setIsHovered] = useState(false);
 
     const [isLargeScreen, setIsLargeScreen] = useState(false);
+    const [links, setLinks] = useState(false);
 
 useEffect(() => {
     const updateLayout = () => {
@@ -75,7 +78,21 @@ useEffect(() => {
     };
 }, []);
 
-
+const copyLinkToClipboard = (text) => {
+    Clipboard.setString(text);
+    Alert.alert('Lien copié dans le presse-papier', text);
+  };
+  
+  const toggleLinkStatus = async (index) => {
+    const linkToUpdate = links[index];
+    const newExpired = !linkToUpdate.expired;
+    await updateExistingLink(linkToUpdate.id, newExpired);
+    const updatedLinks = links.map((link, idx) => 
+      idx === index ? { ...link, expired: newExpired } : link
+    );
+    setLinks(updatedLinks);
+  };
+  
 
 
 
@@ -116,11 +133,17 @@ useEffect(() => {
     }, [session]);
 
     useEffect(() => {
-        console.log("subject_active")
-        console.log(subject_active)
-        saveActiveSubjectId(String(subject_active.id));
-
+        const fetchLinks = async () => {
+            saveActiveSubjectId(String(subject_active.id));
+            const links = await getExistingLink(subject_active.id, 'id_subject');
+            setLinks(links);
+        };
+    
+        if (subject_active.id) {
+            fetchLinks();
+        }
     }, [subject_active]);
+    
 
 
     const handleJoinSubject = async (id) => {
@@ -137,17 +160,8 @@ useEffect(() => {
 
 
         try {
-            const { data, error } = await supabase
-                .from('profiles')
-                .update({ active_biography: id })
-                .eq('id', session?.user.id);
-
-            if (error) {
-                throw error;
-            }
-
-            console.log('Mise à jour réussie', data);
-
+            await remember_active_subject(id,session?.user.id)
+            
             // Après une mise à jour réussie, rafraîchissez les données
             await fetchSubjects(); // Cette fonction va récupérer à nouveau les sujets actifs et disponibles
         } catch (error) {
@@ -239,14 +253,9 @@ useEffect(() => {
             setLoading(true)
             if (!session?.user) throw new Error('No user on the session!')
 
-            const { data, error, status } = await supabase
-                .from('profiles')
-                .select(`*`)
-                .eq('id', session?.user.id)
-                .single()
-            if (error && status !== 406) {
-                throw error
-            }
+            const data = await get_Profile(session?.user.id)
+            
+
 
             if (data) {
                 setUsername(data.username)
@@ -417,7 +426,50 @@ useEffect(() => {
             ) : (
                 <Text>Aucun contributeur pour ce projet</Text>
             )}
-    
+    {links?.length > 0 && (
+  <>
+  <Text> </Text>
+    <Text style={globalStyles.title}>Liens de partage</Text>
+    <View style={styles.headerRow}>
+      <Text style={styles.headerText}>Date de création</Text>
+      <Text style={styles.headerText}>Lien actif</Text>
+      <Text style={styles.headerText}>Actions</Text>
+    </View>
+    {links.map((link, index) => (
+      <View key={link.id} style={styles.linkRow}>
+        <Text style={styles.linkText}>{new Date(link.created_at).toLocaleString()}</Text>
+        <View style={styles.toggleContainer}>
+          <TouchableOpacity
+            style={[styles.toggleButton, !link.expired && styles.activeToggle]}
+            onPress={() => toggleLinkStatus(index)}
+          >
+            <View style={[
+              styles.toggleButtonCircle,
+              { left: link.expired ? 2 : null, right: link.expired ? null : 2 }
+            ]} />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.toggleContainer}>
+          <TouchableOpacity onPress={() => copyLinkToClipboard(`https://marcel-eight.vercel.app/${link.id}`)}>
+            <Text style={styles.copyButtonText}>Copier le lien de partage</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    ))}
+
+  </>
+)}
+
+<TouchableOpacity style={styles.createLinkButtonContainer} onPress={async () => {
+  await createNewLink(subject_active.id, 'id_subject');
+  setLinks(await getExistingLink(subject_active.id, 'id_subject'));
+}}>
+  <View style={styles.createLinkButton}>
+    <Text style={globalStyles.globalButtonText}>Créer un nouveau lien</Text>
+  </View>
+</TouchableOpacity>
+
+
     </View>)}
             {/* Deuxième partie */}
             {subjects_active.length > 0 && (
@@ -777,6 +829,84 @@ const styles = StyleSheet.create({
         flex: 1, // Ajoutez cette ligne
         textAlign: 'center', // Pour centrer le texte dans chaque colonne
     },
+    
+    headerRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingBottom: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: '#ccc',
+      },
+      headerText: {
+        fontWeight: 'bold',
+        fontSize: 16,
+        color: '#333',
+        flex: 1,
+        textAlign: 'center',
+      },
+      linkRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingVertical: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: '#ccc',
+      },
+      linkText: {
+        fontSize: 16,
+        color: '#333',
+        flex: 1,
+        textAlign: 'center',
+      },
+      toggleContainer: {
+        width: '33.33%',
+        alignItems: 'center',
+      },
+      toggleButton: {
+        width: 60,
+        height: 30,
+        borderRadius: 15,
+        backgroundColor: '#ccc',
+        justifyContent: 'center',
+        alignItems: 'center',
+        position: 'relative',
+      },
+      activeToggle: {
+        backgroundColor: '#008080',
+      },
+      toggleButtonCircle: {
+        width: 26,
+        height: 26,
+        borderRadius: 13,
+        backgroundColor: '#fff',
+        position: 'absolute',
+      },
+      toggleText: {
+        fontSize: 12,
+        color: '#333',
+      },
+      copyButtonText: {
+        color: '#007BFF',
+        textDecorationLine: 'underline',
+        textAlign: 'center',
+        flex: 1,
+      },
+      createLinkButtonContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: 10,
+      },
+      createLinkButton: {
+        backgroundColor: '#008080',
+        padding: 10,
+        borderRadius: 5,
+        alignItems: 'center',
+        justifyContent: 'center',
+      },
+      createLinkButtonText: {
+        color: '#fff',
+        fontSize: 16,
+      },
 
 })
 

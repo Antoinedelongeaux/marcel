@@ -15,8 +15,14 @@ import ReadAnswersScreen from './src/screens/ReadAnswersScreen';
 import ManageBiographyScreen from './src/screens/ManageBiography';
 import NoteScreen from './src/screens/NoteScreen';
 import InvitationScreen from './src/screens/InvitationScreen';
+import { saveActiveSubjectId } from './src/components/local_storage';
 import {
   linkAnalysis,
+  updateExistingLink,
+  joinSubject,
+  remember_active_subject,
+  get_Profile
+
 } from './src/components/data_handling';
 
 const Stack = createStackNavigator();
@@ -41,23 +47,52 @@ function AppNavigator({ session }) {
     fetchSuffixData();
   }
 
-
   }, [suffix]);
   
+  
+
   useEffect(() => {
-
-    if(suffix){
-    const fetchSuffixData= async () => {
-      setCheck(await linkAnalysis(suffix));
-    
-     
-    };
+    if (session && session.user && check.nature === 'subject') {
+      const joinSubjectAction = async () => {
+        try {
+          // Rejoindre le projet et attendre la réussite
+          await joinSubject(check.id_subject, session.user.id, true);
+          
+          // Si joinSubject a réussi, procéder avec les autres opérations
+          await updateExistingLink(check.id, false);
+          await remember_active_subject(check.id_subject, session.user.id);
+          await saveActiveSubjectId(check.id_subject);
+          
+        } catch (error) {
+          // Gérer les erreurs ici
+          console.error('Erreur lors de l\'exécution des actions :', error.message);
+        }
+      };
   
-    fetchSuffixData();
-  }
+      joinSubjectAction();
+    }
+    if (session && session.user && check.nature!== 'subject') {
+      const reachActiveSubject = async () => {
+        try {
+          // Rejoindre le projet et attendre la réussite
+          const profile = await get_Profile( session.user.id);
+           if (profile.active_biography){ 
+          await saveActiveSubjectId(profile.active_biography);
+        }
+        } catch (error) {
+          // Gérer les erreurs ici
+          console.error('Erreur lors de l\'exécution des actions :', error.message);
+        }
+      };
+  
+      reachActiveSubject();
+    }
+
+  }, [check, session]);
+  
 
 
-  }, [suffix]);
+
 
 
   return (

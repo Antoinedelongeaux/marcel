@@ -1208,6 +1208,7 @@ const filteredAnswers = answers.filter(answer => {
      {isLargeScreen && <Text>Copier</Text>}
    </TouchableOpacity>
  
+   {isLargeScreen && (<>
    <View style={{flexDirection: 'column', alignItems: 'center' }}>
    <TouchableOpacity
   style={[styles.toggleButton, item.used && styles.selectedToggle]}
@@ -1253,7 +1254,7 @@ const filteredAnswers = answers.filter(answer => {
 <Text >{item.quality ? 'Relu' : 'Non relu'}</Text>
 </View>
 
-
+</>)}
 
    
 

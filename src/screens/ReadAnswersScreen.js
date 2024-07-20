@@ -164,7 +164,7 @@ function ReadQuestionsScreen({ route }) {
       }
     };
   
-    fetchChapter();
+    fetchCheck();
   }
   }, [suffix]);
   

@@ -483,7 +483,7 @@ export async function listSubjects(id_user) {
 
 
 
-export async function joinSubject(id_subject, id_user,statut) {
+export async function joinSubject(id_subject, id_user,access) {
   try {
     // Vérifier d'abord si l'enregistrement existe
 
@@ -506,7 +506,7 @@ export async function joinSubject(id_subject, id_user,statut) {
     const { error: insertError } = await supabase
       .from('Memoires_contributors')
       .insert([
-        { id_subject: id_subject, id_user: id_user,authorized : statut } // Assurez-vous d'inclure id_user dans l'insertion
+        { id_subject: id_subject, id_user: id_user,access : access } // Assurez-vous d'inclure id_user dans l'insertion
       ]);
 
     if (insertError) throw insertError;
@@ -1138,6 +1138,44 @@ export async function update_answer_owner(id_answer,id_user) {
 
     return
 } catch (errorUpdating) {
+  Alert.alert("Erreur", errorUpdating.message);
+}
+}
+
+
+
+export async function remember_active_subject(id_subject,id_user) {
+  try {
+
+    const { data, error } = await supabase
+    .from('profiles')
+    .update({ active_biography: id_subject })
+    .eq('id', id_user);
+
+if (error) {
+    throw error;
+}
+
+
+    return
+} catch (errorUpdating) {
+  Alert.alert("Erreur", errorUpdating.message);
+}
+}
+
+
+export async function get_Profile(id_user) {
+  try {
+
+    const { data, error} = await supabase
+                .from('profiles')
+                .select(`*`)
+                .eq('id', id_user)
+                .single()
+
+
+    return data
+} catch (error) {
   Alert.alert("Erreur", errorUpdating.message);
 }
 }
