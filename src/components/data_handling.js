@@ -613,7 +613,7 @@ export async function get_user_name(id_user) {
     if (id_user === null) {
       return "Marcel";
     }
-
+    console.log("get_user_name")
     const { data: user, error: errorUser } = await supabase
       .from('profiles')
       .select(`*`)
@@ -1146,7 +1146,7 @@ export async function update_answer_owner(id_answer,id_user) {
 
 export async function remember_active_subject(id_subject,id_user) {
   try {
-
+    console.log("remember_active_subject")
     const { data, error } = await supabase
     .from('profiles')
     .update({ active_biography: id_subject })
