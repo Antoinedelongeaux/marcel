@@ -1167,6 +1167,7 @@ if (error) {
 export async function get_Profile(id_user) {
   try {
 
+    console.log("Id-user in the search of profile : ",id_user)
     const { data, error} = await supabase
                 .from('profiles')
                 .select(`*`)
