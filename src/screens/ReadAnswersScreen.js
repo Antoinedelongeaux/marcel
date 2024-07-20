@@ -157,7 +157,7 @@ function ReadQuestionsScreen({ route }) {
 
   useEffect(() => {
     if(suffix){
-    const fetchChapter = async () => {
+    const fetchCheck = async () => {
       const check = await isExistingChapter(suffix);
       if (check) {
         navigateToScreen('AnswerQuestionScreen', { questionId: suffix });
