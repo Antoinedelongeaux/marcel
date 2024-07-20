@@ -291,6 +291,7 @@ if(session.user){
       const names = {};
       for (const answer of answers) {
         if (!names[answer.id_user]) {
+          console.log("asnswer : ",answer)
           names[answer.id_user] = await get_user_name(answer.id_user);
         }
       }

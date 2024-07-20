@@ -66,7 +66,7 @@ export async function getMemories_Question(subject_active, setQuestion, setAnswe
       .eq('id_question', selectedQuestion.id);
 
     if (errorAnswersForSelectedQuestion) throw errorAnswersForSelectedQuestion;
-
+    console.log("selectedQuestion : ",selectedQuestion)
     // Mettre à jour l'état avec la question sélectionnée et ses réponses
     const ownerName = await get_user_name(selectedQuestion.id_owner);
     setOwner(ownerName);
@@ -170,7 +170,7 @@ export async function getMemories_Question_by_id(id_question,setQuestion, setAns
       .eq('id_question', id_question);
 
     if (errorAnswersForSelectedQuestion) throw errorAnswersForSelectedQuestion;
-
+    console.log("id_question : ",id_question)
     // Mettre à jour l'état avec la question sélectionnée et ses réponses
     const ownerName = await get_user_name(question.id_owner);
     setOwner(ownerName);
@@ -620,6 +620,8 @@ export async function get_user_name(id_user) {
       .eq('id', id_user)
       .single();
 
+    console.log("get_user_name data :",user )
+
     if (errorUser) throw errorUser;
 
     return user.username;
@@ -771,6 +773,7 @@ export async function get_project_contributors(id_subject) {
 
     // Ajout des noms des contributeurs à la liste des contributeurs
     const contributorsWithName = await Promise.all(contributors.map(async (contributor) => {
+      console.log("contributors : ",contributors)
       const name = await get_user_name(contributor.id_user);
       return { ...contributor, name }; // Ajoute le nom au contributeur
     }));

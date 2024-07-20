@@ -176,6 +176,7 @@ function ReadQuestionsScreen({ route }) {
       if (status.chapters === 'Auditeur') {
         setQuestion_reponse('question');
       }
+      console.log("Session ! ",session.user.id)
       const name = await get_user_name(session.user.id);
       setUserName(name);
       if (!status.access) {
