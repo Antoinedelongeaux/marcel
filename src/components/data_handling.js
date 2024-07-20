@@ -1164,14 +1164,14 @@ if (error) {
 }
 
 
-export async function get_Profile(id_user) {
+export async function get_Profile(id_to_be_found) {
   try {
 
-    console.log("Id-user in the search of profile : ",id_user)
+    console.log("Id-user in the search of profile : ",id_to_be_found)
     const { data, error} = await supabase
                 .from('profiles')
                 .select(`*`)
-                .eq('id', id_user)
+                .eq('id', id_to_be_found)
                 .single()
 
     console.log("Profile : ",data)
