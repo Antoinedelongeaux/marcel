@@ -1174,7 +1174,7 @@ export async function get_Profile(id_user) {
                 .eq('id', id_user)
                 .single()
 
-
+    console.log("Profile : ",data)
     return data
 } catch (error) {
   Alert.alert("Erreur", errorUpdating.message);
