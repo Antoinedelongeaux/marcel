@@ -28,29 +28,8 @@ export default function ProfileScreen({ route }) {
         navigation.navigate(screenName, params);
     };
 
-    async function fetchSubjects() {
+  
 
-        if (session) {
-            getProfile();
-            try {
-                const temp = await getSubjects(session.user.id);
-                setSubjects_active(temp);
-
-                // Si vous souhaitez également rafraîchir la liste des sujets disponibles à rejoindre
-                const temp2 = await listSubjects(session.user.id);
-                setSubjects(temp2);
-
-
-            } catch (error) {
-                console.error("Error fetching subjects:", error);
-            }
-        }
-    }
-
-    useEffect(() => {
-
-        fetchSubjects();
-    }, [session]);
 
     useEffect(() => {
 
@@ -59,27 +38,20 @@ export default function ProfileScreen({ route }) {
     }, [subject_active]);
 
 
-    const handleJoinSubject = async (id) => {
-        setSubject_active(id);
-        try {
-            const { data, error } = await supabase
-                .from('profiles')
-                .update({ active_biography: id })
-                .eq('id', session?.user.id);
+  
+   
 
-            if (error) {
-                throw error;
+    useEffect(() => {
+        async function fetchProfile() {
+
+            if (session) {
+                getProfile();
+                
             }
-
-            console.log('Mise à jour réussie', data);
-
-            // Après une mise à jour réussie, rafraîchissez les données
-            await fetchSubjects(); // Cette fonction va récupérer à nouveau les sujets actifs et disponibles
-        } catch (error) {
-            console.error('Erreur lors de la mise à jour du profil', error.message);
+    
         }
-    };
-
+        fetchProfile();
+    }, [session]);
 
 
 
@@ -145,42 +117,7 @@ export default function ProfileScreen({ route }) {
         }
     }
 
-    const joinGroup = async (groupID) => {
-        const userID = session.user?.id
-        try {
-            const { data: existingMembership, error: existingMembershipError } = await supabase
-                .from('users_in_groups')
-                .select('*')
-                .eq('id_user', userID)
-                .eq('id_group', groupID);
-
-            if (existingMembershipError) {
-                throw existingMembershipError;
-            }
-
-            if (existingMembership.length > 0) {
-                console.log("L'utilisateur est déjà membre de ce groupe.");
-                return;
-            }
-
-            const { data: newMembership, error: newMembershipError } = await supabase
-                .from('users_in_groups')
-                .insert({
-                    id_user: userID,
-                    id_group: groupID,
-                    status: 'active',
-                    created_at: new Date()
-                });
-
-            if (newMembershipError) {
-                throw newMembershipError;
-            }
-
-            console.log("L'utilisateur a rejoint le groupe avec succès.");
-        } catch (error) {
-            console.error('Erreur lors de la tentative de rejoindre le groupe :', error.message);
-        }
-    };
+ 
 
 
 
@@ -197,7 +134,7 @@ export default function ProfileScreen({ route }) {
                 </TouchableOpacity>
      
                 
-                <TouchableOpacity onPress={() => navigateToScreen('ManageBiographyScreen')}  style={[globalStyles.navButton, isHovered && globalStyles.navButton_over]}
+                <TouchableOpacity onPress={() => navigateToScreen('Projets')}  style={[globalStyles.navButton, isHovered && globalStyles.navButton_over]}
   onMouseEnter={() => setIsHovered(true)}
   onMouseLeave={() => setIsHovered(false)}>
                     <Image source={SettingsIcon} style={{ width: 120, height: 120, opacity: 0.5 }} />
@@ -229,7 +166,7 @@ export default function ProfileScreen({ route }) {
                 <TextInput
                     style={globalStyles.input}
                     value={full_name || ''}
-                    onChangeText={(text) => setUsername(text)}
+                    onChangeText={(text) => setFull_name(text)}
                 />
 
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>

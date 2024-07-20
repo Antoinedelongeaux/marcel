@@ -629,7 +629,7 @@ const copyLinkToClipboard = (text) => {
                             style={[globalStyles.globalButton_wide]}
                             onPress={async () => {
                                 setShowJoinModal(false);
-                                await joinSubject(selectedSubject, session.user.id, "En attente");
+                                await joinSubject(selectedSubject, session.user.id, false);
                                 setJoinMessage("Votre demande a bien été envoyée aux contributeurs du projet pour validation.")
                             }}
                         >

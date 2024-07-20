@@ -528,7 +528,7 @@ export async function getSubjects(id_user) {
       .from('Memoires_contributors')
       .select('*')
       .eq('id_user', id_user)
-      .or('authorized.eq.Contributeur,authorized.eq.Editeur,authorized.eq.Oui');
+      .eq('access', true);
     if (error) throw error;
 
 
@@ -561,7 +561,7 @@ export async function getSubjects_pending(id_user) {
       .from('Memoires_contributors')
       .select('*')
       .eq('id_user', id_user)
-      .eq('authorized', "En attente");
+      .eq('access', false);
     if (error) throw error;
 
 
