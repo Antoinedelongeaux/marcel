@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Slider from '@react-native-community/slider';
 import { useNavigation } from '@react-navigation/native';
 import {
   Image,
@@ -50,7 +51,7 @@ import copyIcon from '../../assets/icons/paste.png';
 import noteIcon from '../../assets/icons/notes.png';
 import filterIcon from '../../assets/icons/filtre.png';
 import Modal from 'react-native-modal'; // Ajoutez cette ligne pour importer le composant Modal
-import { createAudioChunk, startRecording, stopRecording, uploadAudioToSupabase, delete_audio,playRecording_fromAudioFile, uploadImageToSupabase } from '../components/sound_handling'; // Ajoutez cette ligne
+import { createAudioChunk, startRecording, stopRecording, uploadAudioToSupabase, delete_audio,playRecording_fromAudioFile, uploadImageToSupabase,handlePlayPause } from '../components/sound_handling'; // Ajoutez cette ligne
 import { transcribeAudio } from '../components/call_to_whisper';
 //import { transcribeAudio } from '../components/call_to_google';
 import MicroIcon from '../../assets/icons/microphone-lines-solid.svg';
@@ -71,6 +72,9 @@ import * as DocumentPicker from 'expo-document-picker';
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import Clipboard from '@react-native-clipboard/clipboard';
 import shareIcon from '../../assets/icons/share.png';
+import playIcon from '../../assets/icons/play.png';
+import pauseIcon from '../../assets/icons/pause.png';
+
 
 
 
@@ -163,6 +167,9 @@ const [selectedUserId, setSelectedUserId] = useState(null);
 const [isShareModalVisible, setIsShareModalVisible] = useState(false);
 const [utiliseFilter, setUtiliseFilter] = useState('tous');
 const [reluFilter, setReluFilter] = useState('relu & non_relu');
+const [playbackStatus, setPlaybackStatus] = useState({});
+const [currentAudioId, setCurrentAudioId] = useState(null);
+
 
 
 
@@ -374,9 +381,6 @@ if(session.user){
     }
 };
 
-  
-  
-  
   
   
 
@@ -1294,15 +1298,13 @@ const filteredAnswers = answers.filter(answer => {
    )}
    {item.audio && (
      <>
-     <TouchableOpacity onPress={() => playRecording_fromAudioFile(item.link_storage)} style={styles.playButton}>
-       <Image source={VolumeIcon} style={{ width: 35, height: 35, opacity: 0.5, marginHorizontal: 15 }} />
-       {isLargeScreen && <Text>Ecouter</Text>}
-     </TouchableOpacity>
+
      <TouchableOpacity onPress={() => handleCaptionClick(item.id)} style={styles.playButton}>
          <Image source={captionIcon} style={{ width: 25, height: 25, opacity: 0.5, marginHorizontal: 15 }} />
          {isLargeScreen && <Text>Retranscrire</Text>}
        </TouchableOpacity>
  
+
      </>
    )}
    {item.image && (
@@ -1384,6 +1386,27 @@ const filteredAnswers = answers.filter(answer => {
               {userNames[item.id_user]}
             </Text>
             </View>
+            {item.audio && showDetails && (
+     
+       <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
+  <TouchableOpacity onPress={() => handlePlayPause(item.id, item.link_storage,currentAudioId,setCurrentAudioId,playbackStatus,setPlaybackStatus)}>
+    <Image source={playbackStatus.isPlaying && currentAudioId === item.id ? pauseIcon : playIcon} style={{ width: 25, height: 25 }} />
+  </TouchableOpacity>
+  <Slider
+    style={{ flex: 1, marginHorizontal: 10 }}
+    value={playbackStatus.positionMillis || 0}
+    minimumValue={0}
+    maximumValue={playbackStatus.durationMillis || 0}
+    onSlidingComplete={async (value) => {
+      if (playbackStatus.sound) {
+        await playbackStatus.sound.setPositionAsync(value);
+      }
+    }}
+  />
+</View>
+
+     
+   )}
           </View>
         </View>
         

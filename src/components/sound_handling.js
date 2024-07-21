@@ -681,3 +681,24 @@ const audioBufferToWav = (buffer) => {
     pos += 4;
   }
 };
+
+
+export const handlePlayPause = async (audioId, audioLink,currentAudioId,setCurrentAudioId,playbackStatus,setPlaybackStatus) => {
+  if (currentAudioId === audioId && playbackStatus.isPlaying) {
+    await playbackStatus.sound.pauseAsync();
+  } else {
+    if (currentAudioId !== audioId) {
+      if (playbackStatus.sound) {
+        await playbackStatus.sound.unloadAsync();
+      }
+      const { sound } = await Audio.Sound.createAsync(
+        { uri: `https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/audio/${audioLink}` },
+        { shouldPlay: true },
+        (status) => setPlaybackStatus({ ...status, sound })
+      );
+      setCurrentAudioId(audioId);
+    } else {
+      await playbackStatus.sound.playAsync();
+    }
+  }
+};
