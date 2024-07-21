@@ -1341,12 +1341,13 @@ const filteredAnswers = answers.filter(answer => {
        {isLargeScreen && <Text>Voir</Text>}
      </TouchableOpacity>
    )}
+   {isLargeScreen && (<>
    <TouchableOpacity onPress={() => { copyToClipboard(item.answer); integration(item.id); refreshAnswers(); }}>
      <Image source={copyIcon} style={{ width: 27, height: 27, opacity: 0.5, marginHorizontal: 15 }} />
      {isLargeScreen && <Text>Copier</Text>}
    </TouchableOpacity>
- 
-   {isLargeScreen && (<>
+   </>)}
+   
    <View style={{flexDirection: 'column', alignItems: 'center' }}>
    <TouchableOpacity
   style={[styles.toggleButton, item.used && styles.selectedToggle]}
@@ -1392,7 +1393,7 @@ const filteredAnswers = answers.filter(answer => {
 <Text >{item.quality ? 'Relu' : 'Non relu'}</Text>
 </View>
 
-</>)}
+
 
    
 

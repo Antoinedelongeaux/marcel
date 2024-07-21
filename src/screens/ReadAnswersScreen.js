@@ -569,18 +569,21 @@ function ReadQuestionsScreen({ route }) {
                 <TouchableOpacity style={globalStyles.globalButton_wide} onPress={() => setIsModalNewQuestionVisible(true)}>
                   <Text style={globalStyles.globalButtonText}>Nouveau chapitre</Text>
                 </TouchableOpacity>
+                <Text> </Text>
+                  <Text> </Text>
+                  <Text> </Text>
+                  <Text> </Text>
+                  <Text> </Text>
+                  <Text> </Text>
+                  <Text> </Text>
+                  <Text> </Text>
+                  <Text> </Text>
                 <View>
-                  <Text></Text>
-                  <Text></Text>
-                  <Text></Text>
-                  <Text></Text>
-                  <Text></Text>
-                  <Text></Text>
-                  <Text></Text>
-                  <Text></Text>
-                  <Text></Text>
+                  
                 </View>
+                
               </View>
+              
             </View>
           </View>
         )}
