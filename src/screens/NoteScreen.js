@@ -169,6 +169,9 @@ const [utiliseFilter, setUtiliseFilter] = useState('tous');
 const [reluFilter, setReluFilter] = useState('relu & non_relu');
 const [playbackStatus, setPlaybackStatus] = useState({});
 const [currentAudioId, setCurrentAudioId] = useState(null);
+const [isTranscriptionModalVisible, setIsTranscriptionModalVisible] = useState(false);
+const [answerIdToTranscribe, setAnswerIdToTranscribe] = useState(null);
+
 
 
 
@@ -381,8 +384,7 @@ if(session.user){
     }
 };
 
-  
-  
+
 
 
   const handleShowDetails = () => {
@@ -660,15 +662,24 @@ const filteredAnswers = answers.filter(answer => {
     });
   };
   
-  const handleCaptionClick = async (answerId) => {
-    setTranscribingId(answerId);
-    const answerToUpdate = answers.find(ans => ans.id === answerId);
-    if (answerToUpdate) {
-      await update_answer_text(answerToUpdate.id, "audio pas encore converti en texte");
+
+
+  const handleCaptionClick = (answerId) => {
+    setAnswerIdToTranscribe(answerId);
+    setIsTranscriptionModalVisible(true);
+  };
+  
+  const handleConfirmTranscription = async () => {
+    if (answerIdToTranscribe) {
+      setTranscribingId(answerIdToTranscribe);
+      await update_answer_text(answerIdToTranscribe, "audio pas encore converti en texte");
       await refreshAnswers();
       setTranscribingId(null);
+      setIsTranscriptionModalVisible(false);
+      setAnswerIdToTranscribe(null);
     }
   };
+  
   
 
   const handleUploadAudio = async () => {
@@ -956,6 +967,23 @@ const filteredAnswers = answers.filter(answer => {
 
   </View>
 </View>
+</Modal>
+
+<Modal isVisible={isTranscriptionModalVisible}>
+  <View style={styles.overlay}>
+    <View style={styles.modalContainer}>
+      <TouchableOpacity onPress={() => setIsTranscriptionModalVisible(false)} style={styles.closeButton}>
+        <Image source={closeIcon} style={styles.closeIcon} />
+      </TouchableOpacity>
+      <Text style={styles.modalTitle}>Confirmation de retranscription</Text>
+      <Text style={styles.modalText}>
+        Voulez-vous vraiment retranscrire ce message audio ? Le texte existant sera alors effacé et remplacé par la nouvelle retranscription.
+      </Text>
+      <TouchableOpacity onPress={handleConfirmTranscription} style={globalStyles.globalButton_wide}>
+        <Text style={globalStyles.globalButtonText}>Confirmer</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
 </Modal>
 
 
@@ -1394,7 +1422,7 @@ const filteredAnswers = answers.filter(answer => {
   </TouchableOpacity>
   <Slider
     style={{ flex: 1, marginHorizontal: 10 }}
-    value={playbackStatus.positionMillis || 0}
+    value={currentAudioId === item.id ? playbackStatus.positionMillis || 0 : 0}
     minimumValue={0}
     maximumValue={playbackStatus.durationMillis || 0}
     onSlidingComplete={async (value) => {
