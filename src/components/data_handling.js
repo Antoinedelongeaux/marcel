@@ -613,14 +613,14 @@ export async function get_user_name(id_user) {
     if (id_user === null) {
       return "Marcel";
     }
-    console.log("get_user_name")
+
     const { data: user, error: errorUser } = await supabase
       .from('profiles')
       .select(`*`)
       .eq('id', id_user)
       .single();
 
-    console.log("get_user_name data :",user )
+
 
     if (errorUser) throw errorUser;
 
@@ -773,7 +773,7 @@ export async function get_project_contributors(id_subject) {
 
     // Ajout des noms des contributeurs à la liste des contributeurs
     const contributorsWithName = await Promise.all(contributors.map(async (contributor) => {
-      console.log("contributors : ",contributors)
+     
       const name = await get_user_name(contributor.id_user);
       return { ...contributor, name }; // Ajoute le nom au contributeur
     }));
@@ -1149,7 +1149,7 @@ export async function update_answer_owner(id_answer,id_user) {
 
 export async function remember_active_subject(id_subject,id_user) {
   try {
-    console.log("remember_active_subject")
+
     const { data, error } = await supabase
     .from('profiles')
     .update({ active_biography: id_subject })
@@ -1170,14 +1170,14 @@ if (error) {
 export async function get_Profile(id_to_be_found) {
   try {
 
-    console.log("Id-user in the search of profile : ",id_to_be_found)
+
     const { data, error} = await supabase
                 .from('profiles')
                 .select(`*`)
                 .eq('id', id_to_be_found)
                 .single()
 
-    console.log("Profile : ",data)
+
     return data
 } catch (error) {
   Alert.alert("Erreur", errorUpdating.message);

@@ -86,8 +86,7 @@ export default function Auth() {
 
     const full_name = `${firstName} ${lastName}`;
 
-    const { error: userError } = await supabase.from('users').insert([{ last_name: lastName, first_name: firstName }]);
-    const { error: profileError } = await supabase.from('profiles').upsert([{ username: firstName, full_name: full_name }]);
+    const { error: profileError } = await supabase.from('profiles').upsert([{ username: firstName, full_name: full_name,last_name: lastName, first_name: firstName  }]);
 
     if (profileError || userError) {
       console.log("Erreur lors de l'insertion du profil ou de l'utilisateur", profileError?.message, userError?.message);

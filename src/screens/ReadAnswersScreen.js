@@ -64,7 +64,7 @@ import leftArrowIcon from '../../assets/icons/left-arrow.png';
 import rightArrowIcon from '../../assets/icons/right-arrow.png';
 import ReactHtmlParser from 'react-html-parser'; 
 
-const useFetchActiveSubjectId = (setSubjectActive, setSubject, navigation) => {
+const useFetchActiveSubjectId = (setSubjectActive, setSubject, setIsLoading, navigation) => {
   useFocusEffect(
     useCallback(() => {
       const fetchActiveSubjectId = async () => {
@@ -76,6 +76,7 @@ const useFetchActiveSubjectId = (setSubjectActive, setSubject, navigation) => {
         } else {
           navigation.navigate('Projets');
         }
+        setIsLoading(false); // Définir isLoading à false une fois le sujet actif récupéré
       };
       fetchActiveSubjectId();
     }, [navigation])
@@ -84,12 +85,12 @@ const useFetchActiveSubjectId = (setSubjectActive, setSubject, navigation) => {
 
 const useFetchData = (id_user, subjectActive, setQuestions, tags, personal, setChapters, setUserStatus) => {
   useEffect(() => {
-    if (subjectActive) {
+    if (subjectActive ) {
       getMemories_Questions(subjectActive, setQuestions, tags, personal);
       get_chapters(subjectActive, setChapters);
       getUserStatus(id_user, subjectActive).then(setUserStatus);
     }
-  }, [subjectActive, tags, personal]);
+  }, [subjectActive, tags, personal, id_user]); 
 };
 
 function ReadQuestionsScreen({ route }) {
@@ -168,6 +169,8 @@ function ReadQuestionsScreen({ route }) {
   }
   }, [suffix]);
   
+  useFetchActiveSubjectId(setSubjectActive, setSubject, setIsLoading, navigation);
+  useFetchData(session.user.id, subjectActive, setQuestions, tags, personal, setChapters, setUserStatus);
 
   useEffect(() => {
     const fetchUserStatus = async () => {
@@ -176,7 +179,7 @@ function ReadQuestionsScreen({ route }) {
       if (status.chapters === 'Auditeur') {
         setQuestion_reponse('question');
       }
-      console.log("Session ! ",session.user.id)
+
       const name = await get_user_name(session.user.id);
       setUserName(name);
       if (!status.access) {
@@ -300,8 +303,7 @@ function ReadQuestionsScreen({ route }) {
     },
   };
 
-  useFetchActiveSubjectId(setSubjectActive, setSubject, navigation);
-  useFetchData(session.user.id, subjectActive, setQuestions, tags, personal, setChapters, setUserStatus);
+  
 
   const toggleChapter = (chapterId) => {
     setOpenChapters((prevOpenChapters) => ({

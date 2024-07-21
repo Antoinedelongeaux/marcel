@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const saveActiveSubjectId = async (subjectId) => {
   try {
+    console.log("saveActiveSubjectId en cours")
     if (subjectId === null ||subjectId === '0') {
       // Si subjectId est null, effacez l'entrée du stockage
       await AsyncStorage.removeItem('activeSubjectId');
@@ -20,6 +21,7 @@ export const saveActiveSubjectId = async (subjectId) => {
 // Pour récupérer l'ID du sujet actif
 export const getActiveSubjectId = async () => {
   try {
+    console.log("getActiveSubjectId en cours")
     const subjectId = await AsyncStorage.getItem('activeSubjectId');
     return subjectId;
   } catch (error) {

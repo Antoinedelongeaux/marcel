@@ -161,6 +161,9 @@ const [isAssignModalVisible, setIsAssignModalVisible] = useState(false);
 const [selectedAnswerId, setSelectedAnswerId] = useState(null);
 const [selectedUserId, setSelectedUserId] = useState(null);
 const [isShareModalVisible, setIsShareModalVisible] = useState(false);
+const [utiliseFilter, setUtiliseFilter] = useState('tous');
+const [reluFilter, setReluFilter] = useState('relu & non_relu');
+
 
 
 
@@ -291,7 +294,6 @@ if(session.user){
       const names = {};
       for (const answer of answers) {
         if (!names[answer.id_user]) {
-          console.log("asnswer : ",answer)
           names[answer.id_user] = await get_user_name(answer.id_user);
         }
       }
@@ -449,9 +451,14 @@ const filteredAnswers = answers.filter(answer => {
      (selectedChapter === 'none' && answer.id_question === null) || 
      (questionIdsForSelectedChapter.length === 0 || questionIdsForSelectedChapter.includes(answer.id_question?.toString()))) &&
     (!selectedUserName || (userName && userName.toLowerCase().includes(selectedUserName.toLowerCase()))) &&
-    (questionReponseFilter === '' || answer.question_reponse === questionReponseFilter)  // Ajoutez cette ligne
-  );
+    (questionReponseFilter === '' || answer.question_reponse === questionReponseFilter) &&
+    ((reluFilter === 'relu' && answer.quality) || (reluFilter === 'non_relu' && !answer.quality) || reluFilter === 'relu & non_relu')) &&
+    ((utiliseFilter === 'used' && answer.used) || (utiliseFilter === 'not_used' && !answer.used) || utiliseFilter === 'tous')
+  
 });
+
+
+
 
 
 
@@ -1055,8 +1062,108 @@ const filteredAnswers = answers.filter(answer => {
         </View>
       )}
     </View>
+
+    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 20, justifyContent: 'space-between',}}>
+      <Text></Text>
+    <View style={{ flexDirection: 'column', alignItems: 'center' }}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+  <Text style={styles.toggleText}>Relu</Text>
+  <TouchableOpacity
+    style={[
+      styles.toggleButton,
+      (reluFilter === 'relu' ||reluFilter === 'relu & non_relu') && styles.selectedToggle
+    ]}
+    onPress={() =>
+      setReluFilter((prev) =>
+        prev === 'relu' ? '' : (prev === 'relu & non_relu' ? 'non_relu' : (prev === 'non_relu' ? 'relu & non_relu' : 'relu'))
+      )
+    }
+  >
+    <View
+      style={[
+        styles.toggleButtonCircle,
+        (reluFilter === 'relu' ||reluFilter === 'relu & non_relu') ? { right: 2 } : { left: 2 }
+      ]}
+    />
+  </TouchableOpacity>
+</View>
+<View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+  <Text style={styles.toggleText}>Non relu</Text>
+  <TouchableOpacity
+    style={[
+      styles.toggleButton,
+      (reluFilter === 'non_relu' ||reluFilter === 'relu & non_relu') && styles.selectedToggle
+    ]}
+    onPress={() =>
+      setReluFilter((prev) =>
+        prev === 'non_relu' ? '' : (prev === 'relu & non_relu' ? 'relu' : (prev === 'relu' ? 'relu & non_relu' : 'non_relu'))
+      )
     
+    }
+  >
+    <View
+      style={[
+        styles.toggleButtonCircle,
+        (reluFilter === 'non_relu' ||reluFilter === 'relu & non_relu') ? { right: 2 } : { left: 2 }
+      ]}
+    />
+  </TouchableOpacity>
+</View>
+
+</View>
+
+
+
+<View style={{ flexDirection: 'column', alignItems: 'center' }}>
+
+<View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+  <Text style={styles.toggleText}>Utilisé</Text>
+  <TouchableOpacity
+    style={[
+      styles.toggleButton,
+      (utiliseFilter === 'used' || utiliseFilter === 'tous') && styles.selectedToggle
+    ]}
+    onPress={() =>
+      setUtiliseFilter((prev) =>
+        prev === 'used' ? '' : (prev === 'tous' ? 'not_used' : (prev === 'not_used' ? 'tous' : 'used'))
+      )
+    }
+  >
+    <View
+      style={[
+        styles.toggleButtonCircle,
+        (utiliseFilter === 'used' || utiliseFilter === 'tous') ? { right: 2 } : { left: 2 }
+      ]}
+    />
+  </TouchableOpacity>
+</View>
+
+<View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+  <Text style={styles.toggleText}>Non utilisé</Text>
+  <TouchableOpacity
+    style={[
+      styles.toggleButton,
+      (utiliseFilter === 'not_used' || utiliseFilter === 'tous') && styles.selectedToggle
+    ]}
+    onPress={() =>
+      setUtiliseFilter((prev) =>
+        prev === 'not_used' ? '' : (prev === 'tous' ? 'used' : (prev === 'used' ? 'tous' : 'not_used'))
+      )
+    }
+  >
+    <View
+      style={[
+        styles.toggleButtonCircle,
+        (utiliseFilter === 'not_used' || utiliseFilter === 'tous') ? { right: 2 } : { left: 2 }
+      ]}
+    />
+  </TouchableOpacity>
+</View>
+</View>
+<Text></Text>
+</View>
   </View>
+ 
 )}
 
 
@@ -1564,13 +1671,13 @@ const styles = StyleSheet.create({
     width: 50,
     height: 30,
     borderRadius: 15,
-    backgroundColor: '#008080',
+    backgroundColor: '#ccc',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 2,
   },
   selectedToggle: {
-    backgroundColor: '#ccc',
+    backgroundColor: '#008080',
   },
   toggleButtonCircle: {
     width: 26,
