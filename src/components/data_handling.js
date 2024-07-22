@@ -1088,10 +1088,13 @@ export async function getExistingLink(id_target,id_question_id_subject) {
 export async function updateExistingLink(id_link,expired) { 
   try {
     // Vérification pour les questions
+    console.log("id_link,expired : ",id_link,expired)
     const { data, error: errorUpdate } = await supabase
       .from('Memoires_magic_link')
       .update({ expired: expired }) 
       .eq('id', id_link);
+
+    console.log("Updated link : ",data)
 
       return data;
     
