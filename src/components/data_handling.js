@@ -1203,12 +1203,12 @@ export async function deleteExistingLink(id_link) {
   }
 }
 
-export async function deleteExistingContributor(id_user) { 
+export async function deleteExistingContributor(id_user,id_subject) { 
   try {
     const { data, error } = await supabase
       .from('Memoires_contributors')
       .delete()
-      .match({ id_user: id_user });
+      .match({ id_user: id_user,id_subject: id_subject  });
 
     if (error) {
       throw error;

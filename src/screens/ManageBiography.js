@@ -453,7 +453,7 @@ const copyLinkToClipboard = (text) => {
         </Picker>
 
         <TouchableOpacity onPress={async () => {
-    await deleteExistingContributor(contributor.id_user);
+    await deleteExistingContributor(contributor.id_user, subject_active.id);
     fetchContributors();
 }}>
     <Image source={trash} style={{ width: 40, height: 40, opacity: 0.5 }} />
