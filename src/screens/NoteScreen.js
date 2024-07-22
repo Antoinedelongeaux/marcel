@@ -805,7 +805,7 @@ const filteredAnswers = answers.filter(answer => {
       <TouchableOpacity
         style={[
           styles.toggleButton,
-          questionReponseFilter.includes('question') && styles.selectedToggle
+          !questionReponseFilter.includes('question') && styles.selectedToggle
         ]}
         onPress={() =>
           setQuestionReponseFilter((prev) =>
@@ -828,7 +828,7 @@ const filteredAnswers = answers.filter(answer => {
       <TouchableOpacity
         style={[
           styles.toggleButton,
-          questionReponseFilter.includes('réponse') && styles.selectedToggle
+          !questionReponseFilter.includes('réponse') && styles.selectedToggle
         ]}
         onPress={() =>
           setQuestionReponseFilter((prev) =>

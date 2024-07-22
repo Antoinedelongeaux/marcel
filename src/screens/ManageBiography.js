@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useNavigation } from '@react-navigation/native';
 import { Modal, Image, View, StyleSheet, Button, Text, Alert, Keyboard, TouchableWithoutFeedback, TextInput, TouchableOpacity } from 'react-native'
 import { globalStyles } from '../../global'
-import { listSubjects, joinSubject, getSubjects, get_project, create_project, get_project_contributors, validate_project_contributors, get_project_by_id, getSubjects_pending, getExistingLink,updateExistingLink,createNewLink,remember_active_subject,get_Profile } from '../components/data_handling';
+import { deleteExistingContributor, deleteExistingLink, listSubjects, joinSubject, getSubjects, get_project, create_project, get_project_contributors, validate_project_contributors, get_project_by_id, getSubjects_pending, getExistingLink,updateExistingLink,createNewLink,remember_active_subject,get_Profile } from '../components/data_handling';
 import { saveActiveSubjectId, getActiveSubjectId } from '../components/local_storage';
 import { Ionicons } from '@expo/vector-icons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -64,6 +64,8 @@ export default function ProfileScreen({ route }) {
 
     const [isLargeScreen, setIsLargeScreen] = useState(false);
     const [links, setLinks] = useState(false);
+
+    
 
 useEffect(() => {
     const updateLayout = () => {
@@ -357,10 +359,10 @@ const copyLinkToClipboard = (text) => {
                     {isLargeScreen && (
                         <View style={styles.headerRow}>
                             <Text style={styles.headerText}>Utilisateur</Text>
-                            <Text style={styles.headerText}>Accès</Text>
-                            <Text style={styles.headerText}>Notes</Text>
-                            <Text style={styles.headerText}>Chapitres</Text>
-                            <Text style={styles.headerText}> </Text>
+                            <Text style={styles.headerText}>Accès au projet</Text>
+                            <Text style={styles.headerText}>Accès aux notes et aux questions</Text>
+                            <Text style={styles.headerText}>Accès au texte des chapitres</Text>
+ 
                         </View>
                     )}
                     {contributors.map((contributor) => (
@@ -369,15 +371,26 @@ const copyLinkToClipboard = (text) => {
         {!isLargeScreen && <Text style={styles.labelText}>Accès :</Text>}
         <Picker
     selectedValue={contributorStates[contributor.id_user]?.access ? 'Oui' : 'Non'}
-    onValueChange={(itemValue) => setContributorStates(prevState => ({
-        ...prevState,
-        [contributor.id_user]: {
-            ...prevState[contributor.id_user],
-            access: itemValue === 'Oui'
-        }
-    }))}
+    onValueChange={async (itemValue) => {
+        const newState = {
+            ...contributorStates,
+            [contributor.id_user]: {
+                ...contributorStates[contributor.id_user],
+                access: itemValue === 'Oui'
+            }
+        };
+        setContributorStates(newState);
+        await validate_project_contributors(
+            subject_active.id,
+            contributor.id_user,
+            newState[contributor.id_user].access,
+            newState[contributor.id_user].notes,
+            newState[contributor.id_user].chapters
+        );
+    }}
     style={styles.picker}
 >
+
     <Picker.Item label="Oui" value="Oui" />
     <Picker.Item label="Non" value="Non" />
 </Picker>
@@ -385,40 +398,66 @@ const copyLinkToClipboard = (text) => {
 
         {!isLargeScreen && <Text style={styles.labelText}>Notes :</Text>}
         <Picker
-            selectedValue={contributorStates[contributor.id_user]?.notes}
-            onValueChange={(itemValue) => setContributorStates(prevState => ({
-                ...prevState,
-                [contributor.id_user]: {
-                    ...prevState[contributor.id_user],
-                    notes: itemValue
-                }
-            }))}
-            style={styles.picker}
-        >
+    selectedValue={contributorStates[contributor.id_user]?.notes}
+    onValueChange={async (itemValue) => {
+        const newState = {
+            ...contributorStates,
+            [contributor.id_user]: {
+                ...contributorStates[contributor.id_user],
+                notes: itemValue
+            }
+        };
+        setContributorStates(newState);
+        await validate_project_contributors(
+            subject_active.id,
+            contributor.id_user,
+            newState[contributor.id_user].access,
+            newState[contributor.id_user].notes,
+            newState[contributor.id_user].chapters
+        );
+    }}
+    style={styles.picker}
+>
+
             <Picker.Item label="Pas d'accès" value="Pas d'accès" />
             <Picker.Item label="Lecteur" value="Lecteur" />
             <Picker.Item label="Contributeur" value="Contributeur" />
         </Picker>
         {!isLargeScreen && <Text style={styles.labelText}>Chapitres :</Text>}
         <Picker
-            selectedValue={contributorStates[contributor.id_user]?.chapters}
-            onValueChange={(itemValue) => setContributorStates(prevState => ({
-                ...prevState,
-                [contributor.id_user]: {
-                    ...prevState[contributor.id_user],
-                    chapters: itemValue
-                }
-            }))}
-            style={styles.picker}
-        >
+    selectedValue={contributorStates[contributor.id_user]?.chapters}
+    onValueChange={async (itemValue) => {
+        const newState = {
+            ...contributorStates,
+            [contributor.id_user]: {
+                ...contributorStates[contributor.id_user],
+                chapters: itemValue
+            }
+        };
+        setContributorStates(newState);
+        await validate_project_contributors(
+            subject_active.id,
+            contributor.id_user,
+            newState[contributor.id_user].access,
+            newState[contributor.id_user].notes,
+            newState[contributor.id_user].chapters
+        );
+    }}
+    style={styles.picker}
+>
+
             <Picker.Item label="Pas d'accès" value="Pas d'accès" />
             <Picker.Item label="Lecteur" value="Lecteur" />
             <Picker.Item label="Auditeur" value="Auditeur" />
             <Picker.Item label="Editeur" value="Editeur" />
         </Picker>
-        <TouchableOpacity onPress={() => toggleAuthorization(contributor)}>
-            <Text style={styles.updateButton}>Mettre à jour</Text>
-        </TouchableOpacity>
+
+        <TouchableOpacity onPress={async () => {
+    await deleteExistingContributor(contributor.id_user);
+    fetchContributors();
+}}>
+    <Image source={trash} style={{ width: 40, height: 40, opacity: 0.5 }} />
+</TouchableOpacity>
     </View>
 ))}
 
@@ -453,7 +492,14 @@ const copyLinkToClipboard = (text) => {
           <TouchableOpacity onPress={() => copyLinkToClipboard(`https://marcel-eight.vercel.app/${link.id}`)}>
             <Text style={styles.copyButtonText}>Copier le lien de partage</Text>
           </TouchableOpacity>
+   
         </View>
+        <TouchableOpacity onPress={async () => {
+    await deleteExistingLink(link.id);
+    setLinks(await getExistingLink(subject_active.id, 'id_subject'));
+}}>
+    <Image source={trash} style={{ width: 40, height: 40, opacity: 0.5 }} />
+</TouchableOpacity>
       </View>
     ))}
 

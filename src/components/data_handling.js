@@ -1183,3 +1183,39 @@ export async function get_Profile(id_to_be_found) {
   Alert.alert("Erreur", errorUpdating.message);
 }
 }
+
+
+export async function deleteExistingLink(id_link) { 
+  try {
+
+    const { data, error } = await supabase
+      .from('Memoires_magic_link')
+      .delete()
+      .match({ id: id_link }); 
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Erreur : ", error);
+  }
+}
+
+export async function deleteExistingContributor(id_user) { 
+  try {
+    const { data, error } = await supabase
+      .from('Memoires_contributors')
+      .delete()
+      .match({ id_user: id_user });
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Erreur : ", error);
+  }
+}

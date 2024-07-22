@@ -59,7 +59,7 @@ function AppNavigator({ session }) {
           await joinSubject(check.id_subject, session.user.id, true);
           
           // Si joinSubject a réussi, procéder avec les autres opérations
-          await updateExistingLink(check.id, false);
+          await updateExistingLink(check.id, true);
           await remember_active_subject(check.id_subject, session.user.id);
           await saveActiveSubjectId(check.id_subject);
           
