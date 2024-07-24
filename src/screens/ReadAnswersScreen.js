@@ -69,6 +69,7 @@ const useFetchActiveSubjectId = (setSubjectActive, setSubject, setIsLoading, nav
     useCallback(() => {
       const fetchActiveSubjectId = async () => {
         const temp = await getActiveSubjectId();
+        console.log("Voici le projet actif récupéré : ",temp)
         setSubjectActive(temp);
         if (temp) {
           const temp2 = await getSubject(temp);

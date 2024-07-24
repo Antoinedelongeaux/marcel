@@ -24,6 +24,11 @@ import {
   get_Profile
 
 } from './src/components/data_handling';
+import {
+  View,
+  Text,
+} from 'react-native';
+
 
 const Stack = createStackNavigator();
 
@@ -31,7 +36,7 @@ function AppNavigator({ session }) {
   const navigation = useNavigation();
   const [check, setCheck] = useState({nature : 'en cours'});
   const { suffix } = useParams(); // Utiliser useParams pour extraire le suffixe
-
+  const [loading, setLoading] = useState(true);
 
   
 
@@ -56,11 +61,14 @@ function AppNavigator({ session }) {
       const joinSubjectAction = async () => {
         try {
           // Rejoindre le projet et attendre la réussite
+          console.log("Etape 1 :  s'associer au projet")
           await joinSubject(check.id_subject, session.user.id, true);
-          
+          console.log("Etape 2 :  désactiver le lien d'association")
           // Si joinSubject a réussi, procéder avec les autres opérations
           await updateExistingLink(suffix, true);
+          console.log("Etape 3 :  mettre à jour le projet actif du user")
           await remember_active_subject(check.id_subject, session.user.id);
+          console.log("Etape 4 :  enregister le projet actif dans le navigateur...",check.id_subject)
           await saveActiveSubjectId(check.id_subject);
           
         } catch (error) {
@@ -75,10 +83,13 @@ function AppNavigator({ session }) {
       const reachActiveSubject = async () => {
         try {
           // Rejoindre le projet et attendre la réussite
+          console.log("Etape A :  chercher les infos de profil utilisateur")
           const profile = await get_Profile( session.user.id);
            if (profile.active_biography){ 
+            console.log("Etape B :  enregister le projet actif dans le navigateur...", profile.active_biography)
           await saveActiveSubjectId(profile.active_biography);
         }
+        setLoading (false)
         } catch (error) {
           // Gérer les erreurs ici
           console.error('Erreur lors de l\'exécution des actions :', error.message);
@@ -91,7 +102,14 @@ function AppNavigator({ session }) {
   }, [check, session]);
   
 
-
+ 
+  if (loading) {
+    return (
+      <View >
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
 
 
 
