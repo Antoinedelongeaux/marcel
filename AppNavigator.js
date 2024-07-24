@@ -103,7 +103,7 @@ function AppNavigator({ session }) {
   
 
  
-  if (loading) {
+  if (loading && session && session.user ) {
     return (
       <View >
         <Text>Loading...</Text>
