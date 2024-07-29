@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 
+
 export const globalStyles = StyleSheet.create({
   container: {
     flex: 1,
@@ -35,13 +36,7 @@ export const globalStyles = StyleSheet.create({
     width: "100%",
     paddingHorizontal: 20,
   },
-  input: {
-    backgroundColor: "white",
-    padding: 10,
-    borderWidth: 1,
-    borderRadius: 5,
-    marginVertical: 10,
-  },
+
   buttonWrapper: {
     marginVertical: 7,
   },
@@ -174,8 +169,8 @@ title_chapter: {
   
   globalButtonText_tag: {
     textAlign: 'center',
-    color: '#ffffff', // Texte blanc pour un meilleur contraste
-    fontSize: 14, // Taille de police légèrement augmentée pour améliorer la lisibilité
+    color: '#000000', // Texte blanc pour un meilleur contraste
+    fontSize: 22, // Taille de police légèrement augmentée pour améliorer la lisibilité
     fontWeight: 'bold',
   },
   
@@ -203,7 +198,136 @@ title_chapter: {
     width: 60, // La largeur de l'icône
     height: 60, // La hauteur de l'icône
     color:"#0b2d52",
-}
+},
+choiceButton: {
+  backgroundColor: '#bdbfbd', 
+  padding: 10,
+  borderRadius: 5,
+  marginVertical: 5,
+  alignItems: 'center',
+},
+choiceButtonText: {
+  color: '#00000', // Couleur du texte blanche
+  fontSize: 22,
+  //fontWeight: 'bold',
+},
+chatBubble: {
+  marginVertical: '5px',
+  backgroundColor: '#f0f0f0',
+  padding: '10px',
+  borderRadius: '10px',
+},
+QuestionBubble: {
+  marginVertical: '5px',
+  padding: '10px',
+  borderRadius: '10px',
+  alignSelf: 'flex-start',
+  backgroundColor: '#9fc4e0',
+  marginTop: 50, 
+},
+ResponseBubble: {
+  marginVertical: '5px',
+  padding: '10px',
+  borderRadius: '10px',
+  alignSelf: 'flex-end',
+  backgroundColor: '#9fe0a4',
+},
+ResponseBubble_selected: {
+  marginVertical: '5px',
+  padding: '10px',
+  borderRadius: '10px',
+  alignSelf: 'flex-end',
+  backgroundColor: '#0b5423',
+},
 
+
+
+searchContainer: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  borderWidth: 1,
+  borderColor: '#ccc',
+  borderRadius: 5,
+  paddingHorizontal: 10,
+  marginBottom: 20,
+  backgroundColor: '#f9f9f9', // Légère couleur de fond pour le conteneur de recherche
+  shadowColor: "#000", // Ajout d'ombre
+  shadowOffset: {
+      width: 0,
+      height: 2,
+  },
+  shadowOpacity: 0.25,
+  shadowRadius: 3.84,
+  elevation: 5,
+},
+
+input: {
+  backgroundColor: "white",
+  flex: 1,
+  padding: 10,
+  borderWidth: 1,
+  borderRadius: 5,
+  marginVertical: 10,
+  height: 40,
+},
  
+modalContainer : {
+  backgroundColor: 'white', //changer la couleur ici
+  width:'100%',
+  height:'100%',
+  padding: 20,
+  borderRadius: 10,
+},
+
+modalContainer: {
+  backgroundColor: '#E8FFF6',
+  width: '90%',
+  padding: 20,
+  borderRadius: 10,
+  alignSelf: 'center',
+  zIndex: 20,
+},
+
+closeButtonText: {
+  color: 'white',
+  fontSize: 30,
+},
+
+
+closeButton: {
+  position: 'absolute',
+  top: 10,
+  right: 10,
+  zIndex: 10,
+},
+
+
+closeIcon: {
+  width: 24,
+  height: 24,
+},
+
+modalTitle: {
+  fontSize: 18,
+  fontWeight: 'bold',
+  marginBottom: 10,
+  textAlign: 'center',
+},
+overlay: {
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  width: '100%',
+  height: '100%',
+  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  justifyContent: 'center',
+  alignItems: 'center',
+  zIndex: 10,
+},
+
+
+
+
 })

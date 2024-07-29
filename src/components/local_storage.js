@@ -21,7 +21,7 @@ export const saveActiveSubjectId = async (subjectId) => {
 // Pour récupérer l'ID du sujet actif
 export const getActiveSubjectId = async () => {
   try {
-    console.log("getActiveSubjectId en cours")
+
     const subjectId = await AsyncStorage.getItem('activeSubjectId');
     return subjectId;
   } catch (error) {

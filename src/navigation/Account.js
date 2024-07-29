@@ -1,15 +1,12 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import 'react-native-gesture-handler';
-import ProfileScreen from "../screens/ProfileScreen";
-import BiographyScreen from "../screens/BiographyScreen";
-import ReadAnswersScreen from "../screens/ReadAnswersScreen";
-import ManageBiographyScreen from "../screens/ManageBiography";
-import AskQuestionScreen from "../screens/AskQuestionScreen";
-import AideScreen from "../screens/AideScreen";
-import InvitationScreen from "../screens/InvitationScreen";  // Import de la nouvelle page
 
-import { supabase } from '../lib/supabase';
-import React, { useState, useEffect } from 'react';
+import ReadAnswersScreen from "../screens/ReadAnswersScreen";
+
+
+
+
+import React, { useEffect } from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native'; 
 

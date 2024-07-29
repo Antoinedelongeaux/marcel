@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useNavigation } from '@react-navigation/native';
 import { Modal, Image, View, StyleSheet, Button, Text, Alert, Keyboard, TouchableWithoutFeedback, TextInput, TouchableOpacity } from 'react-native'
 import { globalStyles } from '../../global'
-import { deleteExistingContributor, deleteExistingLink, listSubjects, joinSubject, getSubjects, get_project, create_project, get_project_contributors, validate_project_contributors, get_project_by_id, getSubjects_pending, getExistingLink,updateExistingLink,createNewLink,remember_active_subject,get_Profile } from '../components/data_handling';
+import {   getUserStatus, deleteExistingContributor, deleteExistingLink, listSubjects, joinSubject, getSubjects, get_project, create_project, get_project_contributors, validate_project_contributors, get_project_by_id, getSubjects_pending, getExistingLink,updateExistingLink,createNewLink,remember_active_subject,get_Profile } from '../components/data_handling';
 import { saveActiveSubjectId, getActiveSubjectId } from '../components/local_storage';
 import { Ionicons } from '@expo/vector-icons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -64,6 +64,7 @@ export default function ProfileScreen({ route }) {
 
     const [isLargeScreen, setIsLargeScreen] = useState(false);
     const [links, setLinks] = useState(false);
+    const [userStatus, setUserStatus] = useState('');
 
     
 
@@ -97,6 +98,21 @@ const copyLinkToClipboard = (text) => {
   
 
 
+
+
+  useEffect(() => {
+    const fetchUserStatus = async () => {
+      const status = await getUserStatus(session.user.id, subject_active.id);
+      console.log("UserStatus :",status)
+      setUserStatus(status);
+      
+    };
+    if(subject_active.id){
+      fetchUserStatus();
+    }
+    
+    
+  }, [subject_active]);
 
 
 
@@ -290,7 +306,7 @@ const copyLinkToClipboard = (text) => {
             <View style={[globalStyles.navigationContainer, { position: 'fixed', bottom: '0%', alignSelf: 'center' }]}>
 
                 <TouchableOpacity
-  onPress={() => navigateToScreen('Marcel')} 
+  onPress={() => {userStatus.chapters==="Pas d'accès"? navigateToScreen('Incipit') : navigateToScreen('Marcel')} }
   style={[globalStyles.navButton, isHovered && globalStyles.navButton_over]}
   onMouseEnter={() => setIsHovered(true)}
   onMouseLeave={() => setIsHovered(false)}
@@ -611,9 +627,9 @@ const copyLinkToClipboard = (text) => {
                 {showProjects && (
                     <View style={globalStyles.container_wide}>
 
-                        <View style={styles.searchContainer}>
+                        <View style={globalStyles.searchContainer}>
                             <TextInput
-                                style={styles.input}
+                                style={globalStyles.input}
                                 placeholder="Rechercher un projet"
                                 value={searchName}
                                 onChangeText={(text) => setSearchName(text)}
@@ -642,9 +658,9 @@ const copyLinkToClipboard = (text) => {
                     </TouchableOpacity>
                 {showNewProject && (
                     <View style={globalStyles.container_wide}>
-                    <View style={styles.searchContainer}>
+                    <View style={globalStyles.searchContainer}>
                         <TextInput
-                            style={styles.input}
+                            style={globalStyles.input}
                             placeholder="Nom du nouveau projet"
                             value={newName}
                             onChangeText={(text) => setNewName(text)}
@@ -758,11 +774,7 @@ const styles = StyleSheet.create({
         shadowRadius: 3.84,
         elevation: 5,
     },
-    input: {
-        flex: 1,
-        height: 40,
-        padding: 10,
-    },
+
     icon: {
         marginLeft: 10,
     },

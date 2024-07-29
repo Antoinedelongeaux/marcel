@@ -101,14 +101,6 @@ const convertBase64ToFlacBlob = async (base64) => {
 
 
 
-export const delete_audio = async (name) => {
-  const { data, error } = await supabase
-    .storage
-    .from('audio')
-    .remove([name])
-
-}
-
 
 
 
@@ -143,24 +135,18 @@ export const startRecording = async () => {
   }
 };
 
-export const stopRecording = async (recording, name) => {
+export const stopRecording = async (recording) => {
   try {
     await recording.stopAndUnloadAsync();
     const uri = recording.getURI();
     const status = await recording.getStatusAsync();
     const duration = status.durationMillis / 1000; // Get duration in seconds
-
-    if (Platform.OS === 'web') {
-      const response = await fetch(uri);
-      const blob = await response.blob();
-      return { uri: await convertAndUpload(blob, name), duration };
-    } else {
-      return { uri: await convertAndUpload(uri, name), duration };
-    }
+    return { uri, duration };
   } catch (error) {
-    console.error('Error stopping recording or uploading:', error);
+    console.error('Error stopping recording:', error);
   }
 };
+
 
 
 
@@ -684,6 +670,8 @@ const audioBufferToWav = (buffer) => {
 
 
 export const handlePlayPause = async (audioId, audioLink,currentAudioId,setCurrentAudioId,playbackStatus,setPlaybackStatus) => {
+  console.log("Parameters : audioId, audioLink,currentAudioId,playbackStatus ",audioId, audioLink,currentAudioId,playbackStatus)
+  
   if (currentAudioId === audioId && playbackStatus.isPlaying) {
     await playbackStatus.sound.pauseAsync();
   } else {

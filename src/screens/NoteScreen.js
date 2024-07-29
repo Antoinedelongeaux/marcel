@@ -38,7 +38,8 @@ import {
   getExistingLink,
   updateExistingLink,
   createNewLink,
-  updateAnswer
+  updateAnswer,
+  getTheme_byProject,
 } from '../components/data_handling';
 
 import { useFocusEffect } from '@react-navigation/native';
@@ -51,7 +52,16 @@ import copyIcon from '../../assets/icons/paste.png';
 import noteIcon from '../../assets/icons/notes.png';
 import filterIcon from '../../assets/icons/filtre.png';
 import Modal from 'react-native-modal'; // Ajoutez cette ligne pour importer le composant Modal
-import { createAudioChunk, startRecording, stopRecording, uploadAudioToSupabase, delete_audio,playRecording_fromAudioFile, uploadImageToSupabase,handlePlayPause } from '../components/sound_handling'; // Ajoutez cette ligne
+import { 
+  createAudioChunk, 
+  startRecording, 
+  stopRecording,
+  uploadAudioToSupabase, 
+  delete_audio,
+  playRecording_fromAudioFile, 
+  uploadImageToSupabase,
+  handlePlayPause } 
+  from '../components/sound_handling'; // Ajoutez cette ligne
 import { transcribeAudio } from '../components/call_to_whisper';
 //import { transcribeAudio } from '../components/call_to_google';
 import MicroIcon from '../../assets/icons/microphone-lines-solid.svg';
@@ -74,6 +84,7 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import shareIcon from '../../assets/icons/share.png';
 import playIcon from '../../assets/icons/play.png';
 import pauseIcon from '../../assets/icons/pause.png';
+import AnswerCard from '../components/UI_components';
 
 
 
@@ -103,6 +114,8 @@ function NoteScreen({ route }) {
  
   const navigation = useNavigation();
   const session = route.params?.session;
+  const notesMode = route.params?.mode;
+
   const [subjectActive, setSubjectActive] = useState(null);
   const [answers, setAnswers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -145,11 +158,13 @@ const [showDetails, setShowDetails] = useState(false);
 const windowWidth = Dimensions.get('window').width;
 const isLargeScreen = windowWidth > 768;
 const [userNames, setUserNames] = useState({});
+const [themeNames, setThemeNames] = useState({});
 const [selectedAnswers, setSelectedAnswers] = useState([]);
 const [selectedAnswerIds, setSelectedAnswerIds] = useState([]);
 const [userIdFilter, setUserIdFilter] = useState('');
 const [userNameFilter, setUserNameFilter] = useState('');
 const [selectedUserName, setSelectedUserName] = useState('');
+const [selectedTheme, setSelectedTheme] = useState('');
 const [showAttachement, setShowAttachement] = useState(false);
 const [answer, setAnswer] = useState('');
 const [PleaseWait, setPleaseWait] = useState(false);
@@ -157,6 +172,7 @@ const [draggedAnswer, setDraggedAnswer] = useState(null);
 const [dragOverAnswer, setDragOverAnswer] = useState(null);
 const [voirTout,setVoirTout]=useState(false);
 const [users, setUsers] = useState([]);
+const [themes, setThemes] = useState([]);
 const [delegationUserId, setDelegationUserId] = useState(null);
 const [questionReponseFilter, setQuestionReponseFilter] = useState('');  // Ajoutez cette ligne
 const [answerAndQuestion, setAnswerAndQuestion] = useState(question_reponse);
@@ -173,7 +189,11 @@ const [isTranscriptionModalVisible, setIsTranscriptionModalVisible] = useState(f
 const [answerIdToTranscribe, setAnswerIdToTranscribe] = useState(null);
 
 
-
+useEffect(() => {
+  if (notesMode === 'full') {
+    setVoirTout(true);
+  }
+}, [notesMode]);
 
 
 
@@ -199,6 +219,27 @@ useEffect(() => {
     fetchUsers();
   }
 }, [subjectActive]);
+
+useEffect(() => {
+
+  const fetchThemes = async () => {
+    try {
+      const data = await getTheme_byProject(subjectActive);
+      if (!data) {
+        console.error("Failed to fetch connections: No data returned");
+      } else {
+        setThemes(data)
+      }
+    } catch (error) {
+      console.error("Error fetching connections: ", error);
+    }
+  };
+
+  if (subjectActive) {
+    fetchThemes();
+  }
+}, [subjectActive]);
+
 
 useEffect(() => {
   if (question) {
@@ -315,7 +356,25 @@ if(session.user){
     }
   }, [answers]);
   
- 
+  useEffect(() => {
+    const fetchThemeNames = async () => {
+      const themeNames = {};
+      for (const answer of answers) {
+        if (!themeNames[answer.id_connection]) {
+  const theme = themes.find(theme => theme.id === answer.id_connection);
+  if (theme) {
+    themeNames[answer.id_connection] = theme.theme;
+  }
+}
+
+      }
+      setThemeNames(themeNames);
+    };
+  
+    if (answers.length > 0) {
+      fetchThemeNames();
+    }
+  }, [answers]);
 
 
   useEffect(() => {
@@ -392,26 +451,18 @@ if(session.user){
   };
   
 
-  const handleDeleteAnswer = async (answerId) => {
-    const answerToDelete = answers.find(ans => ans.id === answerId);
+  const handleDeleteAnswer = async (answerToDelete) => {
+
     if (!answerToDelete) {
       Alert.alert("Erreur", "La réponse n'a pas été trouvée.");
       return;
     }
 
-    if (answerToDelete.audio) {
-      try {
-        await delete_audio(answerToDelete.link_storage);
-      } catch (error) {
-        Alert.alert("Erreur lors de la suppression de l'audio", error.message);
-        return;
-      }
-    }
 
     try {
-      const result = await deleteMemories_Answer(answerId);
+      const result = await deleteMemories_Answer(answerToDelete);
       if (result.success) {
-        const updatedAnswers = answers.filter(ans => ans.id !== answerId);
+        const updatedAnswers = answers.filter(ans => ans.id !== answerToDelete.id);
         setAnswers(updatedAnswers);
         Alert.alert("Réponse supprimée");
       } else {
@@ -445,6 +496,7 @@ const filteredAnswers = answers.filter(answer => {
   const afterDate = dateAfter ? new Date(dateAfter) : null;
 
   const userName = userNames[answer.id_user];
+  const theme = answer.id_connection;
 
   return (
     (!textFilter || answer.answer.includes(textFilter)) &&
@@ -457,6 +509,7 @@ const filteredAnswers = answers.filter(answer => {
      (selectedChapter === 'none' && answer.id_question === null) || 
      (questionIdsForSelectedChapter.length === 0 || questionIdsForSelectedChapter.includes(answer.id_question?.toString()))) &&
     (!selectedUserName || (userName && userName.toLowerCase().includes(selectedUserName.toLowerCase()))) &&
+    (!selectedTheme || (theme && theme===selectedTheme )) &&
     (questionReponseFilter === '' || answer.question_reponse === questionReponseFilter) &&
     ((reluFilter === 'relu' && answer.quality) || (reluFilter === 'non_relu' && !answer.quality) || reluFilter === 'relu & non_relu')) &&
     ((utiliseFilter === 'used' && answer.used) || (utiliseFilter === 'not_used' && !answer.used) || utiliseFilter === 'tous')
@@ -793,7 +846,13 @@ const filteredAnswers = answers.filter(answer => {
     <Image source={{ uri: fullscreenImage }} style={styles.fullscreenImage} />
   </View>
 )}
+
+
+{notesMode === "Contributeur" && (<>
 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+ 
+
+ 
   <Text style={globalStyles.title}>
     {!questionReponseFilter.includes('question') && ("Notes")}
     {!questionReponseFilter.includes('question') && !questionReponseFilter.includes('réponse') && (" & ")}
@@ -849,12 +908,14 @@ const filteredAnswers = answers.filter(answer => {
   </View>
 </View>
 
-
+</>)}
 
 
       {(question || voirTout) && (<>
 
         <View style={{ flexDirection: 'row', justifyContent: 'center', marginBottom: 5 }}>
+        
+        {notesMode === "Contributeur" && (<>
         {!questionReponseFilter.includes('question') &&(
       <TouchableOpacity onPress={() => {setAnswerAndQuestion("réponse");setModalVisible(true)}} style={globalStyles.globalButton_narrow}>
       <Text style={globalStyles.globalButtonText}>Ajouter une note</Text>
@@ -865,6 +926,10 @@ const filteredAnswers = answers.filter(answer => {
       <Text style={globalStyles.globalButtonText}>Poser une question</Text>
     </TouchableOpacity>
     )}
+    </>
+  )}
+
+
 </View>
    
     <Modal isVisible={isModalVisible}>
@@ -894,7 +959,6 @@ const filteredAnswers = answers.filter(answer => {
     <TouchableOpacity
       style={[
         globalStyles.globalButton_wide,
-        isRecording ? styles.recordingButton : {},
         { backgroundColor: isRecording ? "red" : '#b1b3b5', marginRight: 5 },
       ]}
       onPress={handleRecording}
@@ -998,10 +1062,11 @@ const filteredAnswers = answers.filter(answer => {
     <Image source={filterIcon} style={{ width: 50, height: 50, opacity: 0.5, marginVertical : 30 }} />
   </TouchableOpacity>
 
-  
+  {notesMode !== 'full' &&(
   <TouchableOpacity onPress={() => setIsShareModalVisible(true)} style={styles.filterIcon}>
   <Image source={shareIcon} style={{ width: 50, height: 50, opacity: 0.5, marginVertical : 30 }} />
 </TouchableOpacity>
+  )}
 
 
 
@@ -1040,6 +1105,22 @@ const filteredAnswers = answers.filter(answer => {
         ))}
       </Picker>
     </View>
+    <View style={styles.dropdownContainer}>
+  <Picker
+    selectedValue={selectedTheme}
+    onValueChange={(itemValue, itemIndex) => setSelectedTheme(itemValue)}
+    style={styles.dropdown}
+  >
+    <Picker.Item label="Tous les thèmes" value="" />
+    {themes
+      .filter(theme => answers.some(answer => answer.id_connection === theme.id)) // Filtrer les thèmes sans réponse
+      .map((theme, index) => (
+        <Picker.Item key={index} label={theme.theme} value={theme.id} />
+      ))}
+  </Picker>
+</View>
+
+
     <View style={styles.dateFilterContainer}>
       {Platform.OS === 'web' ? (
         <DatePicker
@@ -1397,7 +1478,7 @@ const filteredAnswers = answers.filter(answer => {
 
    
 
-   <TouchableOpacity onPress={() => handleDeleteAnswer(item.id)}>
+   <TouchableOpacity onPress={() => handleDeleteAnswer(item)}>
      <Image source={trash} style={{ width: 36, height: 36, opacity: 0.5, marginLeft: 15 }} />
      {isLargeScreen && <Text>Supprimer</Text>}
    </TouchableOpacity>
@@ -1452,9 +1533,12 @@ const filteredAnswers = answers.filter(answer => {
 </>
 )}
 
-{!question && !voirTout && (
+{!question && !voirTout && notesMode!=="full" && (
   <>
+
     <View style={globalStyles.container_wide}>
+      
+      
       <Text> </Text>
       <Text> </Text>
       <Text>Selectionner un chapitre pour afficher les notes associées </Text>
@@ -1463,7 +1547,9 @@ const filteredAnswers = answers.filter(answer => {
       <TouchableOpacity onPress={() => setVoirTout(true)} style={globalStyles.globalButton}>
         <Text style={globalStyles.globalButtonText}>Afficher toutes les notes</Text>
       </TouchableOpacity>
+   
     </View>
+    
   </>
 )}
 
@@ -1626,18 +1712,8 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
   },
-  modalContainer: {
-    backgroundColor: 'white',
-    width:'100%',
-    height:'100%',
-    padding: 20,
-    borderRadius: 10,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
+ 
+
   recordButton: {
     backgroundColor: '#ff0000',
     padding: 10,
@@ -1663,16 +1739,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
   },
-  closeButton: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    zIndex: 10,
-  },
-  closeIcon: {
-    width: 24,
-    height: 24,
-  },
+
   fullscreenContainer: {
     position: 'absolute',
     top: 0,
@@ -1684,16 +1751,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     zIndex: 10,
   },
-  closeButton: {
-    position: 'absolute',
-    top: 40,
-    right: 20,
-    zIndex: 20,
-  },
-  closeButtonText: {
-    color: 'white',
-    fontSize: 30,
-  },
+
   fullscreenImage: {
     width: '90%',
     height: '90%',
@@ -1749,8 +1807,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     width: 100,
   },
+
+  modalContainer : {
+    backgroundColor: 'white', //changer la couleur ici
+    width:'100%',
+    height:'100%',
+    padding: 20,
+    borderRadius: 10,
+  },
+
   modalContainer: {
-    backgroundColor: 'white',
+    backgroundColor: '#E8FFF6',
     width: '90%',
     padding: 20,
     borderRadius: 10,
@@ -1758,16 +1825,25 @@ const styles = StyleSheet.create({
     zIndex: 20,
   },
   
+  closeButtonText: {
+    color: 'white',
+    fontSize: 30,
+  },
+
+
   closeButton: {
     position: 'absolute',
     top: 10,
     right: 10,
     zIndex: 10,
   },
+
+
   closeIcon: {
     width: 24,
     height: 24,
   },
+
   modalTitle: {
     fontSize: 18,
     fontWeight: 'bold',

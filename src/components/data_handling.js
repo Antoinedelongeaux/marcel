@@ -272,6 +272,35 @@ export async function getMemories_Answers_to_Question(questionId) {
   }
 }
 
+export async function getMemories_Answers_to_theme(id_connection) {
+  try {
+
+    console.log('getMemories_Answers_to_theme : ', id_connection)
+    if (id_connection == null) {
+      console.log("id_connection is null or undefined.");
+      return []; // Retourner un tableau vide si l'ID de la question est null
+    }
+
+    const { data: answers, error } = await supabase
+      .from('Memoires_answers')
+      .select('*')
+      .eq('id_connection', id_connection);
+
+
+    if (error) {
+      throw error;
+    }
+
+    console.log("answers : ",answers)
+    return answers || []; // Retourner les réponses ou un tableau vide si aucune réponse n'est trouvée
+  } catch (error) {
+    console.error("Error fetching answers:", error.message);
+    return []; // Retourner un tableau vide en cas d'erreur
+  }
+}
+
+
+
 export async function getMemories_Answers() {
   try {
     const id_subject = await getActiveSubjectId();
@@ -297,13 +326,54 @@ export async function getMemories_Answers() {
 }
 
 
-export async function deleteMemories_Answer(answerId) {
+export const delete_Image = async (name) => {
+
+  const { data, error } = await supabase
+    .storage
+    .from('photos')
+    .remove([name])
+
+
+}
+
+
+export const delete_audio = async (name) => {
+  const { data, error } = await supabase
+    .storage
+    .from('audio')
+    .remove([name])
+
+}
+
+export async function deleteMemories_Answer(answerToDelete) {
+  console.log("deleteMemories_Answer")
   try {
     // Effectuer la requête de suppression sur la table 'Memoires_answers'
+    if (answerToDelete.audio) {
+      try {
+        await delete_audio(answerToDelete.link_storage);
+      } catch (error) {
+        alert("Error deleting audio: " + error.message);
+        return;
+      }
+    }
+
+    if (answerToDelete.image) {
+      try {
+        console.log("Hello world !")
+        await delete_Image(answerToDelete.link_storage);
+      } catch (error) {
+        alert("Error deleting document: " + error.message);
+        return;
+      }
+    }
+    
+    
+    
     const { data, error } = await supabase
       .from('Memoires_answers')
       .delete()
-      .match({ id: answerId }); // Utilisez 'match' pour spécifier la condition de suppression
+      .match({ id: answerToDelete.id }); // Utilisez 'match' pour spécifier la condition de suppression
 
     if (error) {
       throw error; // Si une erreur survient, la propager pour la gérer plus tard
@@ -318,7 +388,7 @@ export async function deleteMemories_Answer(answerId) {
 }
 
 
-export async function submitMemories_Answer(answer, question, session, audio, name, image, connectionId, resetAnswerAndFetchQuestion,question_reponse) {
+export async function submitMemories_Answer(answer, question, session, audio, name, image, connectionId, resetAnswerAndFetchQuestion,question_reponse,id_connection) {
   try {
 
     const id_subject = await getActiveSubjectId();
@@ -342,7 +412,7 @@ export async function submitMemories_Answer(answer, question, session, audio, na
     const { error } = await supabase
       .from('Memoires_answers')
       .insert([
-        { id_question: ID_question, id_user: session?.user?.id, id_subject: id_subject, answer: response, audio: audio, link_storage: name, image: image, connection: connectionId, rank: rank,question_reponse:question_reponse }
+        { id_question: ID_question, id_user: session?.user?.id, id_subject: id_subject, answer: response, audio: audio, link_storage: name, image: image, connection: connectionId, rank: rank,question_reponse:question_reponse,id_connection:id_connection }
       ]);
 
     if (error) throw error;
@@ -355,10 +425,109 @@ export async function submitMemories_Answer(answer, question, session, audio, na
   }
 }
 
+export async function submitMemories_Answer_written(answer, ID_USER, Id_question, Id_connection,question_reponse) {
+  try {
+    const Id_subject = await getActiveSubjectId();
 
+    let Id_user =null
+    if(ID_USER) {
+      Id_user = ID_USER
+    }else{
+      Id_user =  session?.user?.id
+    }
 
+    // Obtenez le nombre actuel de réponses pour définir le rank
+    const { count } = await supabase
+      .from('Memoires_answers')
+      .select('id', { count: 'exact' });
 
+    const rank = count + 1;
 
+    const { error } = await supabase
+      .from('Memoires_answers')
+      .insert([
+        { id_question: Id_question, id_user: Id_user, id_subject: Id_subject, answer: answer, audio: false, link_storage: '', image: false, id_connection: Id_connection, rank: rank,question_reponse:question_reponse }
+      ]);
+
+    if (error) throw error;
+
+    // Notification de succès
+    Alert.alert(audio ? 'Réponse audio enregistrée' : 'Réponse écrite enregistrée');
+    resetAnswerAndFetchQuestion();
+  } catch (error) {
+    Alert.alert("Erreur", error.message);
+  }
+}
+
+export async function submitMemories_Answer_oral(answer, ID_USER, Id_question, Id_connection,question_reponse,name) {
+  try {
+    const Id_subject = await getActiveSubjectId();
+
+    let Id_user =null
+    if(ID_USER) {
+      Id_user = ID_USER
+    }else{
+      Id_user =  session?.user?.id
+    }
+
+    // Obtenez le nombre actuel de réponses pour définir le rank
+    const { count } = await supabase
+      .from('Memoires_answers')
+      .select('id', { count: 'exact' });
+
+    const rank = count + 1;
+
+    const { error } = await supabase
+      .from('Memoires_answers')
+      .insert([
+        { id_question: Id_question, id_user: Id_user, id_subject: Id_subject, answer: answer, audio: true, link_storage: name, image: false, id_connection: Id_connection, rank: rank,question_reponse:question_reponse }
+      ]);
+
+    if (error) throw error;
+
+    // Notification de succès
+    Alert.alert(audio ? 'Réponse audio enregistrée' : 'Réponse écrite enregistrée');
+    resetAnswerAndFetchQuestion();
+  } catch (error) {
+    Alert.alert("Erreur", error.message);
+  }
+}
+
+export async function submitMemories_Answer_image(answer, ID_USER, Id_question, Id_connection,question_reponse,name) {
+  try {
+    console.log("answer, ID_USER, Id_question, Id_connection,question_reponse,name : ",answer, ID_USER, Id_question, Id_connection,question_reponse,name) 
+
+    const Id_subject = await getActiveSubjectId();
+
+    let Id_user =null
+    if(ID_USER) {
+      Id_user = ID_USER
+    }else{
+      Id_user =  session?.user?.id
+    }
+
+    // Obtenez le nombre actuel de réponses pour définir le rank
+    const { count } = await supabase
+      .from('Memoires_answers')
+      .select('id', { count: 'exact' });
+
+    const rank = count + 1;
+
+    const { error } = await supabase
+      .from('Memoires_answers')
+      .insert([
+        { id_question: Id_question, id_user: Id_user, id_subject: Id_subject, answer: answer, audio: false, link_storage: name, image: true, id_connection: Id_connection, rank: rank,question_reponse:question_reponse }
+      ]);
+
+    if (error) throw error;
+
+    // Notification de succès
+    Alert.alert(audio ? 'Réponse audio enregistrée' : 'Réponse écrite enregistrée');
+    resetAnswerAndFetchQuestion();
+  } catch (error) {
+    Alert.alert("Erreur", error.message);
+  }
+}
 
 export async function save_question(question, tags, subject_active, setQuestion) {
   const id_question = [...Array(12)].map(() => Math.floor(Math.random() * 10)).join('');
@@ -1033,6 +1202,15 @@ export async function moveAnswer(id_answer,new_rank) {
 export async function linkAnalysis(suffix) { 
   try {
     // Vérification pour les questions
+
+    console.log("suffix : ",suffix)
+
+    if(!suffix){
+      return { nature: '' }
+
+
+    }
+
     const { data, error: errorExisting } = await supabase
       .from('Memoires_magic_link')
       .select('*')
@@ -1055,7 +1233,6 @@ export async function linkAnalysis(suffix) {
       .eq('expired', false)
       .single();
 
-    console.log("subject : ", data_subject);
 
     if (data_subject) {
       return { nature: 'subject', id_subject: data_subject.id_subject };
@@ -1129,7 +1306,19 @@ export async function createNewLink(id_target, id_question_id_subject) {
 }
 
 
+export async function getAnswer(id_answer) { 
+  try {
+    const { data, error }  = await supabase
+    .from('Memoires_answers')
+    .select(`*`)
+    .eq('id', id_answer)
+    .single();
 
+    return data ;
+  } catch (error) {
+    console.error("Erreur : ", error);
+  }
+}
 
 
 export async function update_answer_owner(id_answer,id_user) {
@@ -1222,3 +1411,51 @@ export async function deleteExistingContributor(id_user,id_subject) {
     console.error("Erreur : ", error);
   }
 }
+
+
+
+export async function createTheme(theme,id_subject) { 
+  try {
+
+    const id = customUUIDv4(); 
+
+    const { error } = await supabase
+      .from('Memoires_connections')
+      .insert([
+        { theme: theme, id: id, id_subject:id_subject}
+      ]);
+
+      return {id:id , theme: theme} ;
+
+  } catch (error) {
+    console.error("Erreur : ", error);
+  }
+}
+
+export async function getTheme_byProject(id_subject) { 
+  try {
+    const { data, error }  = await supabase
+    .from('Memoires_connections')
+    .select(`*`)
+    .eq('id_subject', id_subject);
+
+    return data ;
+  } catch (error) {
+    console.error("Erreur : ", error);
+  }
+}
+
+export async function getTheme_byUser(id_user) { 
+  try {
+    const { data, error }  = await supabase
+    .from('Memoires_connections')
+    .select(`*`)
+    .eq('id_user', id_user);
+
+    return data ;
+  } catch (error) {
+    console.error("Erreur : ", error);
+  }
+}
+
+

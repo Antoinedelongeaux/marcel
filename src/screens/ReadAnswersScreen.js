@@ -32,7 +32,7 @@ import {
   integration,
   getUserStatus,
   save_question,
-  isExistingChapter,
+  linkAnalysis,
 } from '../components/data_handling';
 import { useFocusEffect } from '@react-navigation/native';
 import { getActiveSubjectId } from '../components/local_storage';
@@ -57,6 +57,7 @@ import copyIcon from '../../assets/icons/paste.png';
 import save from '../../assets/icons/save.png';
 import note from '../../assets/icons/notes.png';
 import NoteScreen from './NoteScreen';
+import ReadNotesScreen from './ReadNotesScreen';
 import plusIcon from '../../assets/icons/plus.png';
 import minusIcon from '../../assets/icons/minus.png';
 import doubleArrowIcon from '../../assets/icons/arrows_1.png';
@@ -157,18 +158,7 @@ function ReadQuestionsScreen({ route }) {
   const [isShareModalVisible, setIsShareModalVisible] = useState(false);
 
 
-  useEffect(() => {
-    if(suffix){
-    const fetchCheck = async () => {
-      const check = await isExistingChapter(suffix);
-      if (check) {
-        navigateToScreen('AnswerQuestionScreen', { questionId: suffix });
-      }
-    };
-  
-    fetchCheck();
-  }
-  }, [suffix]);
+
   
   useFetchActiveSubjectId(setSubjectActive, setSubject, setIsLoading, navigation);
   useFetchData(session.user.id, subjectActive, setQuestions, tags, personal, setChapters, setUserStatus);
@@ -186,9 +176,11 @@ function ReadQuestionsScreen({ route }) {
       if (!status.access) {
         navigateToScreen('Projets');
       }
-      if (status.chapters === "Pas d'accès") {
+      if (status.chapters === "Pas d'accès" && navigation.isFocused()) {
+        navigateToScreen('Incipit');
         setMiddlePanelWidth(0);
       }
+      
     };
     if (subjectActive) {
       fetchUserStatus();
@@ -476,118 +468,120 @@ function ReadQuestionsScreen({ route }) {
       </View>
 
       <View style={isLargeScreen ? styles.largeScreenContainer : styles.smallScreenContainer}>
-        {isLeftPanelVisible && (
-          <View style={isLargeScreen ? styles.leftPanel : styles.fullWidth}>
-            <View style={globalStyles.container_wide}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Text style={globalStyles.title}>{subject.title}</Text>
-                <TouchableOpacity
-                  onPress={() => {
-                    setIconsVisible(!iconsVisible);
-                    setToggleIcon(iconsVisible ? plusIcon : minusIcon);
-                  }}
-                >
-                  <Image source={toggleIcon} style={{ width: 25, height: 25, opacity: 0.5, marginVertical: 5 }} />
+      {isLeftPanelVisible && (
+    <View style={isLargeScreen ? styles.leftPanel : styles.fullWidth}>
+      <View style={globalStyles.container_wide}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Text style={globalStyles.title}>{subject.title}</Text>
+          <TouchableOpacity
+            onPress={() => {
+              setIconsVisible(!iconsVisible);
+              setToggleIcon(iconsVisible ? plusIcon : minusIcon);
+            }}
+          >
+            <Image source={toggleIcon} style={{ width: 25, height: 25, opacity: 0.5, marginVertical: 5 }} />
+          </TouchableOpacity>
+        </View>
+        <Text></Text>
+      </View>
+      <ScrollView>
+        <View style={globalStyles.container_wide}>
+          {(hasUnclassifiedQuestions ? [{ id: null, title: 'Chapitres non classés' }] : []).concat(chapters).map((chapter) => (
+            <View key={chapter.id || 'non-chapitre'}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <TouchableOpacity onPress={() => toggleChapter(chapter.id)}>
+                  <Text style={globalStyles.title_chapter}>{chapter.title}</Text>
                 </TouchableOpacity>
+                {iconsVisible && (
+                  <View style={{ flexDirection: 'row' }}>
+                    <TouchableOpacity
+                      onPress={() => {
+                        setEditChapterId(chapter.id);
+                        setEditChapterTitle(chapter.title);
+                        setIsEditModalVisible(true);
+                      }}
+                      style={{ marginRight: 10 }}
+                    >
+                      <Image source={edit} style={{ width: 20, height: 20, opacity: 0.5 }} />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => confirmDeletion(chapter.id, true)} style={{ marginRight: 10 }}>
+                      <Image source={trash} style={{ width: 25, height: 25, opacity: 0.5 }} />
+                    </TouchableOpacity>
+                  </View>
+                )}
               </View>
-              <Text></Text>
-              <ScrollView>
-                {(hasUnclassifiedQuestions ? [{ id: null, title: 'Chapitres non classés' }] : []).concat(chapters).map((chapter) => (
-                  <View key={chapter.id || 'non-chapitre'}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <TouchableOpacity onPress={() => toggleChapter(chapter.id)}>
-                        <Text style={globalStyles.title_chapter}>{chapter.title}</Text>
-                      </TouchableOpacity>
+              {openChapters[chapter.id] && (
+                <>
+                  {questions.filter((q) => q.id_chapitre === chapter.id).map((question) => (
+                    <TouchableOpacity
+                      key={question.id}
+                      style={[styles.questionCard, question.id === selectedQuestionId && { backgroundColor: 'lightblue' }]}
+                      onPress={() => {
+                        setSelectedQuestionId(question.id);
+                        toggleAnswersDisplay(question.id);
+                      }}
+                    >
+                      <Text style={styles.questionText}>{question.question}</Text>
                       {iconsVisible && (
-                        <View style={{ flexDirection: 'row' }}>
-                          <TouchableOpacity
-                            onPress={() => {
-                              setEditChapterId(chapter.id);
-                              setEditChapterTitle(chapter.title);
-                              setIsEditModalVisible(true);
-                            }}
-                            style={{ marginRight: 10 }}
-                          >
-                            <Image source={edit} style={{ width: 20, height: 20, opacity: 0.5 }} />
-                          </TouchableOpacity>
-                          <TouchableOpacity onPress={() => confirmDeletion(chapter.id, true)} style={{ marginRight: 10 }}>
-                            <Image source={trash} style={{ width: 25, height: 25, opacity: 0.5 }} />
-                          </TouchableOpacity>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                          <Text style={styles.answersCount}>{question.answers_count} réponses</Text>
+                          <View style={{ flexDirection: 'row' }}>
+                            <TouchableOpacity
+                              onPress={() => {
+                                setEditQuestionId(question.id);
+                                setEditQuestionTitle(question.question);
+                                setIsEditChapterModalVisible(true);
+                              }}
+                              style={{ marginRight: 10 }}
+                            >
+                              <Image source={edit} style={{ width: 20, height: 20, opacity: 0.5 }} />
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => handleAssociateQuestion(question.id)} style={styles.associateButton}>
+                              <Image source={LinkIcon} style={{ width: 18, height: 18, opacity: 0.5 }} />
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => confirmDeletion(question.id, false)} style={styles.deleteButton}>
+                              <Image source={trash} style={{ width: 25, height: 25, opacity: 0.5 }} />
+                            </TouchableOpacity>
+                          </View>
                         </View>
                       )}
-                    </View>
-                    {openChapters[chapter.id] && (
-                      <>
-                        {questions.filter((q) => q.id_chapitre === chapter.id).map((question) => (
-                          <TouchableOpacity
-                            key={question.id}
-                            style={[styles.questionCard, question.id === selectedQuestionId && { backgroundColor: 'lightblue' }]}
-                            onPress={() => {
-                              setSelectedQuestionId(question.id);
-                              toggleAnswersDisplay(question.id);
-                            }}
-                          >
-                            <Text style={styles.questionText}>{question.question}</Text>
-                            {iconsVisible && (
-                              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                                <Text style={styles.answersCount}>{question.answers_count} réponses</Text>
-                                <View style={{ flexDirection: 'row' }}>
-                                  <TouchableOpacity
-                                    onPress={() => {
-                                      setEditQuestionId(question.id);
-                                      setEditQuestionTitle(question.question);
-                                      setIsEditChapterModalVisible(true);
-                                    }}
-                                    style={{ marginRight: 10 }}
-                                  >
-                                    <Image source={edit} style={{ width: 20, height: 20, opacity: 0.5 }} />
-                                  </TouchableOpacity>
-                                  <TouchableOpacity onPress={() => handleAssociateQuestion(question.id)} style={styles.associateButton}>
-                                    <Image source={LinkIcon} style={{ width: 18, height: 18, opacity: 0.5 }} />
-                                  </TouchableOpacity>
-                                  <TouchableOpacity onPress={() => confirmDeletion(question.id, false)} style={styles.deleteButton}>
-                                    <Image source={trash} style={{ width: 25, height: 25, opacity: 0.5 }} />
-                                  </TouchableOpacity>
-                                </View>
-                              </View>
-                            )}
-                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}></View>
-                          </TouchableOpacity>
-                        ))}
-                      </>
-                    )}
-                  </View>
-                ))}
-                <View>
-                  <Text></Text>
-                  <Text></Text>
-                </View>
-              </ScrollView>
-              <View style={{ flexDirection: 'column', justifyContent: 'space-between', padding: 10 }}>
-                <TouchableOpacity style={globalStyles.globalButton_wide} onPress={() => setIsModalVisible(true)}>
-                  <Text style={globalStyles.globalButtonText}>Nouvelle partie</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={globalStyles.globalButton_wide} onPress={() => setIsModalNewQuestionVisible(true)}>
-                  <Text style={globalStyles.globalButtonText}>Nouveau chapitre</Text>
-                </TouchableOpacity>
-                <Text> </Text>
-                  <Text> </Text>
-                  <Text> </Text>
-                  <Text> </Text>
-                  <Text> </Text>
-                  <Text> </Text>
-                  <Text> </Text>
-                  <Text> </Text>
-                  <Text> </Text>
-                <View>
-                  
-                </View>
-                
-              </View>
-              
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}></View>
+                    </TouchableOpacity>
+                  ))}
+                </>
+              )}
             </View>
+          ))}
+          <View>
+            <Text></Text>
+            <Text></Text>
           </View>
-        )}
+        </View>
+        <View style={{ flexDirection: 'column', justifyContent: 'space-between', padding: 10 }}>
+          <TouchableOpacity style={globalStyles.globalButton_wide} onPress={() => setIsModalVisible(true)}>
+            <Text style={globalStyles.globalButtonText}>Nouvelle partie</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={globalStyles.globalButton_wide} onPress={() => setIsModalNewQuestionVisible(true)}>
+            <Text style={globalStyles.globalButtonText}>Nouveau chapitre</Text>
+          </TouchableOpacity>
+          <Text> </Text>
+          <Text> </Text>
+          <Text> </Text>
+          <Text> </Text>
+          <Text> </Text>
+          <Text> </Text>
+          <Text> </Text>
+          <Text> </Text>
+          <Text> </Text>
+          <View>
+          </View>
+        </View>
+      </ScrollView>
+    </View>
+  )}
+        
+        
+        
         {isLargeScreen && (userStatus.chapters === "Editeur" || userStatus.chapters === "Lecteur" || userStatus.chapters === "Auditeur") && (
           <View style={[styles.resizer, { right: rightPanelWidth - 30 }]} onMouseDown={handleMouseDown}>
             <Image source={doubleArrowIcon} style={{ width: 120, height: 120, opacity: 0.5 }} />
@@ -725,10 +719,14 @@ function ReadQuestionsScreen({ route }) {
         )}
         {(isLargeScreen || !isLeftPanelVisible) && (
           <View style={[styles.rightPanel, { width: rightPanelWidth }]}>
-            <NoteScreen route={{ params: { session, question, question_reponse } }} />
+            <ScrollView>
+            <NoteScreen route={{ params: { session, question, question_reponse,mode : userStatus.notes } }} />
+            </ScrollView>
           </View>
         )}
       </View>
+      
+      
       <Modal
         animationType="slide"
         transparent={true}
