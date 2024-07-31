@@ -1089,9 +1089,10 @@ export async function updateAnswer(id_answer, column_to_update, value) {
 
 export async function getUserStatus(id_user, id_subject) {
   try {
+    
     const { data: status, error: fetchError } = await supabase
       .from('Memoires_contributors')
-      .select('authorized,access,notes,chapters')
+      .select('*')
       .eq('id_subject', id_subject)
       .eq('id_user', id_user)
       .single();

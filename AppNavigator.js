@@ -13,13 +13,14 @@ import ReadAnswersScreen from './src/screens/ReadAnswersScreen';
 import ReadNotesScreen from './src/screens/ReadNotesScreen';
 import ManageBiographyScreen from './src/screens/ManageBiography';
 import NoteScreen from './src/screens/NoteScreen';
-import { saveActiveSubjectId } from './src/components/local_storage';
+import { saveActiveSubjectId,getActiveSubjectId, saveActiveSubjectUserStatus,getActiveSubjectUserStatus } from './src/components/local_storage';
 import {
   linkAnalysis,
   updateExistingLink,
   joinSubject,
   remember_active_subject,
-  get_Profile
+  get_Profile,
+  getUserStatus
 
 } from './src/components/data_handling';
 import {
@@ -33,6 +34,8 @@ const Stack = createStackNavigator();
 function AppNavigator({ session }) {
   const navigation = useNavigation();
   const [check, setCheck] = useState({nature : 'en cours'});
+  const [userStatus,setUserStatus]= useState({});
+  const[activeSubjectId,setActiveSubjectId]= useState();
   const { suffix } = useParams(); // Utiliser useParams pour extraire le suffixe
   const [loading, setLoading] = useState(true);
 
@@ -83,7 +86,13 @@ function AppNavigator({ session }) {
           // Rejoindre le projet et attendre la réussite
           const profile = await get_Profile( session.user.id);
            if (profile.active_biography){ 
-          await saveActiveSubjectId(profile.active_biography);
+            setActiveSubjectId(profile.active_biography)
+            console.log('id_user, id_subject : ',session.user.id,profile.active_biography)
+            const temp = await getUserStatus(session.user.id,profile.active_biography)
+            setUserStatus(temp)
+            await saveActiveSubjectId(profile.active_biography);
+            await saveActiveSubjectUserStatus(temp)
+
         }
         setLoading (false)
         } catch (error) {
@@ -121,7 +130,9 @@ function AppNavigator({ session }) {
 
 <>
       {session && session.user ? (
+        
         <>
+        { userStatus.chapter=="Pas d'accès" ? (<> 
           <Stack.Screen name="Account" component={Account} initialParams={{ session }} />
           <Stack.Screen name="Notes" component={NoteScreen} initialParams={{ session }} />
           <Stack.Screen name="ProfileScreen" component={ProfileScreen} initialParams={{ session }} />
@@ -130,8 +141,21 @@ function AppNavigator({ session }) {
           <Stack.Screen name="AskQuestionScreen" component={AskQuestionScreen} initialParams={{ session }} />
           <Stack.Screen name="EditChapterScreen" component={EditChapterScreen} initialParams={{ session }} />
           <Stack.Screen name="AnswerQuestionScreen" component={AnswerQuestionScreen} initialParams={{ session }} />
+          <Stack.Screen name="Incipit" component={ReadNotesScreen} initialParams={{ session }} />  
+          </>)
+          : (<> 
           <Stack.Screen name="Incipit" component={ReadNotesScreen} initialParams={{ session }} />
-
+          <Stack.Screen name="Account" component={Account} initialParams={{ session }} />
+          <Stack.Screen name="Notes" component={NoteScreen} initialParams={{ session }} />
+          <Stack.Screen name="ProfileScreen" component={ProfileScreen} initialParams={{ session }} />
+          <Stack.Screen name="Projets" component={ManageBiographyScreen} initialParams={{ session }} />
+          <Stack.Screen name="Marcel" component={ReadAnswersScreen} initialParams={{ session }} />
+          <Stack.Screen name="AskQuestionScreen" component={AskQuestionScreen} initialParams={{ session }} />
+          <Stack.Screen name="EditChapterScreen" component={EditChapterScreen} initialParams={{ session }} />
+          <Stack.Screen name="AnswerQuestionScreen" component={AnswerQuestionScreen} initialParams={{ session }} />
+          </>)
+      
+      }
         </>
       ) : (
         <Stack.Screen name="Auth" component={Auth} />
