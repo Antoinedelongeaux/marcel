@@ -295,7 +295,7 @@ const refreshAnswer = async () => {
 
 export const CarrousselThemes = ({ themes, isLargeScreen, theme, setTheme }) => {
   const SLIDER_WIDTH = Dimensions.get('window').width;
-  const ITEM_WIDTH = Dimensions.get('window').width * 0.4;
+  const ITEM_WIDTH = Dimensions.get('window').width * (isLargeScreen ? 0.6 : 0.7);
   const ITEM_HEIGHT = 150;
   const SELECTED_ITEM_HEIGHT = ITEM_HEIGHT * 1.5;
   const carouselRef = useRef(null);
@@ -315,7 +315,19 @@ export const CarrousselThemes = ({ themes, isLargeScreen, theme, setTheme }) => 
     if (carouselRef.current) {
       carouselRef.current.snapToItem(initialIndex, false, false);
     }
+    //if (typeof setTheme === 'function') {
+    //  setTheme(themes[initialIndex].theme); // Mettre à jour le thème initial
+    //}
   }, [initialIndex]);
+  
+  const handleSnapToItem = (index) => {
+    setCurrentIndex(index);
+    if (typeof setTheme === 'function') {
+      setTheme(themes[index].theme); // Mettre à jour le thème lors du défilement
+    }
+  };
+
+
   
   const handlePrev = () => {
     if (carouselRef.current) {
@@ -362,16 +374,14 @@ export const CarrousselThemes = ({ themes, isLargeScreen, theme, setTheme }) => 
         data={themes}
         renderItem={renderItem}
         sliderWidth={SLIDER_WIDTH}
-        itemWidth={isLargeScreen ? ITEM_WIDTH : ITEM_WIDTH * 0.8}
-        onSnapToItem={(index) => {
-          setCurrentIndex(index);
-          if (typeof setTheme === 'function') {
-            setTheme(themes[index].theme); // Mettre à jour le thème
-          }
-        }}
-        inactiveSlideScale={0.7} // Échelle des cartes non sélectionnées
-        inactiveSlideOpacity={0.7} // Opacité des cartes non sélectionnées
+        itemWidth={ITEM_WIDTH}
+        onSnapToItem={handleSnapToItem}
+        inactiveSlideScale={(isLargeScreen? 0.7 : 0)}
+        inactiveSlideOpacity={0.7}
+        firstItem={initialIndex}
+        contentContainerStyle={{ justifyContent: 'center', paddingHorizontal: Dimensions.get('window').width * 0.1 }}
       />
+
       <TouchableOpacity onPress={handleNext} style={styles.arrowButton}>
         <Text style={styles.arrowText}>{'>'}</Text>
       </TouchableOpacity>
