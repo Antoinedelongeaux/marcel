@@ -1,8 +1,9 @@
 // AnswerCard.js
 
 import React, { useState, useEffect,useRef } from 'react';
-import { View, Text, TouchableOpacity, Image, ActivityIndicator, StyleSheet, TextInput, Dimensions  } from 'react-native';
+import { View, Text, TouchableOpacity, Image, ActivityIndicator, StyleSheet, TextInput, Dimensions,  Picker,   Alert, } from 'react-native';
 import Slider from '@react-native-community/slider';
+import Modal from 'react-native-modal';
 import { globalStyles } from '../../global';
 import playIcon from '../../assets/icons/play.png';
 import pauseIcon from '../../assets/icons/pause.png';
@@ -11,6 +12,7 @@ import captionIcon from '../../assets/icons/caption.png';
 import eyeIcon from '../../assets/icons/view.png';
 import copyIcon from '../../assets/icons/paste.png';
 import trashIcon from '../../assets/icons/baseline_delete_outline_black_24dp.png';
+import closeIcon from '../../assets/icons/close.png'; 
 import { createAudioChunk, 
   startRecording, 
   stopRecording, 
@@ -46,7 +48,7 @@ import {
 import Carousel from 'react-native-snap-carousel';
 import PropTypes from 'prop-types';
 
-export const AnswerCard = ({  item, showDetails, isLargeScreen }) => {
+export const AnswerCard = ({  item, showDetails, isLargeScreen,users }) => {
   const [editingAnswerId, setEditingAnswerId] = useState(null);
   const [editingText, setEditingText] = useState('');
   const [playbackStatus, setPlaybackStatus] = useState({});
@@ -55,6 +57,9 @@ export const AnswerCard = ({  item, showDetails, isLargeScreen }) => {
   const [selectedAnswerIds, setSelectedAnswerIds] = useState([]);
   const [isUsed, setIsUsed] = useState(item.used);
   const [isQuality, setIsQuality] = useState(item.quality);
+  const [isAssignModalVisible, setIsAssignModalVisible] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState(users.length > 0 ? users[0].id_user : '');
+
 
 
   useEffect(() => {
@@ -70,13 +75,7 @@ export const AnswerCard = ({  item, showDetails, isLargeScreen }) => {
 
 // Actualisation de la réponse
 
-const refreshAnswer = async () => {
-  
-  const answers = await getMemories_Answers();
-  const sortedAnswers = answers.sort((a, b) => a.rank - b.rank);
-      setAnswers(sortedAnswers);
-    setIsLoading(false);
-};
+
 
 
 
@@ -93,9 +92,10 @@ const refreshAnswer = async () => {
     }
   };
 
-  const handleUpdateOwner = async (answerId, newOwnerId) => {
-    if (answerId && newOwnerId) {
-      await update_answer_owner(answerId, newOwnerId);
+  const handleUpdateOwner = async () => {
+    if (item.id && selectedUserId) {
+      await update_answer_owner(item.id, selectedUserId);
+      item.id_user = selectedUserId; 
       setIsAssignModalVisible(false);
     } else {
       Alert.alert("Erreur", "Veuillez sélectionner un utilisateur.");
@@ -132,7 +132,9 @@ const refreshAnswer = async () => {
   const handlePlayPauseInternal = async (audioId, audioLink) => {
     await handlePlayPause(audioId, audioLink, currentAudioId, setCurrentAudioId, playbackStatus, setPlaybackStatus);
   };
-
+  const handleAssignOwner = () => {
+    setIsAssignModalVisible(true);
+  };
 
 
   return (
@@ -194,7 +196,7 @@ const refreshAnswer = async () => {
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 20 }}>
             {showDetails && (
               <>
-                {item.answer !== "audio not yet transcribed" && item.id !== editingAnswerId && (
+                { item.id !== editingAnswerId && (
                   <TouchableOpacity onPress={() => { setEditingAnswerId(item.id); setEditingText(item.answer); }}>
                     <Image source={editIcon} style={{ width: 28, height: 28, opacity: 0.5 }} />
                     {isLargeScreen && <Text>Edit</Text>}
@@ -255,20 +257,35 @@ const refreshAnswer = async () => {
               </>
             )}
 
-          {!showDetails && (
-    
+          {!showDetails && (<>
+              <Text> </Text>
               <Text style={{ textAlign: 'right', marginTop: 10, fontStyle: 'italic' }}>
-                {new Date(item.created_at).toLocaleDateString()} {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+               le {new Date(item.created_at).toLocaleDateString()} à {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </Text>
+              
+              </>
         
           )}
 
-            <Text style={{ textAlign: 'right', marginTop: 10, fontStyle: 'italic' }}>
+            <Text style={{ textAlign: 'right', marginTop: 10, fontStyle: 'italic' }} onPress={() => handleAssignOwner(item.id)}>
               {userNames[item.id_user]}
             </Text>
           </View>
+          
+
+               
           {item.audio  && (
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+               {!showDetails &&item.id !== editingAnswerId && (
+                     
+                     <TouchableOpacity onPress={() => { setEditingAnswerId(item.id); setEditingText(item.answer); }} style={{ marginRight: 30 }}>
+  <Image source={editIcon} style={{ width: 28, height: 28, opacity: 0.5 }} />
+  {isLargeScreen && <Text>Editer</Text>}
+</TouchableOpacity>
+
+             
+               )}
+              
               <TouchableOpacity onPress={() => handlePlayPauseInternal(item.id, item.link_storage)}>
                 <Image source={playbackStatus.isPlaying && currentAudioId === item.id ? pauseIcon : playIcon} style={{ width: 25, height: 25 }} />
               </TouchableOpacity>
@@ -287,8 +304,32 @@ const refreshAnswer = async () => {
               
             </View>
           )}
+
+                
         </View>
       </View>
+      <Modal isVisible={isAssignModalVisible}>
+  <View style={globalStyles.overlay}>
+    <View style={globalStyles.modalContainer}>
+      <TouchableOpacity onPress={() => setIsAssignModalVisible(false)} style={globalStyles.closeButton}>
+        <Image source={closeIcon} style={globalStyles.closeIcon} />
+      </TouchableOpacity>
+      <Text style={globalStyles.modalTitle}>Attribuer à un utilisateur</Text>
+      <Picker
+        selectedValue={selectedUserId || ''}
+        onValueChange={(itemValue) => setSelectedUserId(itemValue)}
+      >
+        {users.map((user) => (
+          <Picker.Item key={user.id_user} label={user.name} value={user.id_user} />
+        ))}
+      </Picker>
+      <TouchableOpacity onPress={handleUpdateOwner} style={globalStyles.globalButton_wide}>
+        <Text style={globalStyles.globalButtonText}>Attribuer</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</Modal>
+
     </TouchableOpacity>
   );
 };

@@ -2,7 +2,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const saveActiveSubjectId = async (subjectId) => {
   try {
-    console.log("saveActiveSubjectId en cours")
+    console.log("saveActiveSubjectId en cours : ",subjectId)
+
     if (subjectId === null ||subjectId === '0') {
       // Si subjectId est null, effacez l'entrée du stockage
       await AsyncStorage.removeItem('activeSubjectId');

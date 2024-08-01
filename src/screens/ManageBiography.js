@@ -1,10 +1,9 @@
 import React from 'react'
-import { supabase } from '../lib/supabase'
 import { useState, useEffect } from 'react'
 import { useNavigation } from '@react-navigation/native';
 import { Modal, Image, View, StyleSheet, Button, Text, Alert, Keyboard, TouchableWithoutFeedback, TextInput, TouchableOpacity } from 'react-native'
 import { globalStyles } from '../../global'
-import {   getUserStatus, deleteExistingContributor, deleteExistingLink, listSubjects, joinSubject, getSubjects, get_project, create_project, get_project_contributors, validate_project_contributors, get_project_by_id, getSubjects_pending, getExistingLink,updateExistingLink,createNewLink,remember_active_subject,get_Profile } from '../components/data_handling';
+import { getUserStatus, deleteExistingContributor, deleteExistingLink, listSubjects, joinSubject, getSubjects, get_project, create_project, get_project_contributors, validate_project_contributors, get_project_by_id, getSubjects_pending, getExistingLink,updateExistingLink,createNewLink,remember_active_subject,get_Profile } from '../components/data_handling';
 import { saveActiveSubjectId, getActiveSubjectId } from '../components/local_storage';
 import { Ionicons } from '@expo/vector-icons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';

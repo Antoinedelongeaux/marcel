@@ -715,7 +715,7 @@ export async function getSubjects(id_user) {
       return { ...element, content_subject: content_subject[0] };
     }));
    
-    
+    console.log("Subjects : ",subjectsWithContent)
     return subjectsWithContent;
   } catch (error) {
     console.error("Error in getSubject:", error.message);
@@ -1446,12 +1446,13 @@ export async function getTheme_byProject(id_subject) {
   }
 }
 
-export async function getTheme_byUser(id_user) { 
+export async function getTheme_byUser(id_user,id_subject) { 
   try {
     const { data, error }  = await supabase
     .from('Memoires_connections')
     .select(`*`)
-    .eq('id_user', id_user);
+    .eq('id_user', id_user)
+    .eq('id_subject', id_subject);;
 
     return data ;
   } catch (error) {

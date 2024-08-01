@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback,  useRef  } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import Slider from '@react-native-community/slider';
 import {
   Image,
   View,
@@ -16,8 +15,10 @@ import {
 } from 'react-native';
 import {
   getSubject,
+  getSubjects,
   getMemories_Questions,
   getMemories_Answers_to_Question,
+  get_project_contributors,
   get_chapters,
   getUserStatus,
   get_user_name,
@@ -28,19 +29,17 @@ import {
   getTheme_byUser,
   getMemories_Answers_to_theme,
   deleteMemories_Answer,
+  remember_active_subject,
 } from '../components/data_handling';
 import { useFocusEffect } from '@react-navigation/native';
-import { getActiveSubjectId } from '../components/local_storage';
+import { getActiveSubjectId,saveActiveSubjectId } from '../components/local_storage';
 import NoteScreen from './NoteScreen';
 import { globalStyles } from '../../global';
 import settings from '../../assets/icons/settings.svg';
 import { Card, Paragraph } from 'react-native-paper';
-import MicroIcon from '../../assets/icons/microphone-lines-solid.svg';
 import trash from '../../assets/icons/baseline_delete_outline_black_24dp.png';
 import { createAudioChunk, startRecording, stopRecording, uploadAudioToSupabase, delete_audio,playRecording_fromAudioFile, uploadImageToSupabase,handlePlayPause } from '../components/sound_handling'; 
 import { v4 as uuidv4 } from 'uuid';
-import playIcon from '../../assets/icons/play.png';
-import pauseIcon from '../../assets/icons/pause.png';
 import {
   AnswerPanel_written, 
   AnswerPanel_oral,
@@ -54,12 +53,11 @@ import {AnswerCard,
 
 
 
-const useFetchActiveSubjectId = (setSubjectActive, setSubject, setIsLoading, navigation) => {
+const useFetchActiveSubjectId = ( setSubject, setIsLoading, navigation) => {
   useFocusEffect(
     useCallback(() => {
       const fetchActiveSubjectId = async () => {
         const temp = await getActiveSubjectId();
-        setSubjectActive(temp);
         if (temp) {
           const temp2 = await getSubject(temp);
           setSubject(temp2);
@@ -70,20 +68,23 @@ const useFetchActiveSubjectId = (setSubjectActive, setSubject, setIsLoading, nav
         setIsLoading(false);
       };
       fetchActiveSubjectId();
-    }, [navigation, setSubjectActive, setSubject, setIsLoading])
+    }, [navigation, setSubject, setIsLoading])
   );
 };
 
-const useFetchData = (id_user, subjectActive, setQuestions, tags, personal, setChapters, setUserStatus,setThemes) => {
+const useFetchData = (id_user, subject, setQuestions, tags, personal, setChapters, setUserStatus,setThemes,setSubjects,setUsers) => {
   useEffect(() => {
-    if (subjectActive) {
-      getMemories_Questions(subjectActive, setQuestions, tags, personal);
-      get_chapters(subjectActive, setChapters);
-      getUserStatus(id_user, subjectActive).then(setUserStatus);
-      getTheme_byUser(id_user).then(setThemes);
+    if (subject && subject.id) {
+      getMemories_Questions(subject.id, setQuestions, tags, personal);
+      get_chapters(subject.id, setChapters);
+      getUserStatus(id_user, subject.id).then(setUserStatus);
+      getTheme_byUser(id_user, subject.id).then(setThemes);
+      getSubjects(id_user).then(setSubjects);
+      get_project_contributors(subject.id).then(setUsers);
+      
 
     }
-  }, [subjectActive, tags, personal, id_user, setQuestions, setChapters, setUserStatus]);
+  }, [subject, tags, personal, id_user, setQuestions, setChapters, setUserStatus]);
 };
 
 const displayProgressiveText = (message, setMessage) => {
@@ -102,7 +103,8 @@ function ReadNotesScreen({ route }) {
   const navigation = useNavigation();
   const session = route.params?.session;
   const [questions, setQuestions] = useState([]);
-  const [subjectActive, setSubjectActive] = useState(null);
+  //const [subjectActive, setSubjectActive] = useState(null);
+  const [subjects, setSubjects] = useState();
   const [tags, setTags] = useState([
     'Famille',
     'Vie professionnelle',
@@ -120,6 +122,7 @@ function ReadNotesScreen({ route }) {
   const [question, setQuestion] = useState('');
   const [answers, setAnswers] = useState([]);
   const [userStatus, setUserStatus] = useState('');
+  const [users, setUsers] = useState([]);
 
   const [question_reponse, setQuestion_reponse] = useState('réponse');
   const windowWidth = Dimensions.get('window').width;
@@ -189,6 +192,9 @@ function ReadNotesScreen({ route }) {
   const [answerAndQuestion, setAnswerAndQuestion] = useState("réponse");
   const [answer, setAnswer] = useState('');
   const [showDetails, setShowDetails] = useState(false);
+  const [changeSubject, setChangeSubject] = useState(false);
+  
+
 
 
 
@@ -208,19 +214,35 @@ function ReadNotesScreen({ route }) {
   
   
   
-  
-  
-
-  
-
+  useFetchActiveSubjectId(setSubject, setIsLoading, navigation);
+  useFetchData(session.user.id, subject, setQuestions, tags, personal, setChapters, setUserStatus,setThemes,setSubjects,setUsers);
   
 
-  useFetchActiveSubjectId(setSubjectActive, setSubject, setIsLoading, navigation);
-  useFetchData(session.user.id, subjectActive, setQuestions, tags, personal, setChapters, setUserStatus,setThemes);
+  
+  useEffect(() => {
+    const refreshData = async () => {
+      await getActiveSubjectId()
+        .then(async (id) => {
+          if (id) {
+            const fetchedSubject = await getSubject(id);
+            setSubject(fetchedSubject);
+            setIsLoading(false);
+          } else {
+            navigation.navigate('Projets');
+          }
+        });
+    };
+  
+    refreshData();
+  }, [changeSubject]);
+  
+
+
+  
 
   const fetchUserStatus = useCallback(async () => {
-    if (subjectActive) {
-      const status = await getUserStatus(session.user.id, subjectActive);
+    if (subject && subject.id) {
+      const status = await getUserStatus(session.user.id, subject.id);
       setUserStatus(status);
       if (status.chapters === 'Auditeur') {
         setQuestion_reponse('question');
@@ -231,12 +253,12 @@ function ReadNotesScreen({ route }) {
         navigateToScreen('Projets');
       }
     }
-  }, [session.user.id, subjectActive, navigateToScreen]);
+  }, [session.user.id, subject, navigateToScreen]);
 
 
   const fetchThemesAllUsers = async () => {
-      if (subjectActive) {
-        await getTheme_byProject(subjectActive).then(setThemesAllUsers);
+      if (subject && subject.id) {
+        await getTheme_byProject(subject.id).then(setThemesAllUsers);
       }
   }
 
@@ -246,7 +268,7 @@ function ReadNotesScreen({ route }) {
     };
   
     fetchData();
-  }, [session.user.id, subjectActive, navigateToScreen]);
+  }, [session.user.id, subject, navigateToScreen]);
   
 
   useEffect(() => {
@@ -357,7 +379,7 @@ function ReadNotesScreen({ route }) {
   };
 
   const handleSaveTheme= async (text) => { 
-    const temp = await createTheme(text,subjectActive)
+    const temp = await createTheme(text,subject.id)
     setTheme(temp)
     handleChoice_3("Thème ok")
 
@@ -431,7 +453,7 @@ function ReadNotesScreen({ route }) {
 
   const refreshAnswers = async () => {
     const answers = await getMemories_Answers_to_theme(theme.id);
-    const sortedAnswers = answers.sort((a, b) => b.rank - a.rank);
+    const sortedAnswers = answers.sort((a, b) => a.rank - b.rank);
       setAnswers(sortedAnswers);
       setIsLoading(false);
       console.log("Answers : ",sortedAnswers)
@@ -462,7 +484,7 @@ function ReadNotesScreen({ route }) {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || !subjects ) {
     return (
       <View style={globalStyles.container}>
         <Text>Loading...</Text>
@@ -472,11 +494,35 @@ function ReadNotesScreen({ route }) {
 
   return (
     <View style={globalStyles.container} ref={containerRef}>
-      <View >
-        <Text style={globalStyles.title}>
-          {subject.title}
-        </Text>
-      </View>
+  <View>
+  <Picker
+    selectedValue={subject.id}
+    style={styles.picker}
+    onValueChange={(itemValue, itemIndex) => {
+      const selectedSubject = subjects.find(subj => subj.content_subject.id === itemValue).content_subject;
+      console.log("New selectedSubject : ", selectedSubject)
+      saveActiveSubjectId(selectedSubject.id)
+        .then(() => {
+          remember_active_subject(selectedSubject.id, session.user.id);
+          setChangeSubject(prev => !prev);
+        })
+        .catch((error) => {
+          console.error('Error saving active subject ID:', error);
+        });
+    }}
+  >
+    {subjects.map((subj, index) => (
+      <Picker.Item key={index} label={subj.content_subject.title} value={subj.content_subject.id} />
+    ))}
+  </Picker>
+  <Text style={globalStyles.title}>
+    {subject.title}
+  </Text>
+</View>
+
+ 
+
+
       <View style={[
   globalStyles.navigationContainer,
   { position: 'fixed' },
@@ -668,7 +714,7 @@ function ReadNotesScreen({ route }) {
 
   < ThemePanel  
       ID_USER={session.user.id}
-      ID_subject={subjectActive} 
+      ID_subject={subject.id} 
       new_theme={false} 
       themes={themes}
       themesAllUsers={themesAllUsers} 
@@ -882,7 +928,8 @@ function ReadNotesScreen({ route }) {
            key={answer.id} // Ajoutez une clé ici
            item={answer} 
            showDetails={showDetails}
-           isLargeScreen={isLargeScreen} 
+           isLargeScreen={isLargeScreen}
+           users={users} 
          />
           {session.user.id===answer.id_user &&  (
          <TouchableOpacity key={`${answer.id}-delete`} onPress={() => handleDeleteAnswer(answer)}>
@@ -945,7 +992,7 @@ function ReadNotesScreen({ route }) {
     alignSelf: 'center'}}>
 < ThemePanel  
       ID_USER={session.user.id}
-      ID_subject={subjectActive} 
+      ID_subject={subject.id} 
       new_theme={true} 
       themes={themesAllUsers}
       themesAllUsers={themesAllUsers}  
@@ -1021,7 +1068,12 @@ const styles = StyleSheet.create({
   },
   chatTextEnd: {
     color: '#fff', // Couleur du texte de la bulle de chat de fin
-  }
+  },
+    picker: {
+      height: 50,
+      width: '100%',
+    },
+
 });
 
 
