@@ -267,7 +267,7 @@ const refreshAnswer = async () => {
               {userNames[item.id_user]}
             </Text>
           </View>
-          {item.audio && (showDetails || item.answer==='audio à convertir en texte') && (
+          {item.audio  && (
             <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
               <TouchableOpacity onPress={() => handlePlayPauseInternal(item.id, item.link_storage)}>
                 <Image source={playbackStatus.isPlaying && currentAudioId === item.id ? pauseIcon : playIcon} style={{ width: 25, height: 25 }} />

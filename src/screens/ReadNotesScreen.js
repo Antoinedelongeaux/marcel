@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback,  useRef  } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import Slider from '@react-native-community/slider';
 import {
@@ -12,6 +12,7 @@ import {
   TextInput,
   Picker,
   Alert,
+  InteractionManager,
 } from 'react-native';
 import {
   getSubject,
@@ -62,6 +63,7 @@ const useFetchActiveSubjectId = (setSubjectActive, setSubject, setIsLoading, nav
         if (temp) {
           const temp2 = await getSubject(temp);
           setSubject(temp2);
+          console.log(temp2)
         } else {
           navigation.navigate('Projets');
         }
@@ -188,9 +190,28 @@ function ReadNotesScreen({ route }) {
   const [answer, setAnswer] = useState('');
   const [showDetails, setShowDetails] = useState(false);
 
-  useEffect(() => {
-    console.log("Theme : ", theme);
-  }, [theme]);
+
+
+  const containerRef = useRef();
+
+
+
+  const scrollToBottom = () => {
+    console.log("Trying to scroll to bottom");
+    if (containerRef.current) {
+      console.log("containerRef.current", containerRef.current);
+      containerRef.current.scrollTop = containerRef.current.scrollHeight;
+    } else {
+      console.log("containerRef is not valid");
+    }
+  };
+  
+  
+  
+  
+  
+
+  
 
   
 
@@ -248,6 +269,7 @@ function ReadNotesScreen({ route }) {
       const messageContent = `Bonjour ${userName}, merci de votre contribution au projet. Que souhaitez-vous faire ?`;
       displayProgressiveText(messageContent, setProgressiveMessage_1);
       setTimeout(() => setShowChoices_1(true), messageContent.split(' ').length * 10);
+      scrollToBottom();
     }
   }, [userName]);
 
@@ -269,6 +291,7 @@ function ReadNotesScreen({ route }) {
 
     displayProgressiveText(message, setProgressiveMessage_2);
     setTimeout(() => setShowChoices_2(true), message.split(' ').length * 10);
+    scrollToBottom();
   };
 
   const handleChoice_2 = async (choice) => {
@@ -290,6 +313,7 @@ function ReadNotesScreen({ route }) {
 
     displayProgressiveText(message, setProgressiveMessage_3);
     setTimeout(() => setShowChoices_3(true), message.split(' ').length * 10);
+    scrollToBottom();
   };
 
 
@@ -304,6 +328,7 @@ function ReadNotesScreen({ route }) {
     const message = "Sous quel format souhaitez-vous contribuer ?";
     displayProgressiveText(message, setProgressiveMessage_4);
     setTimeout(() => setShowChoices_4(true), message.split(' ').length * 10);
+    scrollToBottom();
   };
 
 
@@ -328,6 +353,7 @@ function ReadNotesScreen({ route }) {
     
     displayProgressiveText(message, setProgressiveMessage_5);
     setTimeout(() => setShowChoices_5(true), message.split(' ').length * 10);
+    scrollToBottom();
   };
 
   const handleSaveTheme= async (text) => { 
@@ -445,8 +471,18 @@ function ReadNotesScreen({ route }) {
   }
 
   return (
-    <View style={globalStyles.container}>
-      <View style={[globalStyles.navigationContainer, { position: 'fixed', bottom: '0%', alignSelf: 'center' }]}>
+    <View style={globalStyles.container} ref={containerRef}>
+      <View >
+        <Text style={globalStyles.title}>
+          {subject.title}
+        </Text>
+      </View>
+      <View style={[
+  globalStyles.navigationContainer,
+  { position: 'fixed' },
+  isLargeScreen ? { top: '0%', alignSelf: 'flex-end' } : { bottom: '0%', alignSelf: 'center' }
+]}>
+
         <TouchableOpacity
           onPress={() => navigateToScreen('Projets')}
           style={[globalStyles.navButton, isHovered && globalStyles.navButton_over]}
@@ -459,7 +495,8 @@ function ReadNotesScreen({ route }) {
 
       <View style={isLargeScreen ? styles.largeScreenContainer : styles.smallScreenContainer}>
         <View style={[styles.rightPanel, { width: rightPanelWidth }]}>
-          <ScrollView>
+        <ScrollView>
+
              <Card style={globalStyles.QuestionBubble}> 
   
               <Card.Content>
@@ -469,6 +506,7 @@ function ReadNotesScreen({ route }) {
             {showChoices_1 && (
               <>
                 <View style={{ flexDirection: isLargeScreen ? 'row' : 'column', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                {/* 
                 <Card style={[globalStyles.ResponseBubble, selectedChoice_1 === 'Voir les notes déjà produites'&& (globalStyles.ResponseBubble_selected), {marginHorizontal: 20}]}>
                     <Card.Content>
                       <TouchableOpacity
@@ -481,6 +519,7 @@ function ReadNotesScreen({ route }) {
                       </TouchableOpacity>
                     </Card.Content>
                   </Card>
+                */}
                   <Card style={[globalStyles.ResponseBubble,selectedChoice_1 === 'Ajouter une note'&& (globalStyles.ResponseBubble_selected), {marginHorizontal: 20}]}>
                     <Card.Content>
                       <TouchableOpacity
@@ -943,7 +982,7 @@ function ReadNotesScreen({ route }) {
             <Text> </Text>
             <Text> </Text>
             <Text> </Text>
-            
+  
           </ScrollView>
         </View>
       </View>
