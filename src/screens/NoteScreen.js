@@ -139,7 +139,8 @@ function NoteScreen({ route }) {
     '',
   ]);
 
-  const question = route.params?.question.id || '';
+  const ID_question = route.params?.question.id || '';
+  const [question,setQuestion]=useState(route.params?.question || '');
   const [link,setLink]=useState([]);
 
 
@@ -196,6 +197,11 @@ useEffect(() => {
 }, [notesMode]);
 
 
+useEffect(() => {
+  if (question) {
+    console.log("Questions : ",question);
+  }
+}, [question]);
 
 
 useFetchActiveSubjectId(setSubjectActive, setSubject, navigation);
@@ -242,10 +248,10 @@ useEffect(() => {
 
 
 useEffect(() => {
-  if (question) {
+  if (question && question.id) {
 
   const fetchData = async () => {
-    setLink(await getExistingLink(question, "id_question"));
+    setLink(await getExistingLink(question.id, "id_question"));
   };
   
   fetchData();
@@ -266,8 +272,8 @@ const toggleLinkStatus = async () => {
     setLink({ ...link, expired: newExpired });
     Alert.alert(newExpired ? 'Lien activé' : 'Lien désactivé');
   } else {
-    const newLink = await createNewLink(question,'id_question')
-    setLink(await getExistingLink(question,'id_question'));
+    const newLink = await createNewLink(question.id,'id_question')
+    setLink(await getExistingLink(question.id,'id_question'));
     setIsShareModalVisible(false)
     }
   
@@ -504,7 +510,7 @@ const filteredAnswers = answers.filter(answer => {
     (!afterDate || answerDate > afterDate) &&
     (question === '' || 
      (question === 'none' && answer.id_question === null) ||
-     (answer.id_question !== null && question.toString() === answer.id_question.toString())) &&
+     (answer.id_question !== null && (question.id).toString() === answer.id_question.toString())) &&
     (selectedChapter === '' || 
      (selectedChapter === 'none' && answer.id_question === null) || 
      (questionIdsForSelectedChapter.length === 0 || questionIdsForSelectedChapter.includes(answer.id_question?.toString()))) &&
@@ -633,7 +639,7 @@ const filteredAnswers = answers.filter(answer => {
       }
     }
   
-    await submitMemories_Answer(transcribedText, question, delegationUserId, isMedia, name, isImage, connectionID, async () => {
+    await submitMemories_Answer(transcribedText, question.id, delegationUserId, isMedia, name, isImage, connectionID, async () => {
       setAnswer('');
       setTimeout(async () => {
         await refreshAnswers();
@@ -1119,7 +1125,31 @@ const filteredAnswers = answers.filter(answer => {
       ))}
   </Picker>
 </View>
+<View style={styles.dropdownContainer}>
+<Picker
+  selectedValue={question}
+  onValueChange={(itemValue, itemIndex) => {
+    const itemValueNumber = Number(itemValue); // Convertir itemValue en nombre
+    const selectedQuestion_temp = questions.find(question => question.id === itemValueNumber);
 
+    if (selectedQuestion_temp) {
+        setQuestion(selectedQuestion_temp);
+    } else {
+        setQuestion('');
+    }
+}}
+
+  style={styles.dropdown}
+>
+  <Picker.Item label="Tous les chapitres" value="" />
+  {questions
+    .filter(question => answers.some(answer => answer.id_question === question.id)) // Filtrer les thèmes sans réponse
+    .map((question, index) => (
+      <Picker.Item key={index} label={question.question} value={question.id} />
+    ))}
+</Picker>
+
+</View>
 
     <View style={styles.dateFilterContainer}>
       {Platform.OS === 'web' ? (

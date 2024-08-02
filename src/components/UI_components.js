@@ -10,6 +10,7 @@ import pauseIcon from '../../assets/icons/pause.png';
 import editIcon from '../../assets/icons/pen-to-square-regular.svg';
 import captionIcon from '../../assets/icons/caption.png';
 import eyeIcon from '../../assets/icons/view.png';
+import questionIcon from '../../assets/icons/question.png';
 import copyIcon from '../../assets/icons/paste.png';
 import trashIcon from '../../assets/icons/baseline_delete_outline_black_24dp.png';
 import closeIcon from '../../assets/icons/close.png'; 
@@ -186,9 +187,12 @@ export const AnswerCard = ({  item, showDetails, isLargeScreen,users }) => {
                       <Text style={{ justifyContent: 'center', textAlign: 'center' }}>{item.answer}</Text>
                     </TouchableOpacity>
                   )}
+                  <View style={{ flexDirection: 'row'}}>
+                  {item.question_reponse == "question" && (<Image source={questionIcon} style={{ width: 36, height: 36, opacity: 0.5, marginLeft: 15 }} />)}
                   {!item.image && item.answer !== 'audio à convertir en texte' &&(
                     <Text style={styles.answerText}>{item.answer}</Text>
                   )}
+                  </View>
                 </>
               )}
             </>
@@ -258,7 +262,22 @@ export const AnswerCard = ({  item, showDetails, isLargeScreen,users }) => {
             )}
 
           {!showDetails && (<>
+            {(item.audio || item.id === editingAnswerId) && (
               <Text> </Text>
+              )}
+              {!item.audio &&item.id !== editingAnswerId && (
+                     
+                     <TouchableOpacity onPress={() => { setEditingAnswerId(item.id); setEditingText(item.answer); }} style={{ marginRight: 30 }}>
+  <Image source={editIcon} style={{ width: 28, height: 28, opacity: 0.5 }} />
+  {isLargeScreen && <Text>Editer</Text>}
+</TouchableOpacity>
+
+             
+               )}
+ 
+              
+              
+              
               <Text style={{ textAlign: 'right', marginTop: 10, fontStyle: 'italic' }}>
                le {new Date(item.created_at).toLocaleDateString()} à {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </Text>
