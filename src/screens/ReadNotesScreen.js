@@ -307,8 +307,8 @@ function ReadNotesScreen({ route }) {
     if(choice ==='Ajouter une note'){
         message = "Savez-vous déjà ce que vous souhaitez raconter ?"
     };
-    if(choice ==='Poser une question'){
-      message = "Merci, votre question servira de thème d'inspiration pour d'autre contributeurs."
+    if(choice ==='Proposer un thème'){
+      message = "Merci, ce thème sera proposé à d'autre contributeurs afin de les inspirer."
     };
 
     displayProgressiveText(message, setProgressiveMessage_2);
@@ -366,6 +366,9 @@ function ReadNotesScreen({ route }) {
     if (format ==="J\'ai un texte à copier/coller"){
     message = "Vous pouvez écrire ou coller votre texte dans le champ ci-dessous : ";
       }
+      if (format ==="Je pose une question"){
+        message = "Vous pouvez poser une question afin de guider les contributeurs : ";
+          }
     if (format ==="J\'ai un enregistrement audio"){
       message = "L'audio chargé va être découpé en tranche d'une minute, enregistré puis sera transcrit en format texte.";
           }
@@ -582,15 +585,15 @@ function ReadNotesScreen({ route }) {
                       </TouchableOpacity>
                     </Card.Content>
                   </Card>
-                  <Card style={[globalStyles.ResponseBubble, selectedChoice_1 === 'Poser une question'&& (globalStyles.ResponseBubble_selected), {marginHorizontal: 20}]}>
+                  <Card style={[globalStyles.ResponseBubble, selectedChoice_1 === 'Proposer un thème'&& (globalStyles.ResponseBubble_selected), {marginHorizontal: 20}]}>
                     <Card.Content>
                       <TouchableOpacity
          
-                        onPress={() => handleChoice_1('Poser une question' )}
-                        onMouseEnter={() => setIsHoveredButton('Poser une question')}
+                        onPress={() => handleChoice_1('Proposer un thème' )}
+                        onMouseEnter={() => setIsHoveredButton('Proposer un thème')}
                         onMouseLeave={() => setIsHoveredButton('')}
                       >
-                        <Paragraph style={[globalStyles.choiceButtonText, isHoveredButton==='Poser une question' && { fontWeight: 'bold' },selectedChoice_1 === 'Poser une question' && { color: 'white' }]}>Poser une question</Paragraph>
+                        <Paragraph style={[globalStyles.choiceButtonText, isHoveredButton==='Proposer un thème' && { fontWeight: 'bold' },selectedChoice_1 === 'Proposer un thème' && { color: 'white' }]}>Proposer un thème</Paragraph>
                       </TouchableOpacity>
                     </Card.Content>
                   </Card>
@@ -778,7 +781,7 @@ function ReadNotesScreen({ route }) {
                       <>
                       <View style={{ flexDirection: isLargeScreen ? 'row' : 'column', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
 
-                      {['J\'enregistre un message vocal', 'J\'ai un texte à copier/coller', 'J\'ai un enregistrement audio', 'J\'ai une photographie ou le scan d\'un document'].map((format) => (
+                      {['J\'enregistre un message vocal', 'J\'ai un texte à copier/coller', 'J\'ai un enregistrement audio', 'J\'ai une photographie ou le scan d\'un document','Je pose une question'].map((format) => (
   <Card style={[globalStyles.ResponseBubble, selectedChoice_4 === format && globalStyles.ResponseBubble_selected, { marginHorizontal: 20 }]} key={format}>
     <Card.Content>
       <TouchableOpacity
@@ -840,6 +843,34 @@ function ReadNotesScreen({ route }) {
         Id_question={null}
         Id_connection={theme.id}
         question_reponse={"réponse"}
+        refreshAnswers={refreshAnswers}
+ 
+      />
+</View>
+
+ 
+  
+)}
+
+                      </>)}
+                      {selectedChoice_4==='Je pose une question'&&(<> 
+                        <Card style={globalStyles.QuestionBubble}>
+                  <Card.Content>
+                    <Paragraph style={globalStyles.globalButtonText_tag}>{progressiveMessage_5}</Paragraph>
+                  </Card.Content>
+                </Card>
+                {showChoices_5 === true && (
+  
+  <View style={{
+    padding: 10,
+    marginBottom: 10,
+    width: '90%',
+    alignSelf: 'center'}}>
+  <AnswerPanel_written
+        ID_USER={session.user.id}
+        Id_question={null}
+        Id_connection={theme.id}
+        question_reponse={"question"}
         refreshAnswers={refreshAnswers}
  
       />
@@ -984,7 +1015,7 @@ function ReadNotesScreen({ route }) {
               <NoteScreen route={{ params: { session, question, question_reponse, mode: "full" } }} />
             )}
             
-            {selectedChoice_1 === 'Poser une question'  && showChoices_2 &&  ( 
+            {selectedChoice_1 === 'Proposer un thème'  && showChoices_2 &&  ( 
               <View style={{
     padding: 10,
     marginBottom: 10,
