@@ -326,6 +326,23 @@ overlay: {
   alignItems: 'center',
   zIndex: 10,
 },
+fullscreenContainer: {
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  width: '100%',
+  height: '100%',
+  backgroundColor: 'rgba(0,0,0,0.8)',
+  justifyContent: 'center',
+  alignItems: 'center',
+  zIndex: 10,
+},
+
+fullscreenImage: {
+  width: '100%',
+  height: '100%',
+  resizeMode: 'contain',
+},
 
 
 

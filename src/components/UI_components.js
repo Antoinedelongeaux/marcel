@@ -49,7 +49,7 @@ import {
 import Carousel from 'react-native-snap-carousel';
 import PropTypes from 'prop-types';
 
-export const AnswerCard = ({  item, showDetails, isLargeScreen,users }) => {
+export const AnswerCard = ({  item, showDetails, isLargeScreen,users,setFullscreenImage }) => {
   const [editingAnswerId, setEditingAnswerId] = useState(null);
   const [editingText, setEditingText] = useState('');
   const [playbackStatus, setPlaybackStatus] = useState({});
@@ -138,7 +138,15 @@ export const AnswerCard = ({  item, showDetails, isLargeScreen,users }) => {
   };
 
 
+
+
+
+
   return (
+    <>
+
+
+    
     <TouchableOpacity
       style={[
         styles.answerCard,
@@ -181,7 +189,7 @@ export const AnswerCard = ({  item, showDetails, isLargeScreen,users }) => {
               {item.answer !== "audio not yet transcribed" && (
                 <>
                   {item.image && (
-                    <TouchableOpacity >
+                    <TouchableOpacity onPress={() => setFullscreenImage(`https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/photos/${item.link_storage}`)} >
                       <Image source={{ uri: `https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/photos/${item.link_storage}` }} style={{ width: '100%', height: 300, resizeMode: 'contain' }} />
                       <Text></Text>
                       <Text style={{ justifyContent: 'center', textAlign: 'center' }}>{item.answer}</Text>
@@ -350,6 +358,7 @@ export const AnswerCard = ({  item, showDetails, isLargeScreen,users }) => {
 </Modal>
 
     </TouchableOpacity>
+    </>
   );
 };
 

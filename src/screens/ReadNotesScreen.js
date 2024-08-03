@@ -193,7 +193,12 @@ function ReadNotesScreen({ route }) {
   const [answer, setAnswer] = useState('');
   const [showDetails, setShowDetails] = useState(false);
   const [changeSubject, setChangeSubject] = useState(false);
-  
+
+  const [fullscreenImage, setFullscreenImage] = useState(null);
+  const closeFullscreenImage = () => {
+    setFullscreenImage(null);
+  };
+
 
 
 
@@ -497,6 +502,14 @@ function ReadNotesScreen({ route }) {
 
   return (
     <View style={globalStyles.container} ref={containerRef}>
+       {fullscreenImage && (
+  <View style={globalStyles.fullscreenContainer}>
+    <TouchableOpacity style={globalStyles.closeButton} onPress={closeFullscreenImage}>
+      <Text style={globalStyles.closeButtonText}>X</Text>
+    </TouchableOpacity>
+    <Image source={{ uri: fullscreenImage }} style={globalStyles.fullscreenImage} />
+  </View>
+)}
   <View>
   <Picker
     selectedValue={subject.id}
@@ -961,6 +974,7 @@ function ReadNotesScreen({ route }) {
            showDetails={showDetails}
            isLargeScreen={isLargeScreen}
            users={users} 
+           setFullscreenImage={setFullscreenImage}
          />
           {session.user.id===answer.id_user &&  (
          <TouchableOpacity key={`${answer.id}-delete`} onPress={() => handleDeleteAnswer(answer)}>
