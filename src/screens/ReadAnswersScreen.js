@@ -64,6 +64,7 @@ import doubleArrowIcon from '../../assets/icons/arrows_1.png';
 import leftArrowIcon from '../../assets/icons/left-arrow.png';
 import rightArrowIcon from '../../assets/icons/right-arrow.png';
 import ReactHtmlParser from 'react-html-parser'; 
+import { useLinkHandler } from '../hooks/useLinkHandler';
 
 const useFetchActiveSubjectId = (setSubjectActive, setSubject, setIsLoading, navigation) => {
   useFocusEffect(
@@ -157,7 +158,25 @@ function ReadQuestionsScreen({ route }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isShareModalVisible, setIsShareModalVisible] = useState(false);
 
-
+  const handleReference = (content) => {
+    // Implémenter votre logique ici
+    console.log("Contenu référencé :", content);
+  };
+  const CustomParser = ({ content }) => {
+    console.log("Content : ",content)
+    return ReactHtmlParser(content, {
+      transform: (node) => {
+        if (node.type === 'tag' && node.name === 'reference') {
+          return (
+            <TouchableOpacity onPress={() => handleReference(node.children[0].data)}>
+              <Text style={{ color: 'blue' }}>{node.children[0].data}</Text>
+            </TouchableOpacity>
+          );
+        }
+      },
+    });
+  };
+  
 
   
   useFetchActiveSubjectId(setSubjectActive, setSubject, setIsLoading, navigation);
@@ -703,13 +722,13 @@ function ReadQuestionsScreen({ route }) {
                 ) : (
                   question && question.question && (
                     <>
-                      {Platform.OS === 'web' ? (
-                        <div>{ReactHtmlParser(content)}</div>
-                      ) : (
-                        <View>
-                          <Text>{ReactHtmlParser(content)}</Text>
-                        </View>
-                      )}
+                     {Platform.OS === 'web' ? (
+      <div>{<CustomParser content={content} />}</div>
+    ) : (
+      <View>
+        <Text>{<CustomParser content={content} />}</Text>
+      </View>
+    )}
                     </>
                   )
                 )}
@@ -718,11 +737,14 @@ function ReadQuestionsScreen({ route }) {
           </View>
         )}
         {(isLargeScreen || !isLeftPanelVisible) && (
-          <View style={[styles.rightPanel, { width: rightPanelWidth }]}>
+          
+          
+          <View style={[styles.rightPanel, { width: rightPanelWidth }]}> 
             <ScrollView>
             <NoteScreen route={{ params: { session, question, question_reponse,mode : userStatus.notes } }} />
             </ScrollView>
           </View>
+          
         )}
       </View>
       

@@ -1089,6 +1089,7 @@ export async function updateAnswer(id_answer, column_to_update, value) {
 
 export async function getUserStatus(id_user, id_subject) {
   try {
+
     
     const { data: status, error: fetchError } = await supabase
       .from('Memoires_contributors')
@@ -1100,11 +1101,12 @@ export async function getUserStatus(id_user, id_subject) {
 
     
 
-    if (status==null) {
+    if (status===null) {
 
       return "non trouvé";
     }
     if (fetchError) throw fetchError;
+
     return status;
   } catch (error) {
     Alert.alert('Erreur lors de la prise en compte de la copie : ', error.message);

@@ -139,13 +139,12 @@ function NoteScreen({ route }) {
     '',
   ]);
 
-  const ID_question = route.params?.question.id || '';
-  const [question,setQuestion]=useState(route.params?.question || '');
+  //const ID_question = route.params?.question.id || '';
   const [link,setLink]=useState([]);
 
 
   const question_reponse = route.params?.question_reponse || 'réponse';
-  const [selectedQuestion, setSelectedQuestion] = useState(question);
+  const [selectedQuestion, setSelectedQuestion] = useState(route.params?.question || '');
   const [selectedChapter, setSelectedChapter] = useState('');
   const [showFilters, setShowFilters] = useState(false); 
   const [isModalVisible, setModalVisible] = useState(false); // Ajoutez cette ligne dans les états
@@ -198,10 +197,16 @@ useEffect(() => {
 
 
 useEffect(() => {
-  if (question) {
-    console.log("Questions : ",question);
+  if (selectedQuestion) {
+    console.log("selectedQuestion : ",selectedQuestion);
   }
-}, [question]);
+}, [selectedQuestion]);
+
+useEffect(() => {
+  if (route.params?.question) {
+    setSelectedQuestion(route.params?.question)
+  }
+}, [route.params?.question]);
 
 
 useFetchActiveSubjectId(setSubjectActive, setSubject, navigation);
@@ -248,16 +253,16 @@ useEffect(() => {
 
 
 useEffect(() => {
-  if (question && question.id) {
+  if (selectedQuestion && selectedQuestion.id) {
 
   const fetchData = async () => {
-    setLink(await getExistingLink(question.id, "id_question"));
+    setLink(await getExistingLink(selectedQuestion.id, "id_question"));
   };
   
   fetchData();
   
 }
-}, [question]);
+}, [selectedQuestion]);
 
 const copyLinkToClipboard = (text) => {
   Clipboard.setString(text);
@@ -272,8 +277,8 @@ const toggleLinkStatus = async () => {
     setLink({ ...link, expired: newExpired });
     Alert.alert(newExpired ? 'Lien activé' : 'Lien désactivé');
   } else {
-    const newLink = await createNewLink(question.id,'id_question')
-    setLink(await getExistingLink(question.id,'id_question'));
+    const newLink = await createNewLink(selectedQuestion.id,'id_question')
+    setLink(await getExistingLink(selectedQuestion.id,'id_question'));
     setIsShareModalVisible(false)
     }
   
@@ -508,12 +513,9 @@ const filteredAnswers = answers.filter(answer => {
     (!textFilter || answer.answer.includes(textFilter)) &&
     (!beforeDate || answerDate < beforeDate) &&
     (!afterDate || answerDate > afterDate) &&
-    (question === '' || 
-     (question === 'none' && answer.id_question === null) ||
-     (answer.id_question !== null && (question.id).toString() === answer.id_question.toString())) &&
-    (selectedChapter === '' || 
-     (selectedChapter === 'none' && answer.id_question === null) || 
-     (questionIdsForSelectedChapter.length === 0 || questionIdsForSelectedChapter.includes(answer.id_question?.toString()))) &&
+    (selectedQuestion === '' || 
+     (selectedQuestion === 'none' && answer.id_question === null) ||
+     (answer.id_question !== null && (selectedQuestion.id).toString() === answer.id_question.toString())) &&
     (!selectedUserName || (userName && userName.toLowerCase().includes(selectedUserName.toLowerCase()))) &&
     (!selectedTheme || (theme && theme===selectedTheme )) &&
     (questionReponseFilter === '' || answer.question_reponse === questionReponseFilter) &&
@@ -639,7 +641,7 @@ const filteredAnswers = answers.filter(answer => {
       }
     }
   
-    await submitMemories_Answer(transcribedText, question.id, delegationUserId, isMedia, name, isImage, connectionID, async () => {
+    await submitMemories_Answer(transcribedText, selectedQuestion.id, delegationUserId, isMedia, name, isImage, connectionID, async () => {
       setAnswer('');
       setTimeout(async () => {
         await refreshAnswers();
@@ -917,7 +919,7 @@ const filteredAnswers = answers.filter(answer => {
 </>)}
 
 
-      {(question || voirTout) && (<>
+      {(selectedQuestion || voirTout) && (<>
 
         <View style={{ flexDirection: 'row', justifyContent: 'center', marginBottom: 5 }}>
         
@@ -1127,15 +1129,15 @@ const filteredAnswers = answers.filter(answer => {
 </View>
 <View style={styles.dropdownContainer}>
 <Picker
-  selectedValue={question}
+  selectedValue={selectedQuestion}
   onValueChange={(itemValue, itemIndex) => {
     const itemValueNumber = Number(itemValue); // Convertir itemValue en nombre
     const selectedQuestion_temp = questions.find(question => question.id === itemValueNumber);
 
     if (selectedQuestion_temp) {
-        setQuestion(selectedQuestion_temp);
+        setSelectedQuestion(selectedQuestion_temp);
     } else {
-        setQuestion('');
+      setSelectedQuestion('');
     }
 }}
 
@@ -1314,10 +1316,10 @@ const filteredAnswers = answers.filter(answer => {
   data={filteredAnswers}
   renderItem={({ item, drag, isActive }) => {
     const isSelected = selectedAnswerIds.includes(item.id); // Vérifier si la réponse est sélectionnée
-    const question = questions.find(q => q.id === item.id_question);
+    const question_temp = questions.find(q => q.id === item.id_question);
     let chapter;
-    if (question) {
-      chapter = chapters.find(q => q.id === question.id_chapitre);
+    if (question_temp) {
+      chapter = chapters.find(q => q.id === question_temp.id_chapitre);
     }
     return (
       <TouchableOpacity
@@ -1358,7 +1360,7 @@ const filteredAnswers = answers.filter(answer => {
                     </Text>
                     {isLargeScreen && (
                     <Text style={{ fontWeight: 'bold' }}>
-                      {chapter ? chapter.title + " - " : ''} {question ? question.question : ''}
+                      {chapter ? chapter.title + " - " : ''} {question_temp ? question_temp.question : ''}
                     </Text>
                   
                 )}
@@ -1563,7 +1565,7 @@ const filteredAnswers = answers.filter(answer => {
 </>
 )}
 
-{!question && !voirTout && notesMode!=="full" && (
+{!selectedQuestion && !voirTout && notesMode!=="full" && (
   <>
 
     <View style={globalStyles.container_wide}>

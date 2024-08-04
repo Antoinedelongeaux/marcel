@@ -189,6 +189,7 @@ useEffect(() => {
 
 
 
+
 useFetchActiveSubjectId(setSubjectActive, setSubject, navigation);
 
 useEffect(() => {
@@ -243,6 +244,9 @@ useEffect(() => {
   
 }
 }, [question]);
+
+
+
 
 const copyLinkToClipboard = (text) => {
   Clipboard.setString(text);
@@ -504,9 +508,9 @@ const filteredAnswers = answers.filter(answer => {
     (question === '' || 
      (question === 'none' && answer.id_question === null) ||
      (answer.id_question !== null && question.toString() === answer.id_question.toString())) &&
-    (selectedChapter === '' || 
-     (selectedChapter === 'none' && answer.id_question === null) || 
-     (questionIdsForSelectedChapter.length === 0 || questionIdsForSelectedChapter.includes(answer.id_question?.toString()))) &&
+    (selectedQuestion === '' || 
+     (selectedQuestion === 'none' && answer.id_question === null) || 
+     (selectedQuestion===(answer.id_question?.toString()))) &&
     (!selectedUserName || (userName && userName.toLowerCase().includes(selectedUserName.toLowerCase()))) &&
     (!selectedTheme || (theme && theme===selectedTheme )) &&
     (questionReponseFilter === '' || answer.question_reponse === questionReponseFilter) &&

@@ -179,7 +179,7 @@ title_chapter: {
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 10,
-    zIndex: 1000,
+    zIndex: 10,
     
   },
 
@@ -335,7 +335,7 @@ fullscreenContainer: {
   backgroundColor: 'rgba(0,0,0,0.8)',
   justifyContent: 'center',
   alignItems: 'center',
-  zIndex: 10,
+  zIndex: 20,
 },
 
 fullscreenImage: {

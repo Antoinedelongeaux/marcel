@@ -83,15 +83,17 @@ export const AnswerCard = ({  item, showDetails, isLargeScreen,users,setFullscre
 
 // manipulation des réponses (texte)
 
-  const handleUpdateAnswer = async (answerId, newText) => {
-    try {
-      await update_answer_text(answerId, newText);
-      setEditingAnswerId(null);
-      setEditingText('');
-    } catch (error) {
-      alert("Error updating answer: " + error.message);
-    }
-  };
+const handleUpdateAnswer = async (answerId, newText) => {
+  try {
+    await update_answer_text(answerId, newText);
+    setEditingAnswerId(null);
+    setEditingText('');
+    item.answer = newText; // Mise à jour de item.answer
+  } catch (error) {
+    alert("Error updating answer: " + error.message);
+  }
+};
+
 
   const handleUpdateOwner = async () => {
     if (item.id && selectedUserId) {
@@ -176,7 +178,7 @@ export const AnswerCard = ({  item, showDetails, isLargeScreen,users,setFullscre
                 onPress={() => handleUpdateAnswer(item.id, editingText)}
                 style={[globalStyles.globalButton_wide, { backgroundColor: '#b1b3b5', alignItems: 'center', paddingVertical: 10, marginRight: 5 }]}
               >
-                <Text style={globalStyles.globalButtonText}>Save</Text>
+                <Text style={globalStyles.globalButtonText}>Enregistrer</Text>
               </TouchableOpacity>
             </>
           ) : (

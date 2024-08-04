@@ -34,7 +34,7 @@ const Stack = createStackNavigator();
 function AppNavigator({ session }) {
   const navigation = useNavigation();
   const [check, setCheck] = useState({nature : 'en cours'});
-  const [userStatus,setUserStatus]= useState({});
+  const [userStatus,setUserStatus]= useState('');
   const[activeSubjectId,setActiveSubjectId]= useState();
   const { suffix } = useParams(); // Utiliser useParams pour extraire le suffixe
   const [loading, setLoading] = useState(true);
@@ -87,14 +87,13 @@ function AppNavigator({ session }) {
           const profile = await get_Profile( session.user.id);
            if (profile.active_biography){ 
             setActiveSubjectId(profile.active_biography)
-            console.log('id_user, id_subject : ',session.user.id,profile.active_biography)
             const temp = await getUserStatus(session.user.id,profile.active_biography)
             setUserStatus(temp)
             await saveActiveSubjectId(profile.active_biography);
             await saveActiveSubjectUserStatus(temp)
 
         }
-        setLoading (false)
+        
         } catch (error) {
           // Gérer les erreurs ici
           console.error('Erreur lors de l\'exécution des actions :', error.message);
@@ -105,10 +104,17 @@ function AppNavigator({ session }) {
     }
 
   }, [check, session]);
+
+  useEffect(() => {
+    if(userStatus!== '') {
+    setLoading (false)
+
+  }
+  }, [userStatus]);
   
 
  
-  if (loading && session && session.user ) {
+  if (loading && session && session.user ){
     return (
       <View >
         <Text>Loading...</Text>
@@ -132,30 +138,33 @@ function AppNavigator({ session }) {
       {session && session.user ? (
         
         <>
-        { userStatus.chapter=="Pas d'accès" ? (<> 
-          <Stack.Screen name="Account" component={Account} initialParams={{ session }} />
-          <Stack.Screen name="Notes" component={NoteScreen} initialParams={{ session }} />
-          <Stack.Screen name="ProfileScreen" component={ProfileScreen} initialParams={{ session }} />
-          <Stack.Screen name="Projets" component={ManageBiographyScreen} initialParams={{ session }} />
-          <Stack.Screen name="Marcel" component={ReadAnswersScreen} initialParams={{ session }} />
-          <Stack.Screen name="AskQuestionScreen" component={AskQuestionScreen} initialParams={{ session }} />
-          <Stack.Screen name="EditChapterScreen" component={EditChapterScreen} initialParams={{ session }} />
-          <Stack.Screen name="AnswerQuestionScreen" component={AnswerQuestionScreen} initialParams={{ session }} />
-          <Stack.Screen name="Incipit" component={ReadNotesScreen} initialParams={{ session }} />  
-          </>)
-          : (<> 
+
+       { userStatus.chapters==="Pas d'accès" && (<> 
           <Stack.Screen name="Incipit" component={ReadNotesScreen} initialParams={{ session }} />
           <Stack.Screen name="Account" component={Account} initialParams={{ session }} />
           <Stack.Screen name="Notes" component={NoteScreen} initialParams={{ session }} />
           <Stack.Screen name="ProfileScreen" component={ProfileScreen} initialParams={{ session }} />
           <Stack.Screen name="Projets" component={ManageBiographyScreen} initialParams={{ session }} />
+          <Stack.Screen name="AskQuestionScreen" component={AskQuestionScreen} initialParams={{ session }} />
+          <Stack.Screen name="EditChapterScreen" component={EditChapterScreen} initialParams={{ session }} />
+          <Stack.Screen name="AnswerQuestionScreen" component={AnswerQuestionScreen} initialParams={{ session }} />
+          </>)}
+
+
+         { (userStatus.chapters==="Lecteur"||userStatus.chapters==="Editeur"||userStatus.chapters==="Auditeur") &&(<> 
           <Stack.Screen name="Marcel" component={ReadAnswersScreen} initialParams={{ session }} />
+          <Stack.Screen name="Account" component={Account} initialParams={{ session }} />
+          <Stack.Screen name="Incipit" component={ReadNotesScreen} initialParams={{ session }} />  
+          <Stack.Screen name="Notes" component={NoteScreen} initialParams={{ session }} />
+          <Stack.Screen name="ProfileScreen" component={ProfileScreen} initialParams={{ session }} />
+          <Stack.Screen name="Projets" component={ManageBiographyScreen} initialParams={{ session }} />
           <Stack.Screen name="AskQuestionScreen" component={AskQuestionScreen} initialParams={{ session }} />
           <Stack.Screen name="EditChapterScreen" component={EditChapterScreen} initialParams={{ session }} />
           <Stack.Screen name="AnswerQuestionScreen" component={AnswerQuestionScreen} initialParams={{ session }} />
           </>)
       
       }
+      
         </>
       ) : (
         <Stack.Screen name="Auth" component={Auth} />
