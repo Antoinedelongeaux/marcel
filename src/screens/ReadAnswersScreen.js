@@ -64,7 +64,7 @@ import doubleArrowIcon from '../../assets/icons/arrows_1.png';
 import leftArrowIcon from '../../assets/icons/left-arrow.png';
 import rightArrowIcon from '../../assets/icons/right-arrow.png';
 import ReactHtmlParser from 'react-html-parser'; 
-import { useLinkHandler } from '../hooks/useLinkHandler';
+import { decode, encode } from 'he';
 
 const useFetchActiveSubjectId = (setSubjectActive, setSubject, setIsLoading, navigation) => {
   useFocusEffect(
@@ -162,13 +162,13 @@ function ReadQuestionsScreen({ route }) {
     // Implémenter votre logique ici
     console.log("Contenu référencé :", content);
   };
-  const CustomParser = ({ content }) => {
-    console.log("Content : ",content)
+  const CustomParser = ({ content, onReferencePress }) => {
+    let keyIndex = 0;
     return ReactHtmlParser(content, {
       transform: (node) => {
         if (node.type === 'tag' && node.name === 'reference') {
           return (
-            <TouchableOpacity onPress={() => handleReference(node.children[0].data)}>
+            <TouchableOpacity key={`reference-${keyIndex++}`} onPress={() => onReferencePress(node.children[0].data)}>
               <Text style={{ color: 'blue' }}>{node.children[0].data}</Text>
             </TouchableOpacity>
           );
@@ -176,6 +176,9 @@ function ReadQuestionsScreen({ route }) {
       },
     });
   };
+  
+  
+  
   
 
   
@@ -395,24 +398,22 @@ function ReadQuestionsScreen({ route }) {
   useEffect(() => {
     if (Object.keys(activeQuestionAnswers)[0]) {
       const loadData = async () => {
-     
-        if (question && question.full_text && question.full_text.ops) {
-          const converter = new QuillDeltaToHtmlConverter(question.full_text.ops, {});
-          const html = converter.convert();
-          setContent(html);
-        } else {
-          if (question && question.full_text ) {
-
-            setContent(question.full_text );
+        if (question && question.full_text) {
+          const decodedContent = JSON.parse(question.full_text); // Parse the JSON content
+          if (decodedContent.ops) {
+            const converter = new QuillDeltaToHtmlConverter(decodedContent.ops, {});
+            const html = converter.convert();
+            setContent(html);
           } else {
-            
-            
-            console.error('Data is not in the expected format:', question.full_text);
+            setContent(question.full_text);
           }
+        } else {
+          console.error('Data is not in the expected format:', question.full_text);
         }
         setIsLoading(false);
       };
-
+      
+      
       loadData();
     }
     setIsLoading(false);
@@ -424,12 +425,12 @@ function ReadQuestionsScreen({ route }) {
       try {
         const quillInstance = editor.current.getEditor();
         const content_new = quillInstance.getContents();
-        setContent(content_new);
+        const encodedContent = JSON.stringify(content_new); // Encode as JSON string
         const { error: errorUpdating } = await supabase
           .from('Memoires_questions')
-          .update({ full_text: content })
+          .update({ full_text: encodedContent })
           .match({ id: Object.keys(activeQuestionAnswers)[0] });
-
+  
         if (errorUpdating) {
           console.error('Error updating:', errorUpdating);
         } else {
@@ -441,12 +442,24 @@ function ReadQuestionsScreen({ route }) {
       }
     } else {
       const content_new = editor.current.getContent();
-
-      setContent(content_new);
-      setIsContentModified(false);
+      const encodedContent = JSON.stringify(content_new); // Encode as JSON string
+      const { error: errorUpdating } = await supabase
+        .from('Memoires_questions')
+        .update({ full_text: encodedContent })
+        .match({ id: Object.keys(activeQuestionAnswers)[0] });
+  
+      if (errorUpdating) {
+        console.error('Error updating:', errorUpdating);
+      } else {
+        console.log('Content successfully saved to Supabase');
+        setIsContentModified(false);
+      }
     }
     setIsSaving(false);
   };
+  
+  
+  
 
   useEffect(() => {
     if (isDragging) {
@@ -465,8 +478,8 @@ function ReadQuestionsScreen({ route }) {
   if (isLoading) {
     return (
       <View style={globalStyles.container}>
-        <Text>Loading...</Text>
-      </View>
+         <Text> {"Chargement ... "}</Text>
+        </View>
     );
   }
 
@@ -482,11 +495,11 @@ function ReadQuestionsScreen({ route }) {
           <Image source={settings} style={{ width: 120, height: 120, opacity: 0.5 }} />
         </TouchableOpacity>
       </View>
-      <View style={[{ position: 'fixed', top: '0%', left: '5%' }]}>
-        <Text></Text>
-      </View>
+      
+    
 
       <View style={isLargeScreen ? styles.largeScreenContainer : styles.smallScreenContainer}>
+  
       {isLeftPanelVisible && (
     <View style={isLargeScreen ? styles.leftPanel : styles.fullWidth}>
       <View style={globalStyles.container_wide}>
@@ -501,7 +514,7 @@ function ReadQuestionsScreen({ route }) {
             <Image source={toggleIcon} style={{ width: 25, height: 25, opacity: 0.5, marginVertical: 5 }} />
           </TouchableOpacity>
         </View>
-        <Text></Text>
+        <Text> </Text>
       </View>
       <ScrollView>
         <View style={globalStyles.container_wide}>
@@ -564,18 +577,18 @@ function ReadQuestionsScreen({ route }) {
                           </View>
                         </View>
                       )}
-                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}></View>
+                 
                     </TouchableOpacity>
                   ))}
                 </>
               )}
             </View>
           ))}
-          <View>
-            <Text></Text>
-            <Text></Text>
-          </View>
+          <Text>  </Text>
+          <Text>  </Text>
+         
         </View>
+      
         <View style={{ flexDirection: 'column', justifyContent: 'space-between', padding: 10 }}>
           <TouchableOpacity style={globalStyles.globalButton_wide} onPress={() => setIsModalVisible(true)}>
             <Text style={globalStyles.globalButtonText}>Nouvelle partie</Text>
@@ -592,13 +605,13 @@ function ReadQuestionsScreen({ route }) {
           <Text> </Text>
           <Text> </Text>
           <Text> </Text>
-          <View>
-          </View>
+         
         </View>
+        
       </ScrollView>
     </View>
   )}
-        
+       
         
         
         {isLargeScreen && (userStatus.chapters === "Editeur" || userStatus.chapters === "Lecteur" || userStatus.chapters === "Auditeur") && (
@@ -649,9 +662,11 @@ function ReadQuestionsScreen({ route }) {
             />
           )}
         </TouchableOpacity>
+        
         {isLargeScreen && (userStatus.chapters === "Editeur" || userStatus.chapters === "Lecteur" || userStatus.chapters === "Auditeur") && (
           <View style={isLargeScreen ? styles.middlePanelContainer : styles.fullWidth}>
             <View style={{ ...styles.MiddlePanel, width: middlePanelWidth }}>
+              
               <Text style={globalStyles.title}>
                 {question && question.question ? question.question : 'Veuillez sélectionner un chapitre'}
                 {isContentModified && (
@@ -660,82 +675,103 @@ function ReadQuestionsScreen({ route }) {
                   </TouchableOpacity>
                 )}
               </Text>
+              
+              
               <View style={styles.container}>
-                {userStatus.chapters === "Editeur" ? (
-                  <>
-                    {Platform.OS === 'web' ? (
-      <>
-        <div id="toolbar"></div>
-        <View style={styles.toolbarContainer}>
-          <ReactQuill
+  {userStatus.chapters === "Editeur" ? (
+    <>
+
+      {Platform.OS === 'web' ? (
+        <>
+          <div id="toolbar"></div>
+          
+          <View style={styles.toolbarContainer}>
+            <ReactQuill
+              ref={editor}
+              theme="snow"
+              modules={quillModules}
+              readOnly={false}
+              bounds={'#toolbar'}
+              value={content}
+              onChange={(newContent) => {
+                if (!isSaving) {
+                  setContent(newContent);
+                  setIsContentModified(true);
+                }
+              }}
+              onChangeSelection={() => setIsInitialLoad(false)}
+            />
+          </View>
+          
+        </>
+      ) : (
+        <>
+          <RichEditor
             ref={editor}
-            theme="snow"
-            modules={quillModules}
-            readOnly={false}
-            bounds={'#toolbar'}
-            value={content}
-            onChange={(newContent) => {
-              if (!isSaving) {
-                setContent(newContent);
-                setIsContentModified(true);
-              }
+            style={styles.editor}
+            initialContentHTML={content}
+            onChange={() => {
+              if (!isSaving && !isInitialLoad) setIsContentModified(true);
             }}
-            onChangeSelection={() => setIsInitialLoad(false)}
+            onSelectionChange={() => setIsInitialLoad(false)}
           />
-        </View>
+          <RichToolbar
+            editor={editor}
+            style={styles.toolbar}
+            iconTint="#000000"
+            selectedIconTint="#209cee"
+            selectedButtonStyle={{ backgroundColor: 'transparent' }}
+            actions={[
+              'bold',
+              'italic',
+              'underline',
+              'unorderedList',
+              'orderedList',
+              'insertLink',
+              'insertImage',
+              'blockQuote',
+              'undo',
+              'redo',
+              'save',
+            ]}
+            onSave={handleSaving}
+          />
+        </>
+      )}
+    </>
+  ) : (
+    <>
+       
+    {question && question.question && ( 
+      
+<> 
+        {Platform.OS === 'web' ? (
+          
+          <View>
+            <Text><CustomParser content={content} onReferencePress={handleReference} /></Text>
+          </View>
+        ) : (
+          <View>
+            <Text>
+              <CustomParser content={content} onReferencePress={handleReference} />
+            </Text>
+          </View>
+        )}
+</>
+       
+       )}
+     
       </>
-    ) : (
-                      <>
-                        <RichEditor
-                          ref={editor}
-                          style={styles.editor}
-                          initialContentHTML={content}
-                          onChange={() => {
-                            if (!isSaving && !isInitialLoad) setIsContentModified(true);
-                          }}
-                          onSelectionChange={() => setIsInitialLoad(false)}
-                        />
-                        <RichToolbar
-                          editor={editor}
-                          style={styles.toolbar}
-                          iconTint="#000000"
-                          selectedIconTint="#209cee"
-                          selectedButtonStyle={{ backgroundColor: 'transparent' }}
-                          actions={[
-                            'bold',
-                            'italic',
-                            'underline',
-                            'unorderedList',
-                            'orderedList',
-                            'insertLink',
-                            'insertImage',
-                            'blockQuote',
-                            'undo',
-                            'redo',
-                            'save',
-                          ]}
-                          onSave={handleSaving}
-                        />
-                      </>
-                    )}
-                  </>
-                ) : (
-                  question && question.question && (
-                    <>
-                     {Platform.OS === 'web' ? (
-      <div>{<CustomParser content={content} />}</div>
-    ) : (
-      <View>
-        <Text>{<CustomParser content={content} />}</Text>
-      </View>
-    )}
-                    </>
-                  )
-                )}
-              </View>
+    
+  )}
+</View>
+
             </View>
           </View>
         )}
+        
+
+
         {(isLargeScreen || !isLeftPanelVisible) && (
           
           
@@ -759,7 +795,7 @@ function ReadQuestionsScreen({ route }) {
           <View style={styles.modalView}>
             <ScrollView>
               <Text>Placer le chapitre dans la partie :</Text>
-              <Text></Text>
+              <Text> </Text>
               {chapters.map((chapter) => (
                 <TouchableOpacity
                   key={chapter.id}
@@ -891,7 +927,7 @@ function ReadQuestionsScreen({ route }) {
       >
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
-            <Text style={styles.modalText}>Éditer Chapitre</Text>
+            <Text style={styles.modalText}>Éditer le Chapitre</Text>
             <TextInput
               style={styles.modalInput}
               onChangeText={setEditQuestionTitle}

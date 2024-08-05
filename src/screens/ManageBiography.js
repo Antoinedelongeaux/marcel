@@ -305,7 +305,7 @@ const copyLinkToClipboard = (text) => {
             <View style={[globalStyles.navigationContainer, { position: 'fixed', bottom: '0%', alignSelf: 'center' }]}>
 
                 <TouchableOpacity
-  onPress={() => {userStatus.chapters==="Pas d'accès"? navigateToScreen('Incipit') : navigateToScreen('Marcel')} }
+  onPress={() => {userStatus.chapters==="Pas d'accès"? (console.log("On n'a pas d'accès !"), navigateToScreen('Incipit')) : (console.log("On a bien d'accès !"),navigateToScreen('Marcel'))} }
   style={[globalStyles.navButton, isHovered && globalStyles.navButton_over]}
   onMouseEnter={() => setIsHovered(true)}
   onMouseLeave={() => setIsHovered(false)}
@@ -403,6 +403,7 @@ const copyLinkToClipboard = (text) => {
             newState[contributor.id_user].chapters
         );
     }}
+    
     style={styles.picker}
 >
 
@@ -457,6 +458,9 @@ const copyLinkToClipboard = (text) => {
             newState[contributor.id_user].notes,
             newState[contributor.id_user].chapters
         );
+        if (contributor.id_user === session.user.id) {
+            setUserStatus({ ...userStatus, chapters: newState[contributor.id_user].chapters });
+        }
     }}
     style={styles.picker}
 >
