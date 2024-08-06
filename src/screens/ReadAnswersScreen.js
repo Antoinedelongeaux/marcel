@@ -418,47 +418,77 @@ function ReadQuestionsScreen({ route }) {
     }
   };
 
-  useEffect(() => {
 
-    if (editor.current && isEditorReady && !isContentModified) {
-      if (Platform.OS === 'web') {
-        editor.current.getEditor().setContents(content);
-      } else {
-        editor.current.setContent(content);
-      }
-      setIsInitialLoad(false);
-    }
-  }, [content, isEditorReady]);
+
+  const customHTMLToDelta = (html) => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const deltaOps = [];
+    
+    const traverseNodes = (nodes) => {
+      nodes.forEach((node) => {
+        if (node.nodeName === 'P') {
+          traverseNodes(node.childNodes);
+          deltaOps.push({ insert: '\n' });
+        } else if (node.nodeName === 'reference') {
+          deltaOps.push({ insert: { reference: node.textContent } });
+        } else {
+          deltaOps.push({ insert: node.textContent || node.outerHTML || '' });
+        }
+      });
+    };
+  
+    traverseNodes(doc.body.childNodes);
+    
+    return deltaOps;
+  };
   
 
+  
   useEffect(() => {
     if (Object.keys(activeQuestionAnswers)[0]) {
       const loadData = async () => {
         if (question && question.full_text) {
-          const decodedContent = decode(question.full_text); // Decode HTML entities
-          const parsedContent = JSON.parse(decodedContent); // Parse the JSON content
-          if (parsedContent.ops) {
-            const converter = new QuillDeltaToHtmlConverter(parsedContent.ops, {});
-            let html = converter.convert();
-            html = decode(html); // Decode the HTML entities again to ensure <reference> is rendered correctly
-            console.log("html : ", html);
-            setContent(html);
+          const decodedContent = decode(question.full_text);
+          const parsedContent = JSON.parse(decodedContent);
+  
+          if (userStatus.chapters === "Editeur") {
+            const ops = parsedContent.ops.map(op => {
+              if (op.insert && typeof op.insert === 'object' && op.insert.reference) {
+                return { insert: `<reference>${op.insert.reference}</reference>` };
+              }
+              return op;
+            });
+            const html = new QuillDeltaToHtmlConverter(ops, {}).convert();
+            setContent(decode(html));
           } else {
-            setContent(decodedContent);
+            const html = new QuillDeltaToHtmlConverter(parsedContent.ops, {}).convert();
+            setContent(decode(html));
           }
-        } else {
-          console.error('Data is not in the expected format:', question.full_text);
         }
         setIsLoading(false);
       };
   
       loadData();
     }
-    setIsLoading(false);
-  }, [activeQuestionAnswers, question]);
+  }, [activeQuestionAnswers, question, userStatus.chapters]);
   
   
   
+  useEffect(() => {
+    if (editor.current && isEditorReady && !isContentModified) {
+      if (Platform.OS === 'web') {
+        const quillInstance = editor.current.getEditor();
+        if (quillInstance) {
+          const delta = customHTMLToDelta(content);
+          quillInstance.setContents(delta);
+        }
+      } else {
+        editor.current.setContent(content);
+      }
+      setIsInitialLoad(false);
+    }
+  }, [content, isEditorReady]);
   
   
   

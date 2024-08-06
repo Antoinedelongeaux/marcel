@@ -148,6 +148,7 @@ function AppNavigator({ session }) {
           <Stack.Screen name="AskQuestionScreen" component={AskQuestionScreen} initialParams={{ session }} />
           <Stack.Screen name="EditChapterScreen" component={EditChapterScreen} initialParams={{ session }} />
           <Stack.Screen name="AnswerQuestionScreen" component={AnswerQuestionScreen} initialParams={{ session }} />
+          <Stack.Screen name="Marcel" component={ReadAnswersScreen} initialParams={{ session }} />
           </>)}
 
 

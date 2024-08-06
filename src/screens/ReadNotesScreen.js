@@ -568,7 +568,7 @@ function ReadNotesScreen({ route }) {
             {showChoices_1 && (
               <>
                 <View style={{ flexDirection: isLargeScreen ? 'row' : 'column', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                {/* 
+                {/*
                 <Card style={[globalStyles.ResponseBubble, selectedChoice_1 === 'Voir les notes déjà produites'&& (globalStyles.ResponseBubble_selected), {marginHorizontal: 20}]}>
                     <Card.Content>
                       <TouchableOpacity
