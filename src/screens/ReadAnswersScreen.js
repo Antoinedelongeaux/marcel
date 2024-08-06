@@ -158,6 +158,7 @@ function ReadQuestionsScreen({ route }) {
   const [isEditorReady, setEditorReady] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isShareModalVisible, setIsShareModalVisible] = useState(false);
+  const [reference, setReference] = useState('');
 
 
   const CustomParser = ({ content, onReferencePress }) => {
@@ -177,20 +178,21 @@ function ReadQuestionsScreen({ route }) {
   
   const RenderContent = ({ content }) => {
     const handleReferencePress = (referenceContent) => {
-      // Implémenter votre logique ici
+      console.log("Coucou !");
+      setReference(referenceContent);
       console.log("Contenu référencé :", referenceContent);
     };
   
     const transformNode = (node, index) => {
       if (node.type === 'tag' && node.name === 'reference') {
         return (
-          <TouchableOpacity key={index} onPress={() => handleReferencePress(node.children[0].data)}>
-            <Text style={{ color: 'blue' }}>{node.children[0].data}</Text>
-          </TouchableOpacity>
+          <Text key={index} onPress={() => handleReferencePress(node.children[0].data)} style={{ color: 'blue' }}>
+            {node.children[0].data}
+          </Text>
         );
       }
-  
-      // Si un div est trouvé à l'intérieur d'un p, transformez le div en un autre élément inline ou déplacez-le en dehors du p.
+    
+      // Eviter d'utiliser <div> à l'intérieur de <p>
       if (node.type === 'tag' && node.name === 'div' && node.parent && node.parent.name === 'p') {
         return (
           <View key={index} style={{ display: 'inline' }}>
@@ -198,7 +200,11 @@ function ReadQuestionsScreen({ route }) {
           </View>
         );
       }
+    
+      // Rendu par défaut pour les autres nœuds
+      return undefined;
     };
+    
   
     return (
       <View>
@@ -206,6 +212,7 @@ function ReadQuestionsScreen({ route }) {
       </View>
     );
   };
+  
   
   
   
@@ -451,20 +458,44 @@ function ReadQuestionsScreen({ route }) {
         if (question && question.full_text) {
           const decodedContent = decode(question.full_text);
           const parsedContent = JSON.parse(decodedContent);
-  
+   /*
           if (userStatus.chapters === "Editeur") {
+            console.log("parsedContent.ops : ", parsedContent.ops);
+            
             const ops = parsedContent.ops.map(op => {
-              if (op.insert && typeof op.insert === 'object' && op.insert.reference) {
-                return { insert: `<reference>${op.insert.reference}</reference>` };
+              if (op.insert && typeof op.insert === 'string') {
+                  // Échapper les balises <reference>...</reference> dans les chaînes de caractères
+                  const newInsert = op.insert.replace(/<reference>(.*?)<\/reference>/g, (_, reference) => `&lt;reference&gt;${reference}&lt;/reference&gt;`);
+                  console.log("Old insert :", op.insert);
+                  console.log("New insert :", newInsert);
+                  return {
+                      insert: newInsert
+                  };
+              } else if (op.insert && typeof op.insert === 'object' && op.insert.reference) {
+                  // Traiter les objets contenant des références
+                  return {
+                      insert: `&lt;reference&gt;${op.insert.reference}&lt;/reference&gt;`
+                  };
               }
               return op;
-            });
+          });
+          
+          
+          
             const html = new QuillDeltaToHtmlConverter(ops, {}).convert();
             setContent(decode(html));
-          } else {
+        } else {
+          */
             const html = new QuillDeltaToHtmlConverter(parsedContent.ops, {}).convert();
-            setContent(decode(html));
-          }
+      
+            if (userStatus.chapters === "Editeur"){
+              setContent(html);
+            }else {
+              setContent(decode(html));
+            }
+ 
+         
+          
         }
         setIsLoading(false);
       };
@@ -811,8 +842,6 @@ function ReadQuestionsScreen({ route }) {
 </View>
 
 
-
-
             </View>
           </View>
         )}
@@ -824,7 +853,7 @@ function ReadQuestionsScreen({ route }) {
           
           <View style={[styles.rightPanel, { width: rightPanelWidth }]}> 
             <ScrollView>
-            <NoteScreen route={{ params: { session, question, question_reponse,mode : userStatus.notes } }} />
+            <NoteScreen route={{ params: { session, question, question_reponse, mode: userStatus.notes, reference } }} key={reference} />
             </ScrollView>
           </View>
           

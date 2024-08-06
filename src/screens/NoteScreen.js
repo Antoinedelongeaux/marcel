@@ -145,6 +145,7 @@ function NoteScreen({ route }) {
 
   const question_reponse = route.params?.question_reponse || 'réponse';
   const [selectedQuestion, setSelectedQuestion] = useState(route.params?.question || '');
+  const [selectedAnswer, setSelectedAnswer] = useState(route.params?.reference || '');
   const [selectedChapter, setSelectedChapter] = useState('');
   const [showFilters, setShowFilters] = useState(false); 
   const [isModalVisible, setModalVisible] = useState(false); // Ajoutez cette ligne dans les états
@@ -201,6 +202,12 @@ useEffect(() => {
     console.log("selectedQuestion : ",selectedQuestion);
   }
 }, [selectedQuestion]);
+
+useEffect(() => {
+  if (selectedAnswer) {
+    console.log("selectedAnswer : ",selectedAnswer);
+  }
+}, [selectedAnswer]);
 
 useEffect(() => {
   if (route.params?.question) {
@@ -383,6 +390,8 @@ if(session.user){
     };
   
     if (answers.length > 0) {
+      console.log("answers : ",answers)
+      console.log("selectedAsnwer :",selectedAnswer )
       fetchThemeNames();
     }
   }, [answers]);
@@ -509,10 +518,12 @@ const filteredAnswers = answers.filter(answer => {
   const userName = userNames[answer.id_user];
   const theme = answer.id_connection;
 
+
   return (
     (!textFilter || answer.answer.includes(textFilter)) &&
     (!beforeDate || answerDate < beforeDate) &&
     (!afterDate || answerDate > afterDate) &&
+    (selectedAnswer === '' || answer.id === (selectedAnswer).toString())&&
     (selectedQuestion === '' || 
      (selectedQuestion === 'none' && answer.id_question === null) ||
      (answer.id_question !== null && (selectedQuestion.id).toString() === answer.id_question.toString())) &&
