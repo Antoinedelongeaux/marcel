@@ -47,7 +47,7 @@ import LinkIcon from '../../assets/icons/link.png';
 import expand_more from '../../assets/icons/expand_more_black_24dp.svg';
 import expand_less from '../../assets/icons/expand_less_black_24dp.svg';
 import edit from '../../assets/icons/pen-to-square-regular.svg';
-import { RichEditor, RichToolbar } from 'react-native-pell-rich-editor';
+import { RichEditor, RichToolbar, actions } from 'react-native-pell-rich-editor';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { QuillDeltaToHtmlConverter } from 'quill-delta-to-html';
@@ -65,6 +65,7 @@ import leftArrowIcon from '../../assets/icons/left-arrow.png';
 import rightArrowIcon from '../../assets/icons/right-arrow.png';
 import ReactHtmlParser from 'react-html-parser'; 
 import { decode, encode } from 'he';
+
 
 const useFetchActiveSubjectId = (setSubjectActive, setSubject, setIsLoading, navigation) => {
   useFocusEffect(
@@ -158,24 +159,59 @@ function ReadQuestionsScreen({ route }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isShareModalVisible, setIsShareModalVisible] = useState(false);
 
-  const handleReference = (content) => {
-    // Implémenter votre logique ici
-    console.log("Contenu référencé :", content);
-  };
+
   const CustomParser = ({ content, onReferencePress }) => {
-    let keyIndex = 0;
     return ReactHtmlParser(content, {
-      transform: (node) => {
+      transform: (node, index) => {
         if (node.type === 'tag' && node.name === 'reference') {
           return (
-            <TouchableOpacity key={`reference-${keyIndex++}`} onPress={() => onReferencePress(node.children[0].data)}>
+            <TouchableOpacity key={index} onPress={() => onReferencePress(node.children[0].data)}>
               <Text style={{ color: 'blue' }}>{node.children[0].data}</Text>
             </TouchableOpacity>
           );
         }
-      },
+      }
     });
   };
+  
+  
+  const RenderContent = ({ content }) => {
+    const handleReferencePress = (referenceContent) => {
+      // Implémenter votre logique ici
+      console.log("Contenu référencé :", referenceContent);
+    };
+  
+    const transformNode = (node, index) => {
+      if (node.type === 'tag' && node.name === 'reference') {
+        return (
+          <TouchableOpacity key={index} onPress={() => handleReferencePress(node.children[0].data)}>
+            <Text style={{ color: 'blue' }}>{node.children[0].data}</Text>
+          </TouchableOpacity>
+        );
+      }
+  
+      // Si un div est trouvé à l'intérieur d'un p, transformez le div en un autre élément inline ou déplacez-le en dehors du p.
+      if (node.type === 'tag' && node.name === 'div' && node.parent && node.parent.name === 'p') {
+        return (
+          <View key={index} style={{ display: 'inline' }}>
+            {ReactHtmlParser(node.children, { transform: transformNode })}
+          </View>
+        );
+      }
+    };
+  
+    return (
+      <View>
+        {ReactHtmlParser(content, { transform: transformNode })}
+      </View>
+    );
+  };
+  
+  
+  
+  
+  
+  
   
   
   
@@ -399,50 +435,42 @@ function ReadQuestionsScreen({ route }) {
     if (Object.keys(activeQuestionAnswers)[0]) {
       const loadData = async () => {
         if (question && question.full_text) {
-          const decodedContent = JSON.parse(question.full_text); // Parse the JSON content
-          if (decodedContent.ops) {
-            const converter = new QuillDeltaToHtmlConverter(decodedContent.ops, {});
-            const html = converter.convert();
+          const decodedContent = decode(question.full_text); // Decode HTML entities
+          const parsedContent = JSON.parse(decodedContent); // Parse the JSON content
+          if (parsedContent.ops) {
+            const converter = new QuillDeltaToHtmlConverter(parsedContent.ops, {});
+            let html = converter.convert();
+            html = decode(html); // Decode the HTML entities again to ensure <reference> is rendered correctly
+            console.log("html : ", html);
             setContent(html);
           } else {
-            setContent(question.full_text);
+            setContent(decodedContent);
           }
         } else {
           console.error('Data is not in the expected format:', question.full_text);
         }
         setIsLoading(false);
       };
-      
-      
+  
       loadData();
     }
     setIsLoading(false);
   }, [activeQuestionAnswers, question]);
+  
+  
+  
+  
+  
+  
+  
+  
 
   const handleSaving = async () => {
     setIsSaving(true);
-    if (Platform.OS === 'web') {
-      try {
-        const quillInstance = editor.current.getEditor();
-        const content_new = quillInstance.getContents();
-        const encodedContent = JSON.stringify(content_new); // Encode as JSON string
-        const { error: errorUpdating } = await supabase
-          .from('Memoires_questions')
-          .update({ full_text: encodedContent })
-          .match({ id: Object.keys(activeQuestionAnswers)[0] });
-  
-        if (errorUpdating) {
-          console.error('Error updating:', errorUpdating);
-        } else {
-          console.log('Content successfully saved to Supabase');
-          setIsContentModified(false);
-        }
-      } catch (error) {
-        console.error('Failed to save content:', error);
-      }
-    } else {
-      const content_new = editor.current.getContent();
-      const encodedContent = JSON.stringify(content_new); // Encode as JSON string
+    try {
+      const quillInstance = editor.current.getEditor();
+      const content_new = quillInstance.getContents();
+      const encodedContent = encode(JSON.stringify(content_new)); // Encode as HTML entities
       const { error: errorUpdating } = await supabase
         .from('Memoires_questions')
         .update({ full_text: encodedContent })
@@ -454,9 +482,15 @@ function ReadQuestionsScreen({ route }) {
         console.log('Content successfully saved to Supabase');
         setIsContentModified(false);
       }
+    } catch (error) {
+      console.error('Failed to save content:', error);
     }
     setIsSaving(false);
   };
+  
+  
+  
+  
   
   
   
@@ -680,11 +714,9 @@ function ReadQuestionsScreen({ route }) {
               <View style={styles.container}>
   {userStatus.chapters === "Editeur" ? (
     <>
-
       {Platform.OS === 'web' ? (
         <>
           <div id="toolbar"></div>
-          
           <View style={styles.toolbarContainer}>
             <ReactQuill
               ref={editor}
@@ -702,7 +734,6 @@ function ReadQuestionsScreen({ route }) {
               onChangeSelection={() => setIsInitialLoad(false)}
             />
           </View>
-          
         </>
       ) : (
         <>
@@ -741,30 +772,16 @@ function ReadQuestionsScreen({ route }) {
     </>
   ) : (
     <>
-       
-    {question && question.question && ( 
-      
-<> 
-        {Platform.OS === 'web' ? (
-          
-          <View>
-            <Text><CustomParser content={content} onReferencePress={handleReference} /></Text>
-          </View>
-        ) : (
-          <View>
-            <Text>
-              <CustomParser content={content} onReferencePress={handleReference} />
-            </Text>
-          </View>
-        )}
-</>
-       
-       )}
-     
-      </>
-    
+      {question && question.question && (
+        <RenderContent content={content} />
+      )}
+
+    </>
   )}
 </View>
+
+
+
 
             </View>
           </View>
