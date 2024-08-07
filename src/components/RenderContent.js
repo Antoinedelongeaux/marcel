@@ -1,20 +1,18 @@
-import React, { useCallback, useMemo, memo } from 'react';
-import { View, Text, TouchableOpacity, TouchableWithoutFeedback, Image,  StyleSheet, } from 'react-native';
+import React, { memo, useCallback, useMemo } from 'react';
+import { View, Text, TouchableOpacity, TouchableWithoutFeedback,StyleSheet, } from 'react-native';
 import ReactHtmlParser from 'react-html-parser';
-import LinkIcon from '../../assets/icons/link.png';
-
 
 const RenderContent = memo(({ content, onReferencePress }) => {
   const transformNode = useCallback((node, index) => {
     if (node.type === 'tag' && node.name === 'reference') {
+      const temp = node.children && node.children[0] ? (node.children[0].children ? node.children[0].children[0]?.data : node.children[0]?.data) : '';
+
       return (
- 
-        <TouchableOpacity key={index} onPress={() => onReferencePress(node.children[0].children[0].data)} style={[styles.associateButton, { pointerEvents: 'auto' }]}>
+        <TouchableOpacity key={index} onPress={() => onReferencePress(temp)} style={[styles.associateButton, { pointerEvents: 'auto' }]}>
           <Text style={{ color: 'blue' }}>
             (note)
           </Text>
         </TouchableOpacity>
-
       );
     }
 
@@ -43,6 +41,8 @@ const RenderContent = memo(({ content, onReferencePress }) => {
 }, (prevProps, nextProps) => {
   return prevProps.content === nextProps.content && prevProps.onReferencePress === nextProps.onReferencePress;
 });
+
+
 
 const styles = StyleSheet.create({
     contentContainer: {

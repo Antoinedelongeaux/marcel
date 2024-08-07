@@ -143,10 +143,8 @@ function NoteScreen({ route }) {
   const [link,setLink]=useState([]);
 
 
-  const question_reponse = route.params?.question_reponse || 'réponse';
-  const [selectedQuestion, setSelectedQuestion] = useState(route.params?.question || '');
-  const [selectedAnswer, setSelectedAnswer] = useState(route.params?.reference || '');
-  console.log("réference : ",route.params)
+  const question_reponse = route.params?.miscState?.question_reponse || 'réponse';
+  const [selectedQuestion, setSelectedQuestion] = useState(route.params?.miscState?.question || '');
   const [selectedChapter, setSelectedChapter] = useState('');
   const [showFilters, setShowFilters] = useState(false); 
   const [isModalVisible, setModalVisible] = useState(false); // Ajoutez cette ligne dans les états
@@ -198,23 +196,15 @@ useEffect(() => {
 }, [notesMode]);
 
 
-useEffect(() => {
-  if (selectedQuestion) {
-    console.log("selectedQuestion : ",selectedQuestion);
-  }
-}, [selectedQuestion]);
+
+
+
 
 useEffect(() => {
-  if (selectedAnswer) {
-    console.log("selectedAnswer : ",selectedAnswer);
+  if (route.params?.miscState?.question) {
+    setSelectedQuestion(route.params?.miscState?.question)
   }
-}, [selectedAnswer]);
-
-useEffect(() => {
-  if (route.params?.question) {
-    setSelectedQuestion(route.params?.question)
-  }
-}, [route.params?.question]);
+}, [route.params?.miscState?.question]);
 
 
 useFetchActiveSubjectId(setSubjectActive, setSubject, navigation);
@@ -344,9 +334,11 @@ if(session.user){
     }
   }, [answers]);
   
-  const copyToClipboard = (text) => {
-    Clipboard.setString(text);
-    Alert.alert("Texte copié", "Le texte a été copié dans le presse-papiers.");
+  const copyToClipboard = (text, id_answer) => {
+    const ref = "<reference>" + id_answer + "</reference>";
+    const contentToCopy = `${text}\n\n${ref}`;
+    Clipboard.setString(contentToCopy);
+    Alert.alert("Texte copié", "Le texte et la référence ont été copiés dans le presse-papiers.");
   };
   
 
@@ -391,8 +383,7 @@ if(session.user){
     };
   
     if (answers.length > 0) {
-      console.log("answers : ",answers)
-      console.log("selectedAsnwer :",selectedAnswer )
+
       fetchThemeNames();
     }
   }, [answers]);
@@ -432,6 +423,22 @@ if(session.user){
         `<a href="javascript:void(0)" onclick="selectAnswer(${answerId})">Lien vers réponse ${answerId}</a>`
       );
     }
+  };
+
+  const handleRemoveFilters = () => {
+    
+    setTextFilter('')
+    setSelectedQuestion('')
+    route.params?.setReference('')
+    setSelectedTheme('')
+    setDateBefore('')
+    setDateAfter('')
+    setSelectedUserName('')
+    setQuestionReponseFilter('')
+    setReluFilter('relu & non_relu')
+    setUtiliseFilter('tous')
+    
+
   };
   
 
@@ -524,7 +531,7 @@ const filteredAnswers = answers.filter(answer => {
     (!textFilter || answer.answer.includes(textFilter)) &&
     (!beforeDate || answerDate < beforeDate) &&
     (!afterDate || answerDate > afterDate) &&
-    (selectedAnswer === '' || answer.id === (selectedAnswer).toString())&&
+    (route.params?.reference === '' || answer.id === (route.params?.reference).toString())&&
     (selectedQuestion === '' || 
      (selectedQuestion === 'none' && answer.id_question === null) ||
      (answer.id_question !== null && (selectedQuestion.id).toString() === answer.id_question.toString())) &&
@@ -931,7 +938,8 @@ const filteredAnswers = answers.filter(answer => {
 </>)}
 
 
-      {(selectedQuestion || voirTout) && (<>
+     
+        
 
         <View style={{ flexDirection: 'row', justifyContent: 'center', marginBottom: 5 }}>
         
@@ -1082,6 +1090,11 @@ const filteredAnswers = answers.filter(answer => {
     <Image source={filterIcon} style={{ width: 50, height: 50, opacity: 0.5, marginVertical : 30 }} />
   </TouchableOpacity>
 
+  <TouchableOpacity onPress={() => handleRemoveFilters()} style={styles.filterIcon}>
+  <Image source={filterIcon} style={{ width: 50, height: 50, opacity: 0.5, marginVertical : 30 }} />
+  </TouchableOpacity>
+
+{/*
   {notesMode !== 'full' &&(
   <TouchableOpacity onPress={() => setIsShareModalVisible(true)} style={styles.filterIcon}>
   <Image source={shareIcon} style={{ width: 50, height: 50, opacity: 0.5, marginVertical : 30 }} />
@@ -1090,7 +1103,7 @@ const filteredAnswers = answers.filter(answer => {
 
 
 
-{/*
+
 {showDetails && (
 <TouchableOpacity onPress={() => linkAnswers(answers)} style={styles.filterIcon}>
   <Image 
@@ -1467,7 +1480,7 @@ const filteredAnswers = answers.filter(answer => {
      </TouchableOpacity>
    )}
    {isLargeScreen && (<>
-   <TouchableOpacity onPress={() => { copyToClipboard(item.answer); integration(item.id); refreshAnswers(); }}>
+   <TouchableOpacity onPress={() => { copyToClipboard(item.answer,item.id); refreshAnswers(); }}>
      <Image source={copyIcon} style={{ width: 27, height: 27, opacity: 0.5, marginHorizontal: 15 }} />
      {isLargeScreen && <Text>Copier</Text>}
    </TouchableOpacity>
@@ -1574,28 +1587,10 @@ const filteredAnswers = answers.filter(answer => {
 
 />
 
-</>
-)}
 
-{!selectedQuestion && !voirTout && notesMode!=="full" && (
-  <>
 
-    <View style={globalStyles.container_wide}>
-      
-      
-      <Text> </Text>
-      <Text> </Text>
-      <Text>Selectionner un chapitre pour afficher les notes associées </Text>
-      <Text> </Text>
-      <Text>... ou bien afficher toutes les contributions existantes : </Text>
-      <TouchableOpacity onPress={() => setVoirTout(true)} style={globalStyles.globalButton}>
-        <Text style={globalStyles.globalButtonText}>Afficher toutes les notes</Text>
-      </TouchableOpacity>
-   
-    </View>
-    
-  </>
-)}
+
+
 
 <Modal isVisible={isAssignModalVisible}>
 <View style={styles.overlay}>

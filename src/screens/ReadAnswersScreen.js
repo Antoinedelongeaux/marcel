@@ -58,7 +58,7 @@ const useFetchActiveSubjectId = (setSubjectActive, setSubject, setMiscState, nav
     useCallback(() => {
       const fetchActiveSubjectId = async () => {
         const temp = await getActiveSubjectId();
-        console.log("Voici le projet actif récupéré : ", temp);
+    
         setSubjectActive(temp);
         if (temp) {
           const temp2 = await getSubject(temp);
@@ -210,9 +210,9 @@ function ReadAnswersScreen({ route }) {
   };
 
   const handleReferencePress = useCallback((referenceContent) => {
-    console.log("Coucou !");
+
     setReference(referenceContent);
-    console.log("Contenu référencé :", referenceContent);
+
   }, []);
 
   useEffect(() => {
@@ -383,23 +383,28 @@ function ReadAnswersScreen({ route }) {
           const decodedContent = decode(miscState.question.full_text);
           const parsedContent = JSON.parse(decodedContent);
           const html = new QuillDeltaToHtmlConverter(parsedContent.ops, {}).convert();
-          const cleanHtml = miscState.userStatus && miscState.userStatus.chapters !== "Editeur"
-  ? html.replace(/<p>(.*?)&lt;reference&gt;/, '<p>$1</p>&lt;reference&gt;<p>')
-    .replace(/&lt;&#x2F;reference&gt;(.*?)<\/p>/, '</p>&lt;&#x2F;reference&gt;<p>$1</p>')
-  : html;
+          const cleanHtml = (miscState.userStatus && miscState.userStatus.chapters !== "Editeur")
+                ? decode(html.replace(/<p>(.*?)&lt;reference&gt;/, '<p>$1</p>&lt;reference&gt;<p>')
+                      .replace(/&lt;&#x2F;reference&gt;(.*?)<\/p>/, '</p>&lt;&#x2F;reference&gt;<p>$1</p>'))
+                      : html.replace(/&lt;reference&gt;/g, '&lt;reference&gt;')
+                      .replace(/&lt;\/reference&gt;/g, '&lt;&#x2F;reference&gt;')
+                      .replace(/&lt;br\/&gt;/g, '<br/>');
+                      
+  
+      //setMiscState(prevState => ({ ...prevState, content: decode(cleanHtml), isLoading: false }));
+      setMiscState(prevState => ({ ...prevState, content: cleanHtml, isLoading: false }));
 
 
-          setMiscState(prevState => ({ ...prevState, content: decode(cleanHtml), isLoading: false }));
+
+          
+
         }
       };
       loadData();
     }
   }, [activeQuestionAnswers, miscState.question, miscState.userStatus]);
 
-  useEffect(() => {
-    console.log("miscState : ",miscState)
-    console.log("miscState.isLargeScreen : ",miscState.isLargeScreen)
-  }, [miscState.isLargeScreen]);
+
 
 
   useEffect(() => {
@@ -443,7 +448,6 @@ function ReadAnswersScreen({ route }) {
 
   return (
     <View style={globalStyles.container}>
-      {console.log("Et voilà !")}
       <View style={[globalStyles.navigationContainer, { position: 'fixed', bottom: '0%', alignSelf: 'center' }]}>
         <TouchableOpacity
           onPress={() => navigateToScreen('Projets')}
@@ -690,7 +694,7 @@ function ReadAnswersScreen({ route }) {
         {(miscState.isLargeScreen || !miscState.isLeftPanelVisible) && (
           <View style={[styles.rightPanel, { width: miscState.rightPanelWidth }]}>
             <ScrollView>
-              <NoteScreen route={{ params: { session, question: miscState.question, question_reponse: miscState.question_reponse, mode: miscState.userStatus?.notes, reference: reference } }} key={reference} />
+              <NoteScreen route={{ params: { session, miscState:miscState,setMiscState: setMiscState , question: miscState.question, question_reponse: miscState.question_reponse, mode: miscState.userStatus?.notes, reference: reference, setReference : setReference, } }} key={reference} />
             </ScrollView>
           </View>
         )}

@@ -66,7 +66,7 @@ export async function getMemories_Question(subject_active, setQuestion, setAnswe
       .eq('id_question', selectedQuestion.id);
 
     if (errorAnswersForSelectedQuestion) throw errorAnswersForSelectedQuestion;
-    console.log("selectedQuestion : ",selectedQuestion)
+
     // Mettre à jour l'état avec la question sélectionnée et ses réponses
     const ownerName = await get_user_name(selectedQuestion.id_owner);
     setOwner(ownerName);
@@ -1260,7 +1260,7 @@ export async function getExistingLink(id_target,id_question_id_subject) {
       .select('*')
       .eq(id_question_id_subject, id_target);
 
-      console.log("link bis : ",data)
+
       return data;
     
   } catch (error) {

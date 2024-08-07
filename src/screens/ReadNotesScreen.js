@@ -547,7 +547,7 @@ function ReadNotesScreen({ route }) {
         });
     }}
   >
-    <Picker.Item label="Select a subject" value="" />
+    <Picker.Item label="Sélectionner un projet" value="" />
     {subjects.map((subj, index) => (
       <Picker.Item key={index} label={subj.content_subject.title} value={subj.content_subject.id} />
     ))}
