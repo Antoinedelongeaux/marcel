@@ -131,6 +131,7 @@ function NoteScreen({ route }) {
   ]);
 
   const question = route.params?.question.id || '';
+  console.log("question reçue : ",question)
   const [link,setLink]=useState([]);
 
 

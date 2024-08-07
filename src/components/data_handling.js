@@ -115,7 +115,7 @@ export async function getMemories_Questions_by_tags(setQuestions, tags) {
   }
 }
 
-export async function get_Question_by_id(id_question, setQuestion) {
+export async function get_Question_by_id(id_question, setMiscState) {
   try {
 
   
@@ -134,11 +134,12 @@ export async function get_Question_by_id(id_question, setQuestion) {
     if (errorQuestion) throw errorQuestion;
 
 
+    setMiscState(prevState => ({ ...prevState, question: question }));
+   
 
-    setQuestion(question);
   } catch (error) {
     console.error("Error", error.message);
-    setQuestion({ "question": "Error" });
+    setMiscState(prevState => ({ ...prevState, question: "error" }));
   }
 }
 

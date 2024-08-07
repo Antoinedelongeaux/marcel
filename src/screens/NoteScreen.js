@@ -146,6 +146,7 @@ function NoteScreen({ route }) {
   const question_reponse = route.params?.question_reponse || 'réponse';
   const [selectedQuestion, setSelectedQuestion] = useState(route.params?.question || '');
   const [selectedAnswer, setSelectedAnswer] = useState(route.params?.reference || '');
+  console.log("réference : ",route.params)
   const [selectedChapter, setSelectedChapter] = useState('');
   const [showFilters, setShowFilters] = useState(false); 
   const [isModalVisible, setModalVisible] = useState(false); // Ajoutez cette ligne dans les états
