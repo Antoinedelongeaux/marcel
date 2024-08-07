@@ -460,8 +460,10 @@ export async function submitMemories_Answer_written(answer, ID_USER, Id_question
   }
 }
 
-export async function submitMemories_Answer_oral(answer, ID_USER, Id_question, Id_connection,question_reponse,name) {
+export async function submitMemories_Answer_oral(answer, ID_USER, Id_question, Id_connection,question_reponse,name,ID_answer) {
   try {
+
+
     const Id_subject = await getActiveSubjectId();
 
     let Id_user =null
@@ -481,7 +483,7 @@ export async function submitMemories_Answer_oral(answer, ID_USER, Id_question, I
     const { error } = await supabase
       .from('Memoires_answers')
       .insert([
-        { id_question: Id_question, id_user: Id_user, id_subject: Id_subject, answer: answer, audio: true, link_storage: name, image: false, id_connection: Id_connection, rank: rank,question_reponse:question_reponse }
+        { id:ID_answer,id_question: Id_question, id_user: Id_user, id_subject: Id_subject, answer: answer, audio: true, link_storage: name, image: false, id_connection: Id_connection, rank: rank,question_reponse:question_reponse }
       ]);
 
     if (error) throw error;
@@ -489,6 +491,7 @@ export async function submitMemories_Answer_oral(answer, ID_USER, Id_question, I
     // Notification de succès
     Alert.alert(audio ? 'Réponse audio enregistrée' : 'Réponse écrite enregistrée');
     resetAnswerAndFetchQuestion();
+    return ID_answer;
   } catch (error) {
     Alert.alert("Erreur", error.message);
   }
@@ -864,7 +867,7 @@ export async function create_project(name,id_user) {
   } 
 }
 
-function customUUIDv4() {
+export function customUUIDv4() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
       var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
       return v.toString(16);

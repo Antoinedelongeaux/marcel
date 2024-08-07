@@ -35,12 +35,17 @@ import {
     updateAnswer,
     getTheme_byProject,
     createTheme,
+    customUUIDv4,
   } from '../components/data_handling';
   import { v4 as uuidv4 } from 'uuid';
   import MicroIcon from '../../assets/icons/microphone-lines-solid.svg';
   import * as DocumentPicker from 'expo-document-picker';
   import Upload from '../../assets/icons/upload.png';
   import closeIcon from '../../assets/icons/close.png'; 
+  import { transcribeAudio_slow } from '../components/call_to_whisper';
+
+
+  
 
 //export default AnswerPanel_written = ({ answer, id_user, id_question,id_suject,id_connection }) => {
       
@@ -98,7 +103,9 @@ import {
     }, [isRecording]);
   
       const handleAnswerSubmit = async (answer, ID_USER, Id_question, Id_connection, question_reponse, name, refreshAnswers) => {
-          await submitMemories_Answer_oral(answer, ID_USER, Id_question, Id_connection, question_reponse, name);
+          const ID_answer= customUUIDv4()
+          await submitMemories_Answer_oral(answer, ID_USER, Id_question, Id_connection, question_reponse, name,ID_answer);
+          transcribeAudio_slow(name, ID_answer);
           await refreshAnswers();
       };
   
@@ -126,7 +133,7 @@ import {
                             await startNewRecording();
                             console.log(`Created chunk: ${chunkName} with URI: ${chunkUri}`);
                               await uploadAudioToSupabase(chunkUri, chunkName);
-                              await handleAnswerSubmit('audio à convertir en texte', ID_USER, Id_question, Id_connection, question_reponse, chunkName, refreshAnswers);            
+                              await handleAnswerSubmit("L'audio est en cours de transcription ...", ID_USER, Id_question, Id_connection, question_reponse, chunkName, refreshAnswers);            
                   }
               }, 60000); // Change back to 60000 for 1-minute chunks
           } catch (error) {
@@ -144,7 +151,7 @@ import {
                   const chunkUri = await createAudioChunk(uri, chunkName, 0, duration);
                   console.log(`Created chunk: ${chunkName} with URI: ${chunkUri}`);
                     await uploadAudioToSupabase(chunkUri, chunkName);
-                    await handleAnswerSubmit('audio à convertir en texte', ID_USER, Id_question, Id_connection, question_reponse, chunkName, refreshAnswers);
+                    await handleAnswerSubmit("L'audio est en cours de transcription ...", ID_USER, Id_question, Id_connection, question_reponse, chunkName, refreshAnswers);
                   }
                catch (error) {
                   console.error('Error during handleRecording:', error);
@@ -180,7 +187,9 @@ import {
   export const AnswerPanel_AudioFile = ({ ID_USER, Id_question, Id_connection, question_reponse, refreshAnswers})=> {
   
     const handleAnswerSubmit = async (answer, ID_USER, Id_question, Id_connection, question_reponse, name, refreshAnswers) => {
+        const ID_answer= customUUIDv4()
         await submitMemories_Answer_oral(answer, ID_USER, Id_question, Id_connection, question_reponse, name);
+        transcribeAudio_slow(name, ID_answer);
         await refreshAnswers();
     };
 
@@ -243,7 +252,7 @@ import {
                   if (chunkUri) {
                     console.log(`Uploading chunk: ${chunkName}`);
                     await uploadAudioToSupabase(chunkUri, chunkName);
-                    await handleAnswerSubmit('audio à convertir en texte', ID_USER, Id_question, Id_connection, question_reponse, chunkName, refreshAnswers);
+                    await handleAnswerSubmit("L'audio est en cours de transcription ...", ID_USER, Id_question, Id_connection, question_reponse, chunkName, refreshAnswers);
                   } else {
                     console.error(`Failed to create chunk: ${chunkName}`);
                   }
