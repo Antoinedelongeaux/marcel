@@ -138,14 +138,14 @@ function ReadNotesScreen({ route }) {
   const [playbackStatus, setPlaybackStatus] = useState({});
   
 
-
+  const [showChoices_0, setShowChoices_0] = useState(false);
   const [showChoices_1, setShowChoices_1] = useState(false);
   const [showChoices_2, setShowChoices_2] = useState(false);
   const [showChoices_3, setShowChoices_3] = useState(false);
   const [showChoices_4, setShowChoices_4] = useState(false);
   const [showChoices_5, setShowChoices_5] = useState(false);
   const [showChoices_6, setShowChoices_6] = useState(false);
-  const [showChoices_7, setShowChoices_7] = useState(false);
+  const [showChoices_7, setShowChoices_7] = useState(true);
 
   const [showQuestion_1, setshowQuestion_1] = useState('');
   const [showQuestion_2, setshowQuestion_2] = useState('');
@@ -155,6 +155,7 @@ function ReadNotesScreen({ route }) {
   const [showQuestion_6, setshowQuestion_6] = useState('');
   const [showQuestion_7, setshowQuestion_7] = useState('');
 
+  const [progressiveMessage_0, setProgressiveMessage_0] = useState('');
   const [progressiveMessage_1, setProgressiveMessage_1] = useState('');
   const [progressiveMessage_2, setProgressiveMessage_2] = useState('');
   const [progressiveMessage_3, setProgressiveMessage_3] = useState('');
@@ -241,7 +242,27 @@ function ReadNotesScreen({ route }) {
     refreshData();
   }, [changeSubject]);
   
+  useEffect(() => {
+    if(showChoices_7 && subjects && subjects.length > 1 ) {
+      setSubject('')
+    }
 
+
+
+    if (subjects && (subjects.length > 1 || !subject)) {
+      const message = 'Veuillez choisir le projet auquel vous souhaitez contribuer :';
+      
+      displayProgressiveText(message, setProgressiveMessage_0);
+      setShowChoices_0(true);
+    }
+    if (subjects && subjects.length == 1 && subject ) { 
+      setShowChoices_7(false);
+
+    }
+
+      
+    }, [subjects]);
+  
 
   
 
@@ -499,6 +520,45 @@ function ReadNotesScreen({ route }) {
       </View>
     );
   }
+
+  if (showChoices_7 ) {
+    return (
+      <View style={globalStyles.container}>
+  <Card style={globalStyles.QuestionBubble}>
+    <Card.Content>
+      <Paragraph style={globalStyles.globalButtonText_tag}>{progressiveMessage_0}</Paragraph>
+    </Card.Content>
+  </Card>
+  {showChoices_0 && (
+    <Picker
+    selectedValue={subject.id || ""}
+    style={styles.picker}
+    onValueChange={(itemValue, itemIndex) => {
+      const selectedSubject = subjects.find(subj => subj.content_subject.id === itemValue).content_subject;
+      saveActiveSubjectId(selectedSubject.id)
+        .then(() => {
+          remember_active_subject(selectedSubject.id, session.user.id);
+          setChangeSubject(prev => !prev);
+          setShowChoices_7(false);
+        })
+        .catch((error) => {
+          console.error('Error saving active subject ID:', error);
+          setShowChoices_7(false); // Ajoutez cette ligne pour garantir l'exécution
+        });
+    }}
+  >
+    <Picker.Item label="Select a subject" value="" />
+    {subjects.map((subj, index) => (
+      <Picker.Item key={index} label={subj.content_subject.title} value={subj.content_subject.id} />
+    ))}
+  </Picker>
+  
+  )}
+</View>
+
+    );
+  }else{
+  
 
   return (
     <View style={globalStyles.container} ref={containerRef}>
@@ -1080,6 +1140,8 @@ function ReadNotesScreen({ route }) {
       </View>
     </View>
   );
+
+}
 }
 
 const styles = StyleSheet.create({
