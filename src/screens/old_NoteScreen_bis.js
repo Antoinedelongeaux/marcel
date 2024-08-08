@@ -47,7 +47,7 @@ import { getActiveSubjectId } from '../components/local_storage';
 import { globalStyles } from '../../global';
 import BookIcon from '../../assets/icons/book.svg';
 import PersonIcon from '../../assets/icons/person.svg';
-import settings from '../../assets/icons/settings.svg';
+import settings from '../../assets/icons/accueil.png';
 import copyIcon from '../../assets/icons/paste.png';
 import noteIcon from '../../assets/icons/notes.png';
 import filterIcon from '../../assets/icons/filtre.png';

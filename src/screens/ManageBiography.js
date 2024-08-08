@@ -15,7 +15,7 @@ import refresh from '../../assets/icons/refresh_black_24dp.svg';
 import PersonIcon from '../../assets/icons/person.svg';
 import help from '../../assets/icons/help-circle.svg';
 import trash from '../../assets/icons/baseline_delete_outline_black_24dp.png';
-import settings from '../../assets/icons/settings.svg';
+import settings from '../../assets/icons/accueil.png';
 import LinkIcon from '../../assets/icons/link.png';
 import expand_more from '../../assets/icons/expand_more_black_24dp.svg';
 import expand_less from '../../assets/icons/expand_less_black_24dp.svg';

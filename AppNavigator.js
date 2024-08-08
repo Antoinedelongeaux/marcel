@@ -71,6 +71,7 @@ function AppNavigator({ session }) {
           await remember_active_subject(check.id_subject, session.user.id);
           console.log("Etape 4 :  enregister le projet actif dans le navigateur...",check.id_subject)
           await saveActiveSubjectId(check.id_subject);
+          setLoading(false)
           
         } catch (error) {
           // Gérer les erreurs ici
@@ -117,7 +118,7 @@ function AppNavigator({ session }) {
   if (loading && session && session.user ){
     return (
       <View >
-        <Text>Loading...</Text>
+        <Text>Veuillez rafraichir la page...</Text>
       </View>
     );
   }

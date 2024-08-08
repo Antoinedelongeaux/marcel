@@ -35,7 +35,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { getActiveSubjectId,saveActiveSubjectId } from '../components/local_storage';
 import NoteScreen from './NoteScreen';
 import { globalStyles } from '../../global';
-import settings from '../../assets/icons/settings.svg';
+import settings from '../../assets/icons/accueil.png';
 import { Card, Paragraph } from 'react-native-paper';
 import trash from '../../assets/icons/baseline_delete_outline_black_24dp.png';
 import { createAudioChunk, startRecording, stopRecording, uploadAudioToSupabase, delete_audio,playRecording_fromAudioFile, uploadImageToSupabase,handlePlayPause } from '../components/sound_handling'; 

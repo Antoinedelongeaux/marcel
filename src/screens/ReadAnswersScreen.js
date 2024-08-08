@@ -48,7 +48,7 @@ import minusIcon from '../../assets/icons/minus.png';
 import doubleArrowIcon from '../../assets/icons/arrows_1.png';
 import leftArrowIcon from '../../assets/icons/left-arrow.png';
 import rightArrowIcon from '../../assets/icons/right-arrow.png';
-import settingsIcon from '../../assets/icons/settings.svg';
+import settingsIcon from '../../assets/icons/accueil.png';
 import saveIcon from '../../assets/icons/save.png';
 import { decode, encode } from 'he';
 

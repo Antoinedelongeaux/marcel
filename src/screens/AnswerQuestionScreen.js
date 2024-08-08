@@ -16,7 +16,7 @@ import PersonIcon from '../../assets/icons/person.svg';
 import BookIcon from '../../assets/icons/book.svg';
 import HelpIcon from '../../assets/icons/help-circle.svg';
 import trash from '../../assets/icons/baseline_delete_outline_black_24dp.png';
-import SettingsIcon from '../../assets/icons/settings.svg';
+import SettingsIcon from '../../assets/icons/accueil.png';
 import LinkIcon from '../../assets/icons/link-solid.svg';
 import expand_more from '../../assets/icons/expand_more_black_24dp.svg';
 import expand_less from '../../assets/icons/expand_less_black_24dp.svg';

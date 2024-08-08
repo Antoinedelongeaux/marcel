@@ -9,7 +9,7 @@ import { useNavigation } from '@react-navigation/native';
 import PersonIcon from '../../assets/icons/person.svg';
 import BookIcon from '../../assets/icons/book.svg';
 import HelpIcon from '../../assets/icons/help-circle.svg';
-import SettingsIcon from '../../assets/icons/settings.svg';
+import SettingsIcon from '../../assets/icons/accueil.png';
 import note from '../../assets/icons/notes.png';
 
 

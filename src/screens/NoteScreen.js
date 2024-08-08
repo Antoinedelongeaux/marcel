@@ -47,10 +47,11 @@ import { getActiveSubjectId } from '../components/local_storage';
 import { globalStyles } from '../../global';
 import BookIcon from '../../assets/icons/book.svg';
 import PersonIcon from '../../assets/icons/person.svg';
-import settings from '../../assets/icons/settings.svg';
+import settings from '../../assets/icons/accueil.png';
 import copyIcon from '../../assets/icons/paste.png';
 import noteIcon from '../../assets/icons/notes.png';
 import filterIcon from '../../assets/icons/filtre.png';
+import EmptyfilterIcon from '../../assets/icons/filtre_empty.png';
 import Modal from 'react-native-modal'; // Ajoutez cette ligne pour importer le composant Modal
 import { 
   createAudioChunk, 
@@ -333,6 +334,17 @@ if(session.user){
       window.selectAnswer = selectAnswer;
     }
   }, [answers]);
+
+  const copyAllToClipboard = () => {
+    const combinedText = filteredAnswers.map(answer => {
+      const ref = "<reference>" + answer.id + "</reference>";
+      return `${answer.answer}\n\n${ref}`;
+    }).join('\n\n');
+    Clipboard.setString(combinedText);
+    Alert.alert("Texte copié", "Toutes les réponses filtrées ont été copiées dans le presse-papiers.");
+  };
+  
+
   
   const copyToClipboard = (text, id_answer) => {
     const ref = "<reference>" + id_answer + "</reference>";
@@ -1091,8 +1103,12 @@ const filteredAnswers = answers.filter(answer => {
   </TouchableOpacity>
 
   <TouchableOpacity onPress={() => handleRemoveFilters()} style={styles.filterIcon}>
-  <Image source={filterIcon} style={{ width: 50, height: 50, opacity: 0.5, marginVertical : 30 }} />
+  <Image source={EmptyfilterIcon} style={{ width: 50, height: 50, opacity: 0.5, marginVertical : 30 }} />
   </TouchableOpacity>
+
+  <TouchableOpacity onPress={() => { copyAllToClipboard() }}>
+     <Image source={copyIcon} style={{ width: 50, height: 50, opacity: 0.5, marginVertical : 30 }} />
+   </TouchableOpacity>
 
 {/*
   {notesMode !== 'full' &&(
