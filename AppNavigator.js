@@ -72,7 +72,7 @@ function AppNavigator({ session }) {
           console.log("Etape 4 :  enregister le projet actif dans le navigateur...",check.id_subject)
           await saveActiveSubjectId(check.id_subject);
 
-          const temp = await getUserStatus(session.user.id,profile.active_biography)
+          const temp = await getUserStatus(session.user.id,check.id_subject)
           setUserStatus(temp)
           await saveActiveSubjectUserStatus(temp)
           setLoading(false)
