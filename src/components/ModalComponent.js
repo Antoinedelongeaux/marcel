@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, Modal, ScrollView,  StyleSheet
 import { globalStyles } from '../../global';
 
 
-const ModalComponent = ({ isVisible, onClose, title, inputValue, onInputChange, onSave, content }) => {
+const ModalComponent = ({ isVisible, onClose, title, inputValue, onInputChange, onSave,onConfirm, content }) => {
   return (
     <Modal
       animationType="slide"
@@ -17,7 +17,7 @@ const ModalComponent = ({ isVisible, onClose, title, inputValue, onInputChange, 
           {inputValue !== undefined && onInputChange && (
             <TextInput
               style={styles.modalInput}
-              onChangeText={text => onInputChange(prevState => ({ ...prevState, [inputValue]: text }))}
+              onChangeText={text => onInputChange(text)}
               value={inputValue}
               placeholder={title}
             />
@@ -26,6 +26,11 @@ const ModalComponent = ({ isVisible, onClose, title, inputValue, onInputChange, 
           {onSave && (
             <TouchableOpacity style={[globalStyles.globalButton_wide]} onPress={onSave}>
               <Text style={globalStyles.globalButtonText}>Sauvegarder</Text>
+            </TouchableOpacity>
+          )}
+          {onConfirm && (
+            <TouchableOpacity style={[globalStyles.globalButton_wide]} onPress={onConfirm}>
+              <Text style={globalStyles.globalButtonText}>Confirmer</Text>
             </TouchableOpacity>
           )}
           <TouchableOpacity style={[globalStyles.globalButton_wide]} onPress={onClose}>

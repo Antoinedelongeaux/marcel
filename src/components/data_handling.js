@@ -533,7 +533,7 @@ export async function submitMemories_Answer_image(answer, ID_USER, Id_question, 
   }
 }
 
-export async function save_question(question, tags, subject_active, setQuestion) {
+export async function save_question(question, tags, subject_active, setMiscState) {
   const id_question = [...Array(12)].map(() => Math.floor(Math.random() * 10)).join('');
 
   return new Promise(async (resolve, reject) => {
@@ -555,7 +555,8 @@ export async function save_question(question, tags, subject_active, setQuestion)
         id: id_question, id_subject: subject_active, question: question, tags: tags
       };
 
-      setQuestion(question_full); // Mise à jour de l'état avec la nouvelle question
+      setMiscState(prevState => ({ ...prevState, question: question_full }));
+
 
       resolve(question_full); // Résolution de la promesse avec l'objet question
     } catch (error) {

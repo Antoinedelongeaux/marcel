@@ -252,6 +252,7 @@ useEffect(() => {
 
 
 useEffect(() => {
+  console.log("selectedQuestion : ",selectedQuestion)
   if (selectedQuestion && selectedQuestion.id) {
 
   const fetchData = async () => {
@@ -276,9 +277,11 @@ const toggleLinkStatus = async () => {
     setLink({ ...link, expired: newExpired });
     Alert.alert(newExpired ? 'Lien activé' : 'Lien désactivé');
   } else {
+    if(selectedQuestion.id){
     const newLink = await createNewLink(selectedQuestion.id,'id_question')
     setLink(await getExistingLink(selectedQuestion.id,'id_question'));
     setIsShareModalVisible(false)
+  }
     }
   
 };
@@ -546,7 +549,7 @@ const filteredAnswers = answers.filter(answer => {
     (route.params?.reference === '' || answer.id === (route.params?.reference).toString())&&
     (selectedQuestion === '' || 
      (selectedQuestion === 'none' && answer.id_question === null) ||
-     (answer.id_question !== null && (selectedQuestion.id).toString() === answer.id_question.toString())) &&
+     (answer.id_question !== null && (selectedQuestion?.id).toString() === answer.id_question.toString())) &&
     (!selectedUserName || (userName && userName.toLowerCase().includes(selectedUserName.toLowerCase()))) &&
     (!selectedTheme || (theme && theme===selectedTheme )) &&
     (questionReponseFilter === '' || answer.question_reponse === questionReponseFilter) &&

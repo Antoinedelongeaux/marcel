@@ -50,6 +50,9 @@ import leftArrowIcon from '../../assets/icons/left-arrow.png';
 import rightArrowIcon from '../../assets/icons/right-arrow.png';
 import settingsIcon from '../../assets/icons/accueil.png';
 import saveIcon from '../../assets/icons/save.png';
+import editIcon from '../../assets/icons/pen-to-square-regular.svg';
+import trash from '../../assets/icons/baseline_delete_outline_black_24dp.png';
+import linkIcon from '../../assets/icons/link.png';
 import { decode, encode } from 'he';
 
 
@@ -110,6 +113,7 @@ function ReadAnswersScreen({ route }) {
     editChapterTitle: '',
     editQuestionTitle: '',
   });
+  
   const [selected, setSelected] = useState({
     selectedQuestionId: null,
     editChapterId: null,
@@ -497,7 +501,7 @@ function ReadAnswersScreen({ route }) {
                             }}
                             style={{ marginRight: 10 }}
                           >
-                            <Image source={edit} style={{ width: 20, height: 20, opacity: 0.5 }} />
+                            <Image source={editIcon} style={{ width: 20, height: 20, opacity: 0.5 }} />
                           </TouchableOpacity>
                           <TouchableOpacity onPress={() => confirmDeletion(chapter.id, true)} style={{ marginRight: 10 }}>
                             <Image source={trash} style={{ width: 25, height: 25, opacity: 0.5 }} />
@@ -529,10 +533,10 @@ function ReadAnswersScreen({ route }) {
                                     }}
                                     style={{ marginRight: 10 }}
                                   >
-                                    <Image source={edit} style={{ width: 20, height: 20, opacity: 0.5 }} />
+                                    <Image source={editIcon} style={{ width: 20, height: 20, opacity: 0.5 }} />
                                   </TouchableOpacity>
                                   <TouchableOpacity onPress={() => handleAssociateQuestion(question.id)} style={styles.associateButton}>
-                                    <Image source={LinkIcon} style={{ width: 18, height: 18, opacity: 0.5 }} />
+                                    <Image source={linkIcon} style={{ width: 18, height: 18, opacity: 0.5 }} />
                                   </TouchableOpacity>
                                   <TouchableOpacity onPress={() => confirmDeletion(question.id, false)} style={styles.deleteButton}>
                                     <Image source={trash} style={{ width: 25, height: 25, opacity: 0.5 }} />
@@ -720,81 +724,90 @@ function ReadAnswersScreen({ route }) {
         }
       />
 
-      <ModalComponent
-        isVisible={modals.isModalVisible}
-        onClose={() => setModals(prevState => ({ ...prevState, isModalVisible: !prevState.isModalVisible }))}
-        title="Nouvelle partie"
-        inputValue={newTitles.newChapterTitle}
-        onInputChange={setNewTitles}
-        onSave={() => {
-          create_chapter(newTitles.newChapterTitle, subjectActive);
-          setModals(prevState => ({ ...prevState, isModalVisible: !prevState.isModalVisible }));
-          setNewTitles(prevState => ({ ...prevState, newChapterTitle: '' }));
-          refreshPage();
-        }}
-      />
+<ModalComponent
+  isVisible={modals.isModalVisible}
+  onClose={() => setModals(prevState => ({ ...prevState, isModalVisible: !prevState.isModalVisible }))}
+  title="Nouvelle partie"
+  inputValue={newTitles.newChapterTitle !== undefined ? newTitles.newChapterTitle : ''}  // Correction ici
+  onInputChange={(text) => setNewTitles(prevState => ({ ...prevState, newChapterTitle: text }))}
+  onSave={() => {
+    create_chapter(newTitles.newChapterTitle, subjectActive);
+    setModals(prevState => ({ ...prevState, isModalVisible: !prevState.isModalVisible }));
+    setNewTitles(prevState => ({ ...prevState, newChapterTitle: '' }));
+    refreshPage();
+  }}
+/>
+
+<ModalComponent
+  isVisible={modals.isModalNewQuestionVisible}
+  onClose={() => setModals(prevState => ({ ...prevState, isModalNewQuestionVisible: !prevState.isModalNewQuestionVisible }))}
+  title="Nouveau Chapitre"
+  inputValue={newTitles.newQuestionTitle !== undefined ? newTitles.newQuestionTitle : ''}  // Correction ici
+  onInputChange={(text) => setNewTitles(prevState => ({ ...prevState, newQuestionTitle: text }))}
+  onSave={async () => {
+    const question = await save_question(newTitles.newQuestionTitle, tags, subjectActive, setMiscState);
+    setSelected(prevState => ({ ...prevState, selectedQuestionId: question.id }));
+    setModals(prevState => ({
+      ...prevState,
+      isModalNewQuestionVisible: !prevState.isModalNewQuestionVisible,
+      isChapterModalVisible: true,
+    }));
+    setNewTitles(prevState => ({ ...prevState, newQuestionTitle: '' }));
+    refreshPage();
+  }}
+/>
+
+
+
 
       <ModalComponent
-        isVisible={modals.isModalNewQuestionVisible}
-        onClose={() => setModals(prevState => ({ ...prevState, isModalNewQuestionVisible: !prevState.isModalNewQuestionVisible }))}
-        title="Nouveau Chapitre"
-        inputValue={newTitles.newQuestionTitle}
-        onInputChange={setNewTitles}
-        onSave={async () => {
-          const question = await save_question(newTitles.newQuestionTitle, tags, subjectActive, setMiscState);
-          setSelected(prevState => ({ ...prevState, selectedQuestionId: question.id }));
-          setModals(prevState => ({
-            ...prevState,
-            isModalNewQuestionVisible: !prevState.isModalNewQuestionVisible,
-            isChapterModalVisible: true,
-          }));
-          setNewTitles(prevState => ({ ...prevState, newQuestionTitle: '' }));
-          refreshPage();
-        }}
-      />
+  isVisible={modals.isEditModalVisible}
+  onClose={() => setModals(prevState => ({ ...prevState, isEditModalVisible: false }))}
+  title="Éditer le titre de la partie"
+  inputValue={newTitles.editChapterTitle!== undefined ? newTitles.editChapterTitle : ''}
+  onInputChange={(text) => {setNewTitles(prevState => ({ ...prevState, editChapterTitle: text })) }}
+  onSave={async () => {
+    await edit_chapter(selected.editChapterId, newTitles.editChapterTitle);
+    setModals(prevState => ({ ...prevState, isEditModalVisible: false }));
+    setNewTitles(prevState => ({ ...prevState, editChapterTitle: '' }));
+    await get_chapters(subjectActive, setChapters);
+    await refreshPage();
+  }}
+/>
+
 
       <ModalComponent
-        isVisible={modals.isEditModalVisible}
-        onClose={() => setModals(prevState => ({ ...prevState, isEditModalVisible: false }))}
-        title="Éditer Chapitre"
-        inputValue={newTitles.editChapterTitle}
-        onInputChange={setNewTitles}
-        onSave={() => {
-          edit_chapter(selected.editChapterId, newTitles.editChapterTitle);
-          setModals(prevState => ({ ...prevState, isEditModalVisible: false }));
-          setNewTitles(prevState => ({ ...prevState, editChapterTitle: '' }));
-          get_chapters(subjectActive, setChapters);
-        }}
-      />
+  isVisible={modals.isEditChapterModalVisible}
+  onClose={() => setModals(prevState => ({ ...prevState, isEditChapterModalVisible: false }))}
+  title="Éditer le Chapitre"
+  inputValue={newTitles.editQuestionTitle !== undefined ? newTitles.editQuestionTitle : ''}
+  onInputChange={(text) => {
+    setNewTitles(prevState => ({ ...prevState, editQuestionTitle: text }));
+  }}
+  onSave={async () => {
+    await edit_question(selected.editQuestionId, newTitles.editQuestionTitle);
+    setModals(prevState => ({ ...prevState, isEditChapterModalVisible: false }));
+    setNewTitles(prevState => ({ ...prevState, editQuestionTitle: '' }));
+    await refreshPage();
+  }}
+/>
 
       <ModalComponent
-        isVisible={modals.isEditChapterModalVisible}
-        onClose={() => setModals(prevState => ({ ...prevState, isEditChapterModalVisible: false }))}
-        title="Éditer le Chapitre"
-        inputValue={newTitles.editQuestionTitle}
-        onInputChange={setNewTitles}
-        onSave={() => {
-          edit_question(selected.editQuestionId, newTitles.editQuestionTitle);
-          setModals(prevState => ({ ...prevState, isEditChapterModalVisible: false }));
-          setNewTitles(prevState => ({ ...prevState, editQuestionTitle: '' }));
-          refreshPage();
-        }}
-      />
+  isVisible={modals.deleteModalVisible}
+  onClose={() => setModals(prevState => ({ ...prevState, deleteModalVisible: !prevState.deleteModalVisible }))}
+  title={`Êtes-vous sûr de vouloir supprimer ${selected.deletionDetails.isChapter ? 'cette partie ' : 'ce chapitre '}? Cette action est irréversible.`}
+  saveButtonText="Supprimer" // Ajoutez cette ligne pour personnaliser le texte du bouton
+  onConfirm={async () => {
+    if (selected.deletionDetails.isChapter) {
+      await delete_chapter(selected.deletionDetails.id);
+    } else {
+      await delete_question(selected.deletionDetails.id);
+    }
+    await refreshPage();
+    setModals(prevState => ({ ...prevState, deleteModalVisible: false }));
+  }}
+/>
 
-      <ModalComponent
-        isVisible={modals.deleteModalVisible}
-        onClose={() => setModals(prevState => ({ ...prevState, deleteModalVisible: !prevState.deleteModalVisible }))}
-        title={`Êtes-vous sûr de vouloir supprimer ${selected.deletionDetails.isChapter ? 'cette partie ' : 'ce chapitre '}? Cette action est irréversible.`}
-        onSave={() => {
-          if (selected.deletionDetails.isChapter) {
-            delete_chapter(selected.deletionDetails.id);
-          } else {
-            delete_question(selected.deletionDetails.id);
-          }
-          refreshPage();
-          setModals(prevState => ({ ...prevState, deleteModalVisible: false }));
-        }}
-      />
     </View>
   );
 }
