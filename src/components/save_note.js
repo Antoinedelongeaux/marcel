@@ -56,6 +56,7 @@ import {
 
       const handleAnswerSubmit = async ( answer, ID_USER, Id_question, Id_connection,question_reponse,refreshAnswers) => {
         await submitMemories_Answer_written(answer, ID_USER, Id_question, Id_connection,question_reponse);
+        setAnswer('');
         await refreshAnswers();
       };
     

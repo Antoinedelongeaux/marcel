@@ -31,6 +31,9 @@ export default function Auth() {
     }
   };
 
+  
+
+
   const validateForm = () => {
     if (!email || !password || !confirmPassword || !firstName || !lastName) {
       setError('Veuillez remplir tous les champs.');
@@ -47,12 +50,14 @@ export default function Auth() {
   const signInWithEmail = async () => {
     setLoading(true);
     setError('');
+    console.log("Coucou !")
     const { error } = await supabase.auth.signInWithPassword({
       email: email,
       password: password,
     });
 
     if (error) {
+      console.log("error : ",error)
       setError(translateErrorMessage(error.message));
     }
     setLoading(false);
@@ -69,16 +74,19 @@ export default function Auth() {
     });
 
     if (signUpError) {
+      console.log("error : ",error)
       setError(translateErrorMessage(signUpError.message));
       setLoading(false);
       return;
     }
+
 
     const { user_bis, error: signInError } = await supabase.auth.signInWithPassword({
       email: email,
       password: password,
     });
     if (signInError) {
+      console.log("signInError : ",signInError)
       setError(translateErrorMessage(signInError.message));
       setLoading(false);
       return;
