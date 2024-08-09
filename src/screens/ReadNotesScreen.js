@@ -359,9 +359,13 @@ function ReadNotesScreen({ route }) {
       message = "";
   };
 
+  if(choice !=='Thème not ok'){
+
     displayProgressiveText(message, setProgressiveMessage_3);
     setTimeout(() => setShowChoices_3(true), message.split(' ').length * 10);
     scrollToBottom();
+  }
+  
   };
 
 
@@ -371,12 +375,19 @@ function ReadNotesScreen({ route }) {
     setSelectedChoice_3(format)
     setProgressiveMessage_4('');
     //setShowChoices_2(false);
+    if(format !== "Thème not ok") {
+
     refreshAnswers()
 
     const message = "Sous quel format souhaitez-vous contribuer ?";
     displayProgressiveText(message, setProgressiveMessage_4);
     setTimeout(() => setShowChoices_4(true), message.split(' ').length * 10);
     scrollToBottom();
+  } else {
+    setShowChoices_4(false)
+
+  }
+
   };
 
 
