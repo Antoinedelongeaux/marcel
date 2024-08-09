@@ -146,6 +146,7 @@ function ReadAnswersScreen({ route }) {
   });
   const [subject, setSubject] = useState([]);
   const [reference, setReference] = useState('');
+  const [filterSelectedQuestion, setFilterSelectedQuestion] = useState('');
 
   const editor = useRef();
 
@@ -201,6 +202,7 @@ function ReadAnswersScreen({ route }) {
   useEffect(() => {
     if (miscState.question && miscState.question.id) {
       toggleAnswersDisplay(miscState.question.id);
+      setFilterSelectedQuestion(miscState.question);
     }
   }, [miscState.question]);
 
@@ -575,11 +577,13 @@ function ReadAnswersScreen({ route }) {
           </View>
         )}
 
-        {miscState.isLargeScreen && miscState.userStatus && (miscState.userStatus.chapters === "Editeur" || miscState.userStatus.chapters === "Lecteur" || miscState.userStatus.chapters === "Auditeur") && (
+        {miscState.isLargeScreen && miscState.userStatus &&(miscState.question && miscState.question.question) && (miscState.userStatus.chapters === "Editeur" || miscState.userStatus.chapters === "Lecteur" || miscState.userStatus.chapters === "Auditeur") && (
           <View style={[styles.resizer, { right: miscState.rightPanelWidth - 30 }]} onMouseDown={handleMouseDown}>
             <Image source={doubleArrowIcon} style={{ width: 120, height: 120, opacity: 0.5 }} />
           </View>
         )}
+
+        
         <TouchableOpacity
           onPress={toggleLeftPanel}
           style={[
@@ -695,10 +699,10 @@ function ReadAnswersScreen({ route }) {
           </View>
         )}
 
-        {(miscState.isLargeScreen || !miscState.isLeftPanelVisible) && (
+        {(miscState.isLargeScreen || !miscState.isLeftPanelVisible)&&(miscState.question && miscState.question.question) && (
           <View style={[styles.rightPanel, { width: miscState.rightPanelWidth }]}>
             <ScrollView>
-              <NoteScreen route={{ params: { session, miscState:miscState,setMiscState: setMiscState , question: miscState.question, question_reponse: miscState.question_reponse, mode: miscState.userStatus?.notes, reference: reference, setReference : setReference, } }} key={reference} />
+              <NoteScreen route={{ params: { session, miscState:miscState,setMiscState: setMiscState , filterSelectedQuestion:filterSelectedQuestion, setFilterSelectedQuestion:setFilterSelectedQuestion, question_reponse: miscState.question_reponse, mode: miscState.userStatus?.notes, reference: reference, setReference : setReference, } }} key={reference} />
             </ScrollView>
           </View>
         )}

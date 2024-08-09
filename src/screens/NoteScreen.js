@@ -188,7 +188,8 @@ const [playbackStatus, setPlaybackStatus] = useState({});
 const [currentAudioId, setCurrentAudioId] = useState(null);
 const [isTranscriptionModalVisible, setIsTranscriptionModalVisible] = useState(false);
 const [answerIdToTranscribe, setAnswerIdToTranscribe] = useState(null);
-
+const [filteredAnswers, setFilteredAnswers] = useState([]);
+const [oldSelectedQuestion, setOldSelectedQuestion] = useState('');
 
 useEffect(() => {
   if (notesMode === 'full') {
@@ -201,11 +202,6 @@ useEffect(() => {
 
 
 
-useEffect(() => {
-  if (route.params?.miscState?.question) {
-    setSelectedQuestion(route.params?.miscState?.question)
-  }
-}, [route.params?.miscState?.question]);
 
 
 useFetchActiveSubjectId(setSubjectActive, setSubject, navigation);
@@ -251,40 +247,12 @@ useEffect(() => {
 }, [subjectActive]);
 
 
-useEffect(() => {
-  console.log("selectedQuestion : ",selectedQuestion)
-  if (selectedQuestion && selectedQuestion.id) {
-
-  const fetchData = async () => {
-    setLink(await getExistingLink(selectedQuestion.id, "id_question"));
-  };
-  
-  fetchData();
-  
-}
-}, [selectedQuestion]);
-
 const copyLinkToClipboard = (text) => {
   Clipboard.setString(text);
   Alert.alert('Lien copié dans le presse-papier', text);
 };
 
-const toggleLinkStatus = async () => {
-  
-  if (link[0]) {
-    const newExpired = !link[0].expired;
-    await updateExistingLink(link[0].id,newExpired) ;
-    setLink({ ...link, expired: newExpired });
-    Alert.alert(newExpired ? 'Lien activé' : 'Lien désactivé');
-  } else {
-    if(selectedQuestion.id){
-    const newLink = await createNewLink(selectedQuestion.id,'id_question')
-    setLink(await getExistingLink(selectedQuestion.id,'id_question'));
-    setIsShareModalVisible(false)
-  }
-    }
-  
-};
+
 
 
 
@@ -420,42 +388,27 @@ if(session.user){
     navigation.navigate(screenName, params);
   };
 
-  const handleQuestionChange = (e) => {
-    const selectedQuestionId = e.target.value;
-    setSelectedQuestion(selectedQuestionId);
-  
-    const selectedQuestionObj = questions.find(question => question.id.toString() === selectedQuestionId);
-    if (selectedQuestionObj) {
-      setSelectedChapter(selectedQuestionObj.id_chapitre.toString());
-    }
-  };
-  const handleInsertLink = (answerId) => {
-    const quillInstance = editor.current.getEditor();
-    const range = quillInstance.getSelection();
-    if (range) {
-      quillInstance.clipboard.dangerouslyPasteHTML(
-        range.index,
-        `<a href="javascript:void(0)" onclick="selectAnswer(${answerId})">Lien vers réponse ${answerId}</a>`
-      );
-    }
-  };
+
 
   const handleRemoveFilters = () => {
+    setTextFilter('');               // Réinitialiser le filtre de texte
+    route.params?.setReference('');  // Réinitialiser la référence du route
+    setSelectedTheme('');            // Réinitialiser le thème sélectionné
+    setDateBefore(null);             // Réinitialiser la date avant sélectionnée
+    setDateAfter(null);              // Réinitialiser la date après sélectionnée
+    setSelectedUserName('');         // Réinitialiser le nom d'utilisateur sélectionné
+    setQuestionReponseFilter('');    // Réinitialiser le filtre question/réponse
+    setReluFilter('relu & non_relu');// Réinitialiser le filtre relu/non relu
+    setUtiliseFilter('tous');        // Réinitialiser le filtre utilisé/non utilisé
+    route.params?.setFilterSelectedQuestion('')
     
-    setTextFilter('')
-    setSelectedQuestion('')
-    route.params?.setReference('')
-    setSelectedTheme('')
-    setDateBefore('')
-    setDateAfter('')
-    setSelectedUserName('')
-    setQuestionReponseFilter('')
-    setReluFilter('relu & non_relu')
-    setUtiliseFilter('tous')
-    
-
-  };
   
+};
+  
+
+
+
+
 
   const handleAnswerMove = async (data) => {
     console.log("Drag end initiated with data:", data);
@@ -533,33 +486,63 @@ useEffect(() => {
   }
 }, [selectedChapter, questions]);
 
-const filteredAnswers = answers.filter(answer => {
-  const answerDate = new Date(answer.created_at);
-  const beforeDate = dateBefore ? new Date(dateBefore) : null;
-  const afterDate = dateAfter ? new Date(dateAfter) : null;
-
-  const userName = userNames[answer.id_user];
-  const theme = answer.id_connection;
 
 
-  return (
-    (!textFilter || answer.answer.includes(textFilter)) &&
-    (!beforeDate || answerDate < beforeDate) &&
-    (!afterDate || answerDate > afterDate) &&
-    (route.params?.reference === '' || answer.id === (route.params?.reference).toString())&&
-    (selectedQuestion === '' || 
-     (selectedQuestion === 'none' && answer.id_question === null) ||
-     (answer.id_question !== null && (selectedQuestion?.id).toString() === answer.id_question.toString())) &&
-    (!selectedUserName || (userName && userName.toLowerCase().includes(selectedUserName.toLowerCase()))) &&
-    (!selectedTheme || (theme && theme===selectedTheme )) &&
-    (questionReponseFilter === '' || answer.question_reponse === questionReponseFilter) &&
-    ((reluFilter === 'relu' && answer.quality) || (reluFilter === 'non_relu' && !answer.quality) || reluFilter === 'relu & non_relu')) &&
-    ((utiliseFilter === 'used' && answer.used) || (utiliseFilter === 'not_used' && !answer.used) || utiliseFilter === 'tous')
+useEffect(() => {
+  const updateFilteredAnswers = () => {
+
+    console.log("route.params.reference ",route.params.reference)
+    console.log("selectedQuestion : ",route.params?.filterSelectedQuestion)
   
-});
+        
 
+    const filtered = answers.filter(answer => {
+      const answerDate = new Date(answer.created_at);
+      const beforeDate = dateBefore ? new Date(dateBefore) : null;
+      const afterDate = dateAfter ? new Date(dateAfter) : null;
+  
+      const userName = userNames[answer.id_user];
+      const theme = answer.id_connection;
+  
+      return (
+        
+        (answer.id.toString() === route.params?.reference) ||
+        (!route.params?.reference &&
+        (!route.params?.reference || answer.id.toString() === route.params.reference) &&
+        (!textFilter || answer.answer.includes(textFilter)) &&
+        (!beforeDate || answerDate < beforeDate) &&
+        (!afterDate || answerDate > afterDate) &&
+        (!route.params?.filterSelectedQuestion || 
+         (route.params?.filterSelectedQuestion === 'none' && answer.id_question === null) || 
+         (answer.id_question !== null && route.params?.filterSelectedQuestion?.id?.toString() === answer.id_question.toString())) &&
+        (!selectedUserName || (userName && userName.toLowerCase().includes(selectedUserName.toLowerCase()))) &&
+        (!selectedTheme || (theme && theme === selectedTheme)) &&
+        (questionReponseFilter === '' || answer.question_reponse === questionReponseFilter) &&
+        ((reluFilter === 'relu' && answer.quality) || (reluFilter === 'non_relu' && !answer.quality) || (reluFilter === 'relu & non_relu')) &&
+        ((utiliseFilter === 'used' && answer.used) || (utiliseFilter === 'not_used' && !answer.used) || utiliseFilter === 'tous')
+        )
+    )});
+  
 
+    setFilteredAnswers(filtered);
+  };
 
+  updateFilteredAnswers();
+}, [
+  textFilter,
+  route.params?.filterSelectedQuestion,
+  route.params?.reference,
+  selectedTheme,
+  dateBefore,
+  dateAfter,
+  selectedUserName,
+  questionReponseFilter,
+  reluFilter,
+  utiliseFilter,
+  answers,
+  userNames,
+  themes,
+]);
 
 
 
@@ -675,7 +658,7 @@ const filteredAnswers = answers.filter(answer => {
       }
     }
   
-    await submitMemories_Answer(transcribedText, selectedQuestion.id, delegationUserId, isMedia, name, isImage, connectionID, async () => {
+    await submitMemories_Answer(transcribedText, route.params.miscState?.question?.id, delegationUserId, isMedia, name, isImage, connectionID, async () => {
       setAnswer('');
       setTimeout(async () => {
         await refreshAnswers();
@@ -1173,15 +1156,15 @@ const filteredAnswers = answers.filter(answer => {
 </View>
 <View style={styles.dropdownContainer}>
 <Picker
-  selectedValue={selectedQuestion}
+  selectedValue={route.params?.filterSelectedQuestion}
   onValueChange={(itemValue, itemIndex) => {
     const itemValueNumber = Number(itemValue); // Convertir itemValue en nombre
     const selectedQuestion_temp = questions.find(question => question.id === itemValueNumber);
 
     if (selectedQuestion_temp) {
-        setSelectedQuestion(selectedQuestion_temp);
+      route.params?.setFilterSelectedQuestion(selectedQuestion_temp);
     } else {
-      setSelectedQuestion('');
+      route.params?.setFilterSelectedQuestion('');
     }
 }}
 
@@ -1408,6 +1391,21 @@ const filteredAnswers = answers.filter(answer => {
                     </Text>
                   
                 )}
+                { route.params?.filterSelectedQuestion !== route.params.miscState?.question && (
+                       
+                      <TouchableOpacity
+                          onPress={() => {
+                              updateAnswer(item.id, "id_question",route.params.miscState?.question.id );
+                              refreshAnswers()
+                          }}
+                      >
+                        <View style={{ flexDirection: 'row', }}>
+                        {isLargeScreen && <Text>Joindre {"\n"} au chapitre</Text>}
+
+                          <Image source={linkIcon} style={{ width: 28, height: 28, opacity: 0.5 }} />
+                          </View>
+                      </TouchableOpacity>
+                  )}
  
               </View>
             )}
@@ -1633,46 +1631,7 @@ const filteredAnswers = answers.filter(answer => {
   </View>
 </Modal>
 
-<Modal
-  animationType="slide"
-  transparent={true}
-  visible={isShareModalVisible}
-  onRequestClose={() => setIsShareModalVisible(false)}
->
-<View style={styles.overlay}>
-<View style={styles.modalContainer}>
-<TouchableOpacity onPress={() => setIsShareModalVisible(false)} style={styles.closeButton}>
-      <Image source={closeIcon} style={styles.closeIcon} />
-    </TouchableOpacity>
-      <Text style={styles.modalText}>
-      {'\n'}
-        Vous pouvez partager un lien qui permettra à votre proche de contribuer au projet sans identification préalable. {'\n'}
-        {'\n'}
-        Attention, n'importe qui ayant ce lien aura un accès libre aux contributions propres aux chapitres considérés, tant que vous laissez le lien de partage actif.
-        {'\n'}
-        {'\n'}
-      </Text>
-  
-      {link[0] ? (
-        <>
-          <TouchableOpacity style={globalStyles.globalButton_wide} onPress={() => copyLinkToClipboard("https://marcel-eight.vercel.app/"+link[0].id)}>
-            <Text style={globalStyles.globalButtonText}>Copier le lien dans le presse-papier</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={globalStyles.globalButton_wide} onPress={toggleLinkStatus}>
-            <Text style={globalStyles.globalButtonText}>{link[0].expired ? 'Réactiver le lien' : 'Désactiver le lien'}</Text>
-          </TouchableOpacity>
-        </>
-      ) : (
-        <TouchableOpacity style={globalStyles.globalButton_wide} onPress={toggleLinkStatus}>
-          <Text style={globalStyles.globalButtonText}>Créer un lien de partage</Text>
-        </TouchableOpacity>
-      )}
 
-    
-  </View>
-  </View>
-</Modal>
 
 
 <View>
