@@ -36,6 +36,9 @@ import {
     getTheme_byProject,
     createTheme,
     customUUIDv4,
+    updateTheme,
+    deleteTheme,
+    getTheme_byUser,
   } from '../components/data_handling';
   import { v4 as uuidv4 } from 'uuid';
   import MicroIcon from '../../assets/icons/microphone-lines-solid.svg';
@@ -43,13 +46,12 @@ import {
   import Upload from '../../assets/icons/upload.png';
   import closeIcon from '../../assets/icons/close.png'; 
   import { transcribeAudio_slow } from '../components/call_to_whisper';
+  import ModalComponent from '../components/ModalComponent';
 
 
   
 
 //export default AnswerPanel_written = ({ answer, id_user, id_question,id_suject,id_connection }) => {
-  const windowWidth = Dimensions.get('window').width;
-  const isLargeScreen = windowWidth > 768;
 
     
   export const AnswerPanel_written = ({ ID_USER, Id_question, Id_connection,question_reponse,refreshAnswers }) => {
@@ -424,11 +426,19 @@ import {
     );
   };
   
-  export const ThemePanel = ({ ID_USER, ID_subject, new_theme, themes, themesAllUsers, theme, setTheme, themeText, setThemeText, closureFunction }) => {
+  export const ThemePanel = ({ ID_USER, ID_subject, new_theme, themes,setThemes, themesAllUsers,setThemesAllUsers, theme, setTheme, themeText, setThemeText, closureFunction }) => {
     const [merciModalVisible, setMerciModalVisible] = useState(false);
     const [showThemeInput, setShowThemeInput] = useState(false);
     const [showModalThemeEdit, setShowModalThemeEdit] = useState(false);
     const [showModalThemeDelete, setShowModalThemeDelete] = useState(false);
+    const windowWidth = Dimensions.get('window').width;
+    const isLargeScreen = windowWidth > 768;
+    const [modals, setModals] = useState({
+      isEditModalVisible: false,
+      newThemeTitle: '',
+      isDeleteModalVisible: false,
+    });
+  
   
     const handleSaveTheme = async (text) => {
       const temp = await createTheme(text, ID_subject);
@@ -522,17 +532,17 @@ import {
             <View style={{ flexDirection: isLargeScreen ? 'row' : 'column' }}>
             <TouchableOpacity
               style={isLargeScreen ?  globalStyles.globalButton_narrow : globalStyles.globalButton_wide}
-              onPress={() => {
-                setShowModalThemeDelete(true);
-              }}
+              onPress=
+                {() => setModals(prevState => ({ ...prevState, isDeleteModalVisible: true }))}
+              
             >
               <Text style={globalStyles.globalButtonText}>Supprimer ce thème</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={isLargeScreen ?  globalStyles.globalButton_narrow : globalStyles.globalButton_wide}
-              onPress={() => {
-                setShowModalThemeEdit(true)
-              }}
+              onPress={
+                () => {setModals(prevState => ({ ...prevState, newThemeTitle: theme.theme })) ,setModals(prevState => ({ ...prevState, isEditModalVisible: true }))}
+              }
             >
               <Text style={globalStyles.globalButtonText}>Modifier le titre de ce thème</Text>
             </TouchableOpacity>
@@ -568,6 +578,36 @@ import {
             </View>
           </View>
         </Modal>
+        <ModalComponent
+              isVisible={modals.isEditModalVisible}
+              onClose={() => setModals(prevState => ({ ...prevState, isEditModalVisible: false }))}
+              title="Éditer le titre du thème"
+              inputValue={modals.newThemeTitle!== undefined ? modals.newThemeTitle : ''}
+              onInputChange={(text) => {setModals(prevState => ({ ...prevState, newThemeTitle: text })) }}
+              onSave={async () => {
+                  await updateTheme(theme.id, modals.newThemeTitle);
+                  setModals(prevState => ({ ...prevState, isEditModalVisible: false }));
+                  await getTheme_byProject(theme.id_subject).then(setThemesAllUsers)
+                  await getTheme_byUser(ID_USER,theme.id_subject).then(setThemes)
+                  
+                  }}
+        />
+        <ModalComponent
+              isVisible={modals.isDeleteModalVisible}
+              onClose={() => setModals(prevState => ({ ...prevState, isDeleteModalVisible: false }))}
+              title="Voulez-vous vraiment supprimer ce thème ? "
+              onConfirm={async () => {
+                  await deleteTheme(theme.id);
+                  setModals(prevState => ({ ...prevState, isDeleteModalVisible: false }));
+                  await getTheme_byProject(theme.id_subject).then(setThemesAllUsers)
+                  await getTheme_byUser(ID_USER,theme.id_subject).then(setThemes)
+
+                  }}
+        />
+
+
+
+
       </View>
     );
   };

@@ -1421,7 +1421,6 @@ export async function deleteExistingContributor(id_user,id_subject) {
 }
 
 
-
 export async function createTheme(theme,id_subject) { 
   try {
 
@@ -1440,8 +1439,40 @@ export async function createTheme(theme,id_subject) {
   }
 }
 
+export async function deleteTheme(id_theme) { 
+  try {
+
+    const { data, error } = await supabase
+    .from('Memoires_connections')
+    .delete()
+    .match({id: id_theme}); 
+
+      return ;
+
+  } catch (error) {
+    console.error("Erreur : ", error);
+  }
+}
+
+
+export async function updateTheme(id_theme,theme) { 
+  try {
+
+      const { error: errorUpdating } = await supabase
+      .from('Memoires_connections')
+      .update({ theme: theme })
+      .match({ id: id_theme });
+
+      return ;
+
+  } catch (errorUpdating) {
+    console.error("Erreur : ", errorUpdating);
+  }
+}
+
 export async function getTheme_byProject(id_subject) { 
   try {
+
     const { data, error }  = await supabase
     .from('Memoires_connections')
     .select(`*`)

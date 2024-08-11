@@ -30,6 +30,7 @@ import {
   getMemories_Answers_to_theme,
   deleteMemories_Answer,
   remember_active_subject,
+  updateTheme,
 } from '../components/data_handling';
 import { useFocusEffect } from '@react-navigation/native';
 import { getActiveSubjectId,saveActiveSubjectId } from '../components/local_storage';
@@ -194,6 +195,7 @@ function ReadNotesScreen({ route }) {
   const [answer, setAnswer] = useState('');
   const [showDetails, setShowDetails] = useState(false);
   const [changeSubject, setChangeSubject] = useState(false);
+
 
   const [fullscreenImage, setFullscreenImage] = useState(null);
   const closeFullscreenImage = () => {
@@ -810,6 +812,8 @@ function ReadNotesScreen({ route }) {
       themeText={themeText} 
       setThemeText={setThemeText} 
       closureFunction={handleChoice_3}
+      setThemes = {setThemes}
+      setThemesAllUsers = {setThemesAllUsers}
       />
 
    
@@ -1149,6 +1153,7 @@ function ReadNotesScreen({ route }) {
           </ScrollView>
         </View>
       </View>
+      
     </View>
   );
 

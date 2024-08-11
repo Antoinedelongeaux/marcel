@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, TextInput, TouchableOpacity, Modal, ScrollView,  StyleSheet, } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Modal, ScrollView,  StyleSheet, Image} from 'react-native';
 import { globalStyles } from '../../global';
+import closeIcon from '../../assets/icons/close.png'; 
 
 
 const ModalComponent = ({ isVisible, onClose, title, inputValue, onInputChange, onSave,onConfirm, content }) => {
@@ -33,8 +34,9 @@ const ModalComponent = ({ isVisible, onClose, title, inputValue, onInputChange, 
               <Text style={globalStyles.globalButtonText}>Confirmer</Text>
             </TouchableOpacity>
           )}
-          <TouchableOpacity style={[globalStyles.globalButton_wide]} onPress={onClose}>
-            <Text style={globalStyles.globalButtonText}>Fermer</Text>
+
+          <TouchableOpacity onPress={onClose} style={globalStyles.closeButton}>
+              <Image source={closeIcon} style={globalStyles.closeIcon} />
           </TouchableOpacity>
         </View>
       </View>
