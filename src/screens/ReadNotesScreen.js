@@ -41,6 +41,7 @@ import { Card, Paragraph } from 'react-native-paper';
 import trash from '../../assets/icons/baseline_delete_outline_black_24dp.png';
 import { createAudioChunk, startRecording, stopRecording, uploadAudioToSupabase, delete_audio,playRecording_fromAudioFile, uploadImageToSupabase,handlePlayPause } from '../components/sound_handling'; 
 import { v4 as uuidv4 } from 'uuid';
+import ModalComponent from '../components/ModalComponent';
 import {
   AnswerPanel_written, 
   AnswerPanel_oral,
@@ -137,6 +138,8 @@ function ReadNotesScreen({ route }) {
   const [themesAllUsers, setThemesAllUsers] = useState([]);
   const [currentAudioId, setCurrentAudioId] = useState(null);
   const [playbackStatus, setPlaybackStatus] = useState({});
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedAnswer, setSelectedAnswer] = useState({});
   
 
   const [showChoices_0, setShowChoices_0] = useState(false);
@@ -500,6 +503,8 @@ function ReadNotesScreen({ route }) {
       setIsLoading(false);
       console.log("Answers : ",sortedAnswers)
   };
+
+
 
 
   const handleDeleteAnswer = async (answerToDelete) => {
@@ -1052,7 +1057,7 @@ function ReadNotesScreen({ route }) {
            setFullscreenImage={setFullscreenImage}
          />
           {session.user.id===answer.id_user &&  (
-         <TouchableOpacity key={`${answer.id}-delete`} onPress={() => handleDeleteAnswer(answer)}>
+         <TouchableOpacity key={`${answer.id}-delete`} onPress={() => {setSelectedAnswer(answer), setIsModalVisible(true)}}>
            <Image source={trash} style={{ width: 72, height: 72, opacity: 0.5, marginLeft: 30 }} />
          </TouchableOpacity>
           )}
@@ -1153,7 +1158,19 @@ function ReadNotesScreen({ route }) {
           </ScrollView>
         </View>
       </View>
-      
+
+      <ModalComponent
+  isVisible={isModalVisible}
+  onClose={() => setIsModalVisible(false)}
+  title={`Êtes-vous sûr de vouloir supprimer cette note ? Cette action est irréversible.`}
+  onConfirm={async () => {
+     console.log("selectedAnswer : ",selectedAnswer)
+      await handleDeleteAnswer(selectedAnswer);
+
+    setIsModalVisible(false);
+  }}
+/>
+
     </View>
   );
 
