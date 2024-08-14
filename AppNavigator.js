@@ -35,7 +35,6 @@ const Stack = createStackNavigator();
 function AppNavigator({ session }) {
   const navigation = useNavigation();
   const [check, setCheck] = useState({nature : 'en cours'});
-  const [userStatus,setUserStatus]= useState('');
   const[activeSubjectId,setActiveSubjectId]= useState();
   const { suffix } = useParams(); // Utiliser useParams pour extraire le suffixe
   const [loading, setLoading] = useState(true);
@@ -74,7 +73,6 @@ function AppNavigator({ session }) {
           await saveActiveSubjectId(check.id_subject);
 
           const temp = await getUserStatus(session.user.id,check.id_subject)
-          setUserStatus(temp)
           await saveActiveSubjectUserStatus(temp)
           setLoading(false)
           
@@ -94,9 +92,9 @@ function AppNavigator({ session }) {
            if (profile.active_biography){ 
             setActiveSubjectId(profile.active_biography)
             const temp = await getUserStatus(session.user.id,profile.active_biography)
-            setUserStatus(temp)
             await saveActiveSubjectId(profile.active_biography);
             await saveActiveSubjectUserStatus(temp)
+            setLoading(false)
 
         }
         
@@ -111,12 +109,6 @@ function AppNavigator({ session }) {
 
   }, [check, session]);
 
-  useEffect(() => {
-    if(userStatus!== '') {
-    setLoading (false)
-
-  }
-  }, [userStatus]);
   
 
  

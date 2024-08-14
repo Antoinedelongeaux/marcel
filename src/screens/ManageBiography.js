@@ -305,7 +305,7 @@ const copyLinkToClipboard = (text) => {
             <View style={[globalStyles.navigationContainer, { position: 'fixed', bottom: '0%', alignSelf: 'center' }]}>
 
                 <TouchableOpacity
-  onPress={() => {userStatus.chapters==="Pas d'accès"? (console.log("On n'a pas d'accès !"), navigateToScreen('Incipit')) : (console.log("On a bien d'accès !"),navigateToScreen('Marcel'))} }
+  onPress={() => { navigateToScreen('Orientation') }}
   style={[globalStyles.navButton, isHovered && globalStyles.navButton_over]}
   onMouseEnter={() => setIsHovered(true)}
   onMouseLeave={() => setIsHovered(false)}
