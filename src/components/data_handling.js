@@ -698,6 +698,8 @@ export async function joinSubject(id_subject, id_user,access) {
 export async function getSubjects(id_user) {
 
   try {
+
+    console.log("id_user : ",id_user)
     const { data: list_subjects, error } = await supabase
       .from('Memoires_contributors')
       .select('*')
@@ -720,7 +722,7 @@ export async function getSubjects(id_user) {
       return { ...element, content_subject: content_subject[0] };
     }));
    
-
+    console.log("subjectsWithContent : ",subjectsWithContent)
     return subjectsWithContent;
   } catch (error) {
     console.error("Error in getSubject:", error.message);

@@ -490,9 +490,6 @@ useEffect(() => {
 
 useEffect(() => {
   const updateFilteredAnswers = () => {
-
-    console.log("route.params.reference ",route.params.reference)
-    console.log("selectedQuestion : ",route.params?.filterSelectedQuestion)
   
         
 

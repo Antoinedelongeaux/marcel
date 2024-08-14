@@ -149,7 +149,6 @@ function ReadNotesScreen({ route }) {
   const [showChoices_4, setShowChoices_4] = useState(false);
   const [showChoices_5, setShowChoices_5] = useState(false);
   const [showChoices_6, setShowChoices_6] = useState(false);
-  const [showChoices_7, setShowChoices_7] = useState(true);
 
   const [showQuestion_1, setshowQuestion_1] = useState('');
   const [showQuestion_2, setshowQuestion_2] = useState('');
@@ -248,21 +247,12 @@ function ReadNotesScreen({ route }) {
   }, [changeSubject]);
   
   useEffect(() => {
-    if(showChoices_7 && subjects && subjects.length > 1 ) {
-      setSubject('')
-    }
-
-
 
     if (subjects && (subjects.length > 1 || !subject)) {
       const message = 'Veuillez choisir le projet auquel vous souhaitez contribuer :';
       
       displayProgressiveText(message, setProgressiveMessage_0);
       setShowChoices_0(true);
-    }
-    if (subjects && subjects.length == 1 && subject ) { 
-      setShowChoices_7(false);
-
     }
 
       
@@ -538,44 +528,6 @@ function ReadNotesScreen({ route }) {
       </View>
     );
   }
-
-  if (showChoices_7 ) {
-    return (
-      <View style={globalStyles.container}>
-  <Card style={globalStyles.QuestionBubble}>
-    <Card.Content>
-      <Paragraph style={globalStyles.globalButtonText_tag}>{progressiveMessage_0}</Paragraph>
-    </Card.Content>
-  </Card>
-  {showChoices_0 && (
-    <Picker
-    selectedValue={subject.id || ""}
-    style={styles.picker}
-    onValueChange={(itemValue, itemIndex) => {
-      const selectedSubject = subjects.find(subj => subj.content_subject.id === itemValue).content_subject;
-      saveActiveSubjectId(selectedSubject.id)
-        .then(() => {
-          remember_active_subject(selectedSubject.id, session.user.id);
-          setChangeSubject(prev => !prev);
-          setShowChoices_7(false);
-        })
-        .catch((error) => {
-          console.error('Error saving active subject ID:', error);
-          setShowChoices_7(false); // Ajoutez cette ligne pour garantir l'exécution
-        });
-    }}
-  >
-    <Picker.Item label="Sélectionner un projet" value="" />
-    {subjects.map((subj, index) => (
-      <Picker.Item key={index} label={subj.content_subject.title} value={subj.content_subject.id} />
-    ))}
-  </Picker>
-  
-  )}
-</View>
-
-    );
-  }else{
   
 
   return (
@@ -1174,7 +1126,7 @@ function ReadNotesScreen({ route }) {
     </View>
   );
 
-}
+
 }
 
 const styles = StyleSheet.create({

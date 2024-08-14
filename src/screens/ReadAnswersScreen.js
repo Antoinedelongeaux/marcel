@@ -466,8 +466,11 @@ function ReadAnswersScreen({ route }) {
       </View>
 
       <View style={miscState.isLargeScreen ? styles.largeScreenContainer : styles.smallScreenContainer}>
+         
+        
         {miscState.isLeftPanelVisible && (
           <View style={miscState.isLargeScreen ? styles.leftPanel : styles.fullWidth}>
+
             <View style={globalStyles.container_wide}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Text style={globalStyles.title}>{subject.title}</Text>
@@ -483,8 +486,9 @@ function ReadAnswersScreen({ route }) {
                   <Image source={miscState.toggleIcon} style={{ width: 25, height: 25, opacity: 0.5, marginVertical: 5 }} />
                 </TouchableOpacity>
               </View>
-              <Text> </Text>
+              <View style={{ height: 10 }} />
             </View>
+
             <ScrollView>
               <View style={globalStyles.container_wide}>
                 {(miscState.hasUnclassifiedQuestions ? [{ id: null, title: 'Chapitres non classés' }] : []).concat(chapters).map((chapter) => (
@@ -552,8 +556,9 @@ function ReadAnswersScreen({ route }) {
                     )}
                   </View>
                 ))}
-                <Text>  </Text>
-                <Text>  </Text>
+                <View style={{ height: 10 }} />
+                <View style={{ height: 10 }} />
+
               </View>
 
               <View style={{ flexDirection: 'column', justifyContent: 'space-between', padding: 10 }}>
@@ -563,26 +568,28 @@ function ReadAnswersScreen({ route }) {
                 <TouchableOpacity style={globalStyles.globalButton_wide} onPress={() => setModals(prevState => ({ ...prevState, isModalNewQuestionVisible: true }))}>
                   <Text style={globalStyles.globalButtonText}>Nouveau chapitre</Text>
                 </TouchableOpacity>
-                <Text> </Text>
-                <Text> </Text>
-                <Text> </Text>
-                <Text> </Text>
-                <Text> </Text>
-                <Text> </Text>
-                <Text> </Text>
-                <Text> </Text>
-                <Text> </Text>
+                <View style={{ height: 10 }} />
+                <View style={{ height: 10 }} />
+                <View style={{ height: 10 }} />
+                <View style={{ height: 10 }} />
+                <View style={{ height: 10 }} />
+                <View style={{ height: 10 }} />
+                <View style={{ height: 10 }} />
+                <View style={{ height: 10 }} />
+                <View style={{ height: 10 }} />
               </View>
             </ScrollView>
+          
           </View>
         )}
+          
 
         {miscState.isLargeScreen && miscState.userStatus &&(miscState.question && miscState.question.question) && (miscState.userStatus.chapters === "Editeur" || miscState.userStatus.chapters === "Lecteur" || miscState.userStatus.chapters === "Auditeur") && (
           <View style={[styles.resizer, { right: miscState.rightPanelWidth - 30 }]} onMouseDown={handleMouseDown}>
             <Image source={doubleArrowIcon} style={{ width: 120, height: 120, opacity: 0.5 }} />
           </View>
         )}
-
+ 
         
         <TouchableOpacity
           onPress={toggleLeftPanel}
@@ -630,7 +637,12 @@ function ReadAnswersScreen({ route }) {
 
         {miscState.isLargeScreen && (
           <View style={miscState.isLargeScreen ? styles.middlePanelContainer : styles.fullWidth}>
+            
+         
+            
             <View style={{ ...styles.MiddlePanel, width: miscState.middlePanelWidth }}>
+              
+             
               <Text style={globalStyles.title}>
                 {miscState.question && miscState.question.question ? miscState.question.question : 'Veuillez sélectionner un chapitre'}
                 {miscState.isContentModified && (
@@ -639,7 +651,9 @@ function ReadAnswersScreen({ route }) {
                   </TouchableOpacity>
                 )}
               </Text>
+              
               <View style={styles.container}>
+                
                 {miscState.userStatus && miscState.userStatus.chapters === "Editeur" ? (
                   <>
                     {Platform.OS === 'web' ? (
@@ -694,19 +708,45 @@ function ReadAnswersScreen({ route }) {
                     )}
                   </>
                 )}
+                
               </View>
             </View>
+          
+          
+
           </View>
         )}
 
-        {(miscState.isLargeScreen || !miscState.isLeftPanelVisible)&&(miscState.question && miscState.question.question) && (
-          <View style={[styles.rightPanel, { width: miscState.rightPanelWidth }]}>
-            <ScrollView>
-              <NoteScreen route={{ params: { session, miscState:miscState,setMiscState: setMiscState , filterSelectedQuestion:filterSelectedQuestion, setFilterSelectedQuestion:setFilterSelectedQuestion, question_reponse: miscState.question_reponse, mode: miscState.userStatus?.notes, reference: reference, setReference : setReference, } }} key={reference} />
-            </ScrollView>
-          </View>
-        )}
+{(miscState.isLargeScreen || !miscState.isLeftPanelVisible) && (miscState.question && miscState.question.question) && (
+    <View style={[styles.rightPanel, { width: miscState.rightPanelWidth }]}>
+      <ScrollView>
+        <NoteScreen 
+          route={{ 
+            params: { 
+              session, 
+              miscState:miscState,
+              setMiscState: setMiscState, 
+              filterSelectedQuestion: filterSelectedQuestion, 
+              setFilterSelectedQuestion: setFilterSelectedQuestion, 
+              question_reponse: miscState.question_reponse, 
+              mode: miscState.userStatus?.notes, 
+              reference: reference, 
+              setReference: setReference, 
+            } 
+          }} 
+          key={reference} 
+        />
+      </ScrollView>
+    </View>
+    
+)}
+
+           
+
+        
       </View>
+
+      
 
       <ModalComponent
         isVisible={modals.isChapterModalVisible}
@@ -811,6 +851,8 @@ function ReadAnswersScreen({ route }) {
     setModals(prevState => ({ ...prevState, deleteModalVisible: false }));
   }}
 />
+
+
 
     </View>
   );

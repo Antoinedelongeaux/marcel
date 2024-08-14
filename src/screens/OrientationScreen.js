@@ -22,6 +22,7 @@ import {
   getMemories_Answers_to_theme,
   deleteMemories_Answer,
   remember_active_subject,
+  validate_project_contributors,
 } from '../components/data_handling';
 import { getActiveSubjectId,saveActiveSubjectId } from '../components/local_storage';
 import NoteScreen from './NoteScreen';
@@ -45,40 +46,53 @@ import {AnswerCard,
 
 
 
-const useFetchData = (id_user, setUserName, subject, setSubject, setUserStatus, subjects, setSubjects) => {
-
-    if (id_user) {
-
-      getSubjects(id_user).then(setSubjects);
-      get_user_name(id_user).then(setUserName);
-      if (id_user && Array.isArray(subjects) && subjects.length > 0) {
-        console.log("subjects : ", subjects);
-        console.log("subjects.length : ", subjects.length);
-        subjects.forEach((subject) => {  // Remplacez .map par .forEach car vous n'avez pas besoin de retourner un tableau
-          if (subject && subject.id) {
-            getUserStatus(id_user, subject.id).then((status) => {
-              setUserStatus((prevStatus) => ({
-                ...prevStatus,
-                [subject.id]: status,
-              }));
-            });
-          }
-        });
-      }
-    }
+const useFetchData = (
+  id_user, 
+  setUserName, 
+  subjects, 
+  setSubjects,
+  navigateToScreen,
+  setProjectsCount
+) => {
 
 
-};
+
+  useEffect(() => {
+    const fetchMachin = async () => { 
+
+    if (id_user && subjects) { 
+
+      if(subjects.length === 0){
+
+      const temp = await getSubjects(id_user)
+      setSubjects(temp);
+      await get_user_name(id_user).then(setUserName);
+
+      console.log("subjects.length : ",temp.length)
+      if ( temp.length > 0) {
+      
+        setProjectsCount(temp.length); 
+    }  else  {
+        navigateToScreen('Projets');
+      } 
+
+    }}}
+    fetchMachin()     
+  }, [id_user, subjects]);
+
+  }
+
+
+
 
 
 function OrientationScreen({ route }) {
   const navigation = useNavigation();
   const session = route.params?.session;
-  console.log("session : ",session)
+
   const [subjects, setSubjects] = useState([]);
   const [subject, setSubject] = useState([]);
   const [answers, setAnswers] = useState([]);
-  const [userStatus, setUserStatus] = useState({});
   const [users, setUsers] = useState([]);
 
   const [question_reponse, setQuestion_reponse] = useState('réponse');
@@ -93,6 +107,7 @@ function OrientationScreen({ route }) {
   const [themesAllUsers, setThemesAllUsers] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState({});
+  const [projectsCount, setProjectsCount] = useState({});
   
 
   const [showChoices_0, setShowChoices_0] = useState(false);
@@ -125,21 +140,26 @@ function OrientationScreen({ route }) {
 
 
 
-  console.log("On passe bien par là !")
-  useEffect( async() => { 
+/*
+  useEffect(() => {
     const fetchSubject = async () => {
-    const temp = await getActiveSubjectId()
-    await getSubject(temp).then(setSubject);
-    }
-    fetchSubject()
-  },[])
+      const temp = await getActiveSubjectId();
+      if (temp !== subject?.id) { // Vérifie si le sujet a changé avant de déclencher l'appel
+        const newSubject = await getSubject(temp);
+        setSubject(newSubject);
+      }
+    };
+    fetchSubject();
+  }, [subject?.id]); // Ajoutez une dépendance sur subject.id pour éviter les appels inutiles
+  */
+  
+  const navigateToScreen = useCallback((screenName, params) => {
+    navigation.navigate(screenName, params);
+  }, [navigation]);
 
-  useEffect( async() => { 
-    console.log("subjects : ",subjects)
-    console.log("subjects.length : ",subjects.length)
-  },[subjects])
+  
 
-  useFetchData(session.user.id,setUserName,subject,setSubject, setUserStatus, setSubjects);
+  useFetchData(session.user.id,setUserName,subjects, setSubjects,navigateToScreen,setProjectsCount);
   
   const containerRef = useRef();
 
@@ -156,55 +176,36 @@ function OrientationScreen({ route }) {
   };
 
 
-  const fetchUserStatus = useCallback(async () => {
-    // si aucun projet dans projects tel que userStatus[project.id].access === true  -> navigateToScreen('Projets');
-
-    // si un seul projet dans projects tel que userStatus[project.id].access === true  -> setShowChoices_2(true) [que voulez vous faire (contribuer /  écrire / lire)]
-
-    // si plusieurs projets dans projects tel que userStatus[project.id].access === true -> setShowChoice_1(true) [choisir un projet]
-
-    if (subject && subject.id) {
-      const status = await getUserStatus(session.user.id, subject.id);
-      setUserStatus(status);
-      if (status.chapters === 'Auditeur') {
-        setQuestion_reponse('question');
-      }
-      const name = await get_user_name(session.user.id);
-      setUserName(name);
-      if (!status.access) {
-        navigateToScreen('Projets');
-      }
-    }
-  }, [session.user.id, subject, navigateToScreen]);
-
 
   useEffect(() => { 
-    if (userStatus){
-      if (showChoices_1 && !showChoices_2) {
-        console.log("showChoices_1 uniquement")
-      }
-      if (!showChoices_1 && showChoices_2) {
-        console.log("showChoices_2 uniquement")
-      }
-      if (showChoices_1 && showChoices_2) {
-        console.log("showChoices_1 et showChoices_2")
-      }
-    }
+    console.log("projectsCount :",projectsCount)
+    if (projectsCount && projectsCount==1){
+      const fetchSubject = async () => {
+        const temp = await getActiveSubjectId();
+        if (temp !== subject?.id) { // Vérifie si le sujet a changé avant de déclencher l'appel
+          const newSubject = await getSubject(temp);
+          setSubject(newSubject);
+        }
+      };
+      fetchSubject();
+      handleChoice_2() }
+    if (projectsCount && projectsCount>1){
+      handleChoice_1() }
+      
+  }, [projectsCount]);
 
-  }, [userStatus, showChoices_1, showChoices_2]);
 
 
 
-  const navigateToScreen = useCallback((screenName, params) => {
-    navigation.navigate(screenName, params);
-  }, [navigation]);
+
 
   useEffect(() => {
     if (userName) {
-      const messageContent = `Bonjour ${userName}, bienvenue ! Que souhaitez-vous faire ?`;
-      displayProgressiveText(messageContent, setProgressiveMessage_1);
-      setTimeout(() => setShowChoices_1(true), messageContent.split(' ').length * 10);
+      const messageContent = `Bonjour ${userName}, bienvenue !`;
+      displayProgressiveText(messageContent, setProgressiveMessage_0);
+      
     }
+   
   }, [userName]);
 
 
@@ -214,36 +215,49 @@ function OrientationScreen({ route }) {
 
 
 
-  const handleChoice_1 = async (choice) => {
+
+  const handleChoice_1 = async () => {
     setShowChoices_2(false)
-    setSelectedChoice_1(choice);
-    let message='';
-    if(choice ==='Voir les notes déjà produites'){
-        message = "Voici les notes qui ont déjà été rassemblées sur ce projet. Vous pouvez les filtrer par date, contributeur, mot clé, etc. en utilisant les filtres ci-dessous";
-    };
-    if(choice ==='Ajouter une note'){
-        message = "Savez-vous déjà ce que vous souhaitez raconter ?"
-    };
-    if(choice ==='Proposer un thème'){
-      message = "Merci, ce thème sera proposé à d'autre contributeurs afin de les inspirer."
-    };
+    setShowChoices_1(false)
+    setSubject([])
 
-    displayProgressiveText(message, setProgressiveMessage_2);
-    setTimeout(() => setShowChoices_2(true), message.split(' ').length * 10);
-
+    const message = "Veuillez selectionner un projet : ";
+    
+    displayProgressiveText(message, setProgressiveMessage_1);
+    setTimeout(() => setShowChoices_1(true), message.split(' ').length * 10);
   };
 
-  const handleChoice_2 = async (choice) => {
+  const handleChoice_2 = async () => {
+    setShowChoices_2(false)
+
+    const message = "Que souhaitez-vous faire ?";
+    
+    displayProgressiveText(message, setProgressiveMessage_2);
+    setTimeout(() => setShowChoices_2(true), message.split(' ').length * 10);
+  };
+
+
+  const handleChoice_3 = async (choice) => {
+
     if(choice ==='Contribuer en fournissant des éléments ou en suggérant des thèmes'){
-      // chnager le status en "pas d'accès"  
+      // chnager le status en "pas d'accès" 
+      await validate_project_contributors(subject.id,session.user.id,true,"Contributeur","Pas d'accès") 
+      console.log("Pas d'accès")
+      navigateToScreen('Incipit');
       // envoyer sur la bonne page
     };
     if(choice ==="Participer à la rédaction du projet sur la base des contributions existantes"){
-      // changer le status en "Editeur"  
+      // changer le status en "Editeur"
+      await validate_project_contributors(subject.id,session.user.id,true,"Contributeur","Editeur")   
+      console.log("Editeur")
+      navigateToScreen('Marcel');
       // envoyer sur la bonne page
     };
     if(choice ==="Lire et commenter les chapitres déjà rédigés"){
       // changer le status en "Lecteur"  
+      await validate_project_contributors(subject.id,session.user.id,true,"Contributeur","Lecteur")   
+      console.log("Lecteur")
+      navigateToScreen('Marcel');
       // envoyer sur la bonne page
     };
 
@@ -269,79 +283,86 @@ function OrientationScreen({ route }) {
       
             <>
 
-            { !selectedChoice_1 && ( 
-              <>
+            
+              
             <Card style={globalStyles.QuestionBubble}>
+    <Card.Content>
+      <Paragraph style={globalStyles.globalButtonText_tag}>{progressiveMessage_0}</Paragraph>
+    </Card.Content>
+  </Card>
+
+ {progressiveMessage_1 !=="" &&(
+  <Card style={globalStyles.QuestionBubble}>
     <Card.Content>
       <Paragraph style={globalStyles.globalButtonText_tag}>{progressiveMessage_1}</Paragraph>
     </Card.Content>
   </Card>
+  )}
+
   {showChoices_1 && (
     <Picker
-    selectedValue={subject.id || ""}
+    selectedValue={subject?.id || "Sélectionner un projet"}
     style={styles.picker}
     onValueChange={(itemValue, itemIndex) => {
-      const selectedSubject = subjects.find(subj => subj.content_subject.id === itemValue).content_subject;
-      setSubject(selectedSubject)
-      saveActiveSubjectId(selectedSubject.id)
-        .then(() => {
-          remember_active_subject(selectedSubject.id, session.user.id);
-          (true);
-        })
-        .catch((error) => {
-          console.error('Error saving active subject ID:', error);
-          //setShowChoices_1(false); // Ajoutez cette ligne pour garantir l'exécution
-        });
+      if (itemValue !== "Sélectionner un projet") {
+        const selectedSubject = subjects.find(subj => subj.content_subject.id === itemValue).content_subject;
+        setSubject(selectedSubject);
+        saveActiveSubjectId(selectedSubject.id)
+          .then(() => {
+            remember_active_subject(selectedSubject.id, session.user.id);
+            handleChoice_2(true);
+          })
+          .catch((error) => {
+            console.error('Error saving active subject ID:', error);
+          });
+      }
     }}
   >
-    <Picker.Item label="Sélectionner un projet" value="" />
+    <Picker.Item label="Choisissez un projet" value="default" />
     {subjects.map((subj, index) => (
       <Picker.Item key={index} label={subj.content_subject.title} value={subj.content_subject.id} />
     ))}
   </Picker>
   
+  
   )}
-  </>
-)}
 
-              {selectedChoice_1  && !showChoices_1 &&  ( 
-                <>
-                    <Text> Coucou sans choix 1</Text>
-                </>
-              )}
-            
-            {selectedChoice_1  && showChoices_1 &&  ( 
-                <>
-                    {!showChoices_1 && (
-                      <Text> Coucou avec choix 1</Text>
-                    )}
-                    {showChoices_1 && (
-                      <Text> Coucou sans choix 1</Text>
-                    )}
-
-                    {showChoices_2 && (
-                      <View style={{ flexDirection: isLargeScreen ? 'row' : 'column', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-
-                      {['Contribuer en fournissant des éléments ou en suggérant des thèmes', 'Participer à la rédaction du projet sur la base des contributions existantes', 'Lire et commenter les chapitres déjà rédigés'].map((format) => (
-                            <Card style={[globalStyles.ResponseBubble, selectedChoice_4 === format && globalStyles.ResponseBubble_selected, { marginHorizontal: 20 }]} key={format}>
-                                <Card.Content>
-                                    <TouchableOpacity
-                                      onPress={() => handleChoice_2(choix)}
-                                      onMouseEnter={() => setIsHoveredButton(choix)}
-                                      onMouseLeave={() => setIsHoveredButton('')}
-                                    >
-        <Paragraph style={[globalStyles.choiceButtonText, isHoveredButton === choix && { fontWeight: 'bold' }, selectedChoice_4 === format && { color: 'white' }]}>
-          {choix}
-        </Paragraph>
-      </TouchableOpacity>
+{progressiveMessage_2 !=="" &&( 
+  <Card style={globalStyles.QuestionBubble}>
+    <Card.Content>
+      <Paragraph style={globalStyles.globalButtonText_tag}>{progressiveMessage_2}</Paragraph>
     </Card.Content>
   </Card>
-))}
-                      </View>
-                    )}
+)}
 
-                </>
-              )}
+  {showChoices_2 && (
+                <View style={{ flexDirection: isLargeScreen ? 'column' : 'column', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+
+                {['Contribuer en fournissant des éléments ou en suggérant des thèmes', 'Participer à la rédaction du projet sur la base des contributions existantes', 'Lire et commenter les chapitres déjà rédigés'].map((choix) => (
+                      <Card style={[globalStyles.ResponseBubble, selectedChoice_4 === choix && globalStyles.ResponseBubble_selected, { marginHorizontal: 20 }]} key={choix}>
+                          <Card.Content>
+                              <TouchableOpacity
+                                onPress={() => handleChoice_3(choix)}
+                                onMouseEnter={() => setIsHoveredButton(choix)}
+                                onMouseLeave={() => setIsHoveredButton('')}
+                              >
+  <Paragraph style={[globalStyles.choiceButtonText, isHoveredButton === choix && { fontWeight: 'bold' }, selectedChoice_4 === choix && { color: 'white' }]}>
+    {choix}
+  </Paragraph>
+</TouchableOpacity>
+</Card.Content>
+</Card>
+))}
+                </View>
+  
+  )}
+
+
+
+
+
+
+        
             
             <Text> </Text>
             <Text> </Text>
