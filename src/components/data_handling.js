@@ -720,7 +720,7 @@ export async function getSubjects(id_user) {
       return { ...element, content_subject: content_subject[0] };
     }));
    
-    console.log("Subjects : ",subjectsWithContent)
+
     return subjectsWithContent;
   } catch (error) {
     console.error("Error in getSubject:", error.message);
@@ -770,7 +770,6 @@ export async function getSubject(id_subject) {
       .eq('id', id_subject)
       .single();
     if (error) throw error;
-
 
     return subject;
   } catch (error) {

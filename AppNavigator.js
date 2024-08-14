@@ -11,6 +11,7 @@ import EditChapterScreen from './src/screens/EditChapterScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import ReadAnswersScreen from './src/screens/ReadAnswersScreen';
 import ReadNotesScreen from './src/screens/ReadNotesScreen';
+import OrientationScreen from './src/screens/OrientationScreen';
 import ManageBiographyScreen from './src/screens/ManageBiography';
 import NoteScreen from './src/screens/NoteScreen';
 import { saveActiveSubjectId,getActiveSubjectId, saveActiveSubjectUserStatus,getActiveSubjectUserStatus } from './src/components/local_storage';
@@ -145,7 +146,8 @@ function AppNavigator({ session }) {
         <>
 
        { userStatus.chapters==="Pas d'accès" && (<> 
-          <Stack.Screen name="Incipit" component={ReadNotesScreen} initialParams={{ session }} />
+          <Stack.Screen name="Orientation" component={OrientationScreen} initialParams={{ session }} />
+          <Stack.Screen name="Contribution" component={ReadNotesScreen} initialParams={{ session }} />
           <Stack.Screen name="Account" component={Account} initialParams={{ session }} />
           <Stack.Screen name="Notes" component={NoteScreen} initialParams={{ session }} />
           <Stack.Screen name="ProfileScreen" component={ProfileScreen} initialParams={{ session }} />
