@@ -6,6 +6,7 @@ import { Card, Paragraph } from 'react-native-paper';
 import { globalStyles } from '../../global';
 import { getSubject, getSubjects, getUserStatus, get_user_name, validate_project_contributors,remember_active_subject } from '../components/data_handling';
 import { getActiveSubjectId,saveActiveSubjectId } from '../components/local_storage';
+import Carousel from 'react-native-snap-carousel';
 
 const useFetchData = (id_user, setUserName, subjects, setSubjects, navigateToScreen, setProjectsCount) => {
   useEffect(() => {
@@ -26,6 +27,8 @@ const useFetchData = (id_user, setUserName, subjects, setSubjects, navigateToScr
 };
 
 const OrientationScreen = ({ route }) => {
+  const windowWidth = Dimensions.get('window').width;
+  const isLargeScreen = windowWidth > 768;
   const [animationValues] = useState([...Array(6)].map(() => new Animated.Value(0)));
   const containerRef = useRef();
   const titles = ['Structurer', 'Raconter', 'Réagir', 'Rédiger', 'Corriger', 'Lire'];
@@ -330,26 +333,38 @@ const OrientationScreen = ({ route }) => {
               </Card>
    
     <View style={styles.container}>
-      {renderCards()}
+    {isLargeScreen ? (
+  <View style={styles.container}>
+    {renderCards()}    
+  </View>
+) : (
+  <Carousel
+  data={titles}
+  renderItem={({ item, index }) => (
+    <TouchableOpacity
+      key={`carousel-card-${index}`}
+      onPress={handlers[index]} // Exécute la fonction associée à la carte
+      style={{ zIndex: zIndexes[index] }}
+    >
+      <Animated.View style={[styles.card_SmallScreen, { backgroundColor: colors[index] }]}>
+        <Text style={styles.title}>{titles[index]}</Text>
+        <Text> </Text>
+        <Text> </Text>
+        <Text style={styles.details}>{details[index]}</Text>
+        <View style={styles.holeContainer}>
+          <View style={styles.hole} />
+        </View>
+      </Animated.View>
+    </TouchableOpacity>
+  )}
+  sliderWidth={Dimensions.get('window').width}
+  itemWidth={Dimensions.get('window').width * 0.8} // Augmente la largeur des cartes
+/>
+
+)}
+
     </View>
-    <Text> </Text>
-    <Text> </Text>
-    <Text> </Text>
-    <Text> </Text>
-    <Text> </Text>
-    <Text> </Text>
-    <Text> </Text>
-    <Text> </Text>
-    <Text> </Text>
-    <Text> </Text>
-    <Text> </Text>
-    <Text> </Text>
-    <Text> </Text>
-    <Text> </Text>
-    <Text> </Text>
-    <Text> </Text>
-    <Text> </Text>
-    <Text> </Text>
+
 
 
 
@@ -387,6 +402,24 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 8, // Utilisé pour Android
   },
+
+  card_SmallScreen: {
+    position: 'absolute',
+    width: Dimensions.get('window').height * 0.45,
+    height: Dimensions.get('window').height * 0.8,
+    justifyContent: 'flex-start', // Aligne le contenu en haut
+    alignItems: 'center',
+    padding: 10,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: 'rgba(0, 0, 0, 0.1)', // Bordure subtile
+    shadowColor: '#000', // Ombre de la carte
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 8, // Utilisé pour Android
+  },
+
   title: {
     fontSize: 34,
     color: '#fff',
