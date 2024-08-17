@@ -1,167 +1,116 @@
-import React, { useState, useEffect, useCallback,  useRef  } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { View, Text, Animated, StyleSheet, Dimensions, Picker } from 'react-native';
+import { TouchableOpacity } from 'react-native-web';
 import { useNavigation } from '@react-navigation/native';
-import {
-  Image,
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  Dimensions,
-  StyleSheet,
-  Picker,
-  Alert,
-} from 'react-native';
-import {
-  getSubject,
-  getSubjects,
-  getUserStatus,
-  get_user_name,
-  submitMemories_Answer,
-  createTheme,
-  getTheme_byProject,
-  getMemories_Answers_to_theme,
-  deleteMemories_Answer,
-  remember_active_subject,
-  validate_project_contributors,
-} from '../components/data_handling';
-import { getActiveSubjectId,saveActiveSubjectId } from '../components/local_storage';
-import NoteScreen from './NoteScreen';
-import { globalStyles } from '../../global';
-import settings from '../../assets/icons/accueil.png';
 import { Card, Paragraph } from 'react-native-paper';
-import trash from '../../assets/icons/baseline_delete_outline_black_24dp.png';
-import { createAudioChunk, startRecording, stopRecording, uploadAudioToSupabase, delete_audio,playRecording_fromAudioFile, uploadImageToSupabase,handlePlayPause } from '../components/sound_handling'; 
-import { v4 as uuidv4 } from 'uuid';
-import ModalComponent from '../components/ModalComponent';
-import {
-  AnswerPanel_written, 
-  AnswerPanel_oral,
-  AnswerPanel_AudioFile,
-  AnswerPanel_imageFile,
-  ThemePanel
-  }  from '../components/save_note';
-import {AnswerCard,
-  CarrousselThemes,
-} from '../components/UI_components';
+import { globalStyles } from '../../global';
+import { getSubject, getSubjects, getUserStatus, get_user_name, validate_project_contributors,remember_active_subject } from '../components/data_handling';
+import { getActiveSubjectId,saveActiveSubjectId } from '../components/local_storage';
 
-
-
-const useFetchData = (
-  id_user, 
-  setUserName, 
-  subjects, 
-  setSubjects,
-  navigateToScreen,
-  setProjectsCount
-) => {
-
-
-
+const useFetchData = (id_user, setUserName, subjects, setSubjects, navigateToScreen, setProjectsCount) => {
   useEffect(() => {
-    const fetchMachin = async () => { 
-
-    if (id_user && subjects) { 
-
-      if(subjects.length === 0){
-
-      const temp = await getSubjects(id_user)
-      setSubjects(temp);
-      await get_user_name(id_user).then(setUserName);
-
-      console.log("subjects.length : ",temp.length)
-      if ( temp.length > 0) {
-      
-        setProjectsCount(temp.length); 
-    }  else  {
-        navigateToScreen('Projets');
-      } 
-
-    }}}
-    fetchMachin()     
+    const fetchMachin = async () => {
+      if (id_user && subjects.length === 0) {
+        const temp = await getSubjects(id_user);
+        setSubjects(temp);
+        await get_user_name(id_user).then(setUserName);
+        if (temp.length > 0) {
+          setProjectsCount(temp.length);
+        } else {
+          navigateToScreen('Projets');
+        }
+      }
+    };
+    fetchMachin();
   }, [id_user, subjects]);
+};
 
-  }
+const OrientationScreen = ({ route }) => {
+  const [animationValues] = useState([...Array(6)].map(() => new Animated.Value(0)));
+  const containerRef = useRef();
+  const titles = ['Structurer', 'Raconter', 'Réagir', 'Rédiger', 'Corriger', 'Lire'];
+  const details = [
+    <>
+      <Text style={{ fontWeight: 'bold' }}>Proposez</Text> un thème autour duquel l'information sera collectée
+    </>,
+    <>
+      <Text style={{ fontWeight: 'bold' }}>Partagez</Text> vos souvenirs {"\n\n"} 
+      ou bien {"\n\n"} 
+      <Text style={{ fontWeight: 'bold' }}>Apportez</Text> de la matière brute : {"\n"} 
+      - lettres, {"\n"} 
+      - enregistrements audios, {"\n"} 
+      - photographies, {"\n"} 
+      - etc.
+    </>,
+    <>
+      <Text style={{ fontWeight: 'bold' }}>Prenez</Text> la suite d'un thème existant en y apportant vos compléments ou vos questions
+    </>,
+    <>
+      <Text style={{ fontWeight: 'bold' }}>Rédigez</Text> un chapitre à partir de la matière déjà collectée
+    </>,
+    <>
+      <Text style={{ fontWeight: 'bold' }}>Relisez</Text>, complétez, annotez un chapitre rédigé
+    </>,
+    <>
+      <Text style={{ fontWeight: 'bold' }}>Lisez</Text> les chapitres rédigés
+    </>
+  ];
 
+  const colors = ['#0c2d48','#145da0',  '#2e8bc0','#fc2e20' ,  '#fd7f20','#fdb750'];
 
+  // Valeurs d'animation de zoom pour chaque carte
+  const [zoomAnimations] = useState(titles.map(() => new Animated.Value(1)));
 
+  // État pour gérer le zIndex de chaque carte
+  const [zIndexes, setZIndexes] = useState(titles.map(() => 0));
 
-
-function OrientationScreen({ route }) {
-  const navigation = useNavigation();
+  const [userName, setUserName] = useState('');
   const session = route.params?.session;
-
   const [subjects, setSubjects] = useState([]);
   const [subject, setSubject] = useState([]);
-  const [answers, setAnswers] = useState([]);
-  const [users, setUsers] = useState([]);
-
-  const [question_reponse, setQuestion_reponse] = useState('réponse');
-  const windowWidth = Dimensions.get('window').width;
-  const rightPanelWidth = windowWidth;
-  const isLargeScreen = windowWidth > 768;
-  const [isLoading, setIsLoading] = useState(false);
-  const [userName, setUserName] = useState('');
-  const [themeText, setThemeText] = useState('');
-  const [theme, setTheme] = useState(null);
-  const [themes, setThemes] = useState([]);
-  const [themesAllUsers, setThemesAllUsers] = useState([]);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [selectedAnswer, setSelectedAnswer] = useState({});
   const [projectsCount, setProjectsCount] = useState({});
-  
-
-  const [showChoices_0, setShowChoices_0] = useState(false);
-  const [showChoices_1, setShowChoices_1] = useState(false);
-  const [showChoices_2, setShowChoices_2] = useState(false);
-  const [showChoices_3, setShowChoices_3] = useState(false);
-  const [showChoices_4, setShowChoices_4] = useState(false);
-  const [showChoices_5, setShowChoices_5] = useState(false);
-
-  const [showChoices_7, setShowChoices_7] = useState(true);
-
-
 
   const [progressiveMessage_0, setProgressiveMessage_0] = useState('');
   const [progressiveMessage_1, setProgressiveMessage_1] = useState('');
   const [progressiveMessage_2, setProgressiveMessage_2] = useState('');
-  const [progressiveMessage_3, setProgressiveMessage_3] = useState('');
-  const [progressiveMessage_4, setProgressiveMessage_4] = useState('');
-  const [progressiveMessage_5, setProgressiveMessage_5] = useState('');
 
+  const [showChoices_1, setShowChoices_1] = useState(false);
+  const [showChoices_2, setShowChoices_2] = useState(false);
 
-  const [selectedChoice_1, setSelectedChoice_1] = useState('');
-  const [selectedChoice_2, setSelectedChoice_2] = useState('');
-  const [selectedChoice_3, setSelectedChoice_3] = useState('');
-  const [selectedChoice_4, setSelectedChoice_4] = useState('');
+  // Nouveaux états pour s'assurer que les messages ne sont affichés qu'une seule fois
+  const [message0Displayed, setMessage0Displayed] = useState(false);
+  const [message1Displayed, setMessage1Displayed] = useState(false);
 
-
-  const [isHovered, setIsHovered] = useState(false);
-  const [isHoveredButton, setIsHoveredButton] = useState('');
-
-
-
-/*
-  useEffect(() => {
-    const fetchSubject = async () => {
-      const temp = await getActiveSubjectId();
-      if (temp !== subject?.id) { // Vérifie si le sujet a changé avant de déclencher l'appel
-        const newSubject = await getSubject(temp);
-        setSubject(newSubject);
-      }
-    };
-    fetchSubject();
-  }, [subject?.id]); // Ajoutez une dépendance sur subject.id pour éviter les appels inutiles
-  */
+  const navigation = useNavigation();
+  const [, forceUpdate] = useState();
   
   const navigateToScreen = useCallback((screenName, params) => {
     navigation.navigate(screenName, params);
   }, [navigation]);
 
-  
+  useEffect(() => {
+    if (projectsCount === 1) {
+      const fetchSubject = async () => {
+        const temp = await getActiveSubjectId();
+        if (temp !== subject?.id) {
+          const newSubject = await getSubject(temp);
+          setSubject(newSubject);
+        }
+      };
+      fetchSubject();
+      handleChoice_2();
+    } else if (projectsCount > 1) {
+      handleChoice_1();
+    }
+  }, [projectsCount]);
 
-  useFetchData(session.user.id,setUserName,subjects, setSubjects,navigateToScreen,setProjectsCount);
-  
-  const containerRef = useRef();
+  useEffect(() => {
+    if (userName && !message0Displayed) {
+      const messageContent = `Bonjour ${userName}, bienvenue !`;
+      displayProgressiveText(messageContent, setProgressiveMessage_0);
+      setMessage0Displayed(true); // Empêche le message de s'afficher plusieurs fois
+    }
+  }, [userName, message0Displayed]);
 
   const displayProgressiveText = (message, setMessage) => {
     const words = message.split(' ');
@@ -175,254 +124,300 @@ function OrientationScreen({ route }) {
     }, 10);
   };
 
-
-
-  useEffect(() => { 
-    console.log("projectsCount :",projectsCount)
-    if (projectsCount && projectsCount==1){
-      const fetchSubject = async () => {
-        const temp = await getActiveSubjectId();
-        if (temp !== subject?.id) { // Vérifie si le sujet a changé avant de déclencher l'appel
-          const newSubject = await getSubject(temp);
-          setSubject(newSubject);
-        }
-      };
-      fetchSubject();
-      handleChoice_2() }
-    if (projectsCount && projectsCount>1){
-      handleChoice_1() }
-      
-  }, [projectsCount]);
-
-
-
-
-
-
-  useEffect(() => {
-    if (userName) {
-      const messageContent = `Bonjour ${userName}, bienvenue !`;
-      displayProgressiveText(messageContent, setProgressiveMessage_0);
-      
-    }
-   
-  }, [userName]);
-
-
-
-
-
-
-
-
+  useFetchData(session.user.id, setUserName, subjects, setSubjects, navigateToScreen, setProjectsCount);
 
   const handleChoice_1 = async () => {
-    setShowChoices_2(false)
-    setShowChoices_1(false)
-    setSubject([])
+    setShowChoices_2(false);
+    setShowChoices_1(false);
+    setSubject([]);
 
-    const message = "Veuillez selectionner un projet : ";
-    
-    displayProgressiveText(message, setProgressiveMessage_1);
-    setTimeout(() => setShowChoices_1(true), message.split(' ').length * 10);
+    if (!message1Displayed) {
+      const message = "Veuillez selectionner un projet : ";
+      displayProgressiveText(message, setProgressiveMessage_1);
+      setMessage1Displayed(true); // Empêche le message de s'afficher plusieurs fois
+    }
+
+    setTimeout(() => setShowChoices_1(true), 1000);
   };
 
   const handleChoice_2 = async () => {
-    setShowChoices_2(false)
-
+    setShowChoices_2(false);
     const message = "Que souhaitez-vous faire ?";
-    
     displayProgressiveText(message, setProgressiveMessage_2);
-    setTimeout(() => setShowChoices_2(true), message.split(' ').length * 10);
+    setTimeout(() => setShowChoices_2(true), 1000);
   };
 
 
-  const handleChoice_3 = async (choice) => {
-
-    if(choice ==='Contribuer en fournissant des éléments ou en suggérant des thèmes'){
-      // chnager le status en "pas d'accès" 
-      await validate_project_contributors(subject.id,session.user.id,true,"Contributeur","Pas d'accès") 
-      console.log("Pas d'accès")
-      navigateToScreen('Incipit');
-      // envoyer sur la bonne page
-    };
-    if(choice ==="Participer à la rédaction du projet sur la base des contributions existantes"){
-      // changer le status en "Editeur"
-      await validate_project_contributors(subject.id,session.user.id,true,"Contributeur","Editeur")   
-      console.log("Editeur")
-      navigateToScreen('Marcel');
-      // envoyer sur la bonne page
-    };
-    if(choice ==="Lire et commenter les chapitres déjà rédigés"){
-      // changer le status en "Lecteur"  
-      await validate_project_contributors(subject.id,session.user.id,true,"Contributeur","Lecteur")   
-      console.log("Lecteur")
-      navigateToScreen('Marcel');
-      // envoyer sur la bonne page
-    };
-
-  
+  // Handlers pour chaque carte
+  const handleStructurer = async () => {
+    await validate_project_contributors(subject.id,session.user.id,true,"Contributeur","Pas d'accès")   
+    navigateToScreen('Incipit');
   };
 
+  const handleRaconter = async () => {
+    await validate_project_contributors(subject.id,session.user.id,true,"Contributeur","Pas d'accès")   
+    navigateToScreen('Incipit');
+  };
 
+  const handleReagir = async () => {
+    await validate_project_contributors(subject.id,session.user.id,true,"Contributeur","Pas d'accès")   
+    navigateToScreen('Incipit');
+  };
 
+  const handleRediger = async () => {
+    await validate_project_contributors(subject.id,session.user.id,true,"Contributeur","Editeur")   
+    navigateToScreen('Marcel');
+  };
 
-  if ( subjects.length===0 ) {
-    return (
-      <View style={globalStyles.container}>
-        <Text>Loading...</Text>
-      </View>
-    );
+  const handleCorriger = async () => {
+    await validate_project_contributors(subject.id,session.user.id,true,"Contributeur","Auditeur")   
+    navigateToScreen('Marcel');
+  };
+
+  const handleLire = async () => {
+    await validate_project_contributors(subject.id,session.user.id,true,"Contributeur","Lecteur")   
+    navigateToScreen('Marcel');
+  };
+
+  // Associe chaque fonction à la carte correspondante
+  const handlers = [handleStructurer, handleRaconter, handleReagir, handleRediger, handleCorriger, handleLire];
+
+  const handleMouseEnter = (index) => {
+    setZIndexes((prevZIndexes) => {
+      const newZIndexes = [...prevZIndexes];
+      newZIndexes[index] = 1; // Passe la carte au premier plan
+      return newZIndexes;
+    });
+
+    Animated.timing(zoomAnimations[index], {
+      toValue: 1.2, // Zoom à 1.2x
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  useEffect(() => {
+    if (progressiveMessage_2 !== "") { 
+    console.log('Animations started'); // Pour vérifier si l'animation démarre
+    animationValues.forEach((anim, index) => {
+      Animated.timing(anim, {
+        toValue: 1,
+        duration: 1000 + index * 200,
+        useNativeDriver: true, // Gardez cela à true pour les transformations
+      }).start(() => {
+        forceUpdate({}); // Forcer la mise à jour après l'animation
+      });
+    });
   }
+  }, [progressiveMessage_2]);
 
+  const handleMouseLeave = (index) => {
+    Animated.timing(zoomAnimations[index], {
+      toValue: 1, // Retour à la taille normale
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      setZIndexes((prevZIndexes) => {
+        const newZIndexes = [...prevZIndexes];
+        newZIndexes[index] = 0; // Remet la carte à son zIndex d'origine
+        return newZIndexes;
+      });
+    });
+  };
 
-  
+  const renderCards = () => {
+    return titles.map((title, index) => {
+      const animatedStyle = {
+        transform: [
+          {
+            rotate: animationValues[index].interpolate({
+              inputRange: [0, 1],
+              outputRange: ['-70deg', `${index * 25 - 60}deg`], // Rotation calculée pour chaque carte
+            }),
+          },
+          { translateY: -Dimensions.get('window').width * 0.1 }, // Décalage pour chaque carte
+          { scale: zoomAnimations[index] },  // Animation de zoom
+        ],
+      };
 
-  return (
-    <View style={globalStyles.container} ref={containerRef}>
-      
-            <>
-
-            
-              
-            <Card style={globalStyles.QuestionBubble}>
-    <Card.Content>
-      <Paragraph style={globalStyles.globalButtonText_tag}>{progressiveMessage_0}</Paragraph>
-    </Card.Content>
-  </Card>
-
- {progressiveMessage_1 !=="" &&(
-  <Card style={globalStyles.QuestionBubble}>
-    <Card.Content>
-      <Paragraph style={globalStyles.globalButtonText_tag}>{progressiveMessage_1}</Paragraph>
-    </Card.Content>
-  </Card>
-  )}
-
-  {showChoices_1 && (
-    <Picker
-    selectedValue={subject?.id || "Sélectionner un projet"}
-    style={styles.picker}
-    onValueChange={(itemValue, itemIndex) => {
-      if (itemValue !== "Sélectionner un projet") {
-        const selectedSubject = subjects.find(subj => subj.content_subject.id === itemValue).content_subject;
-        setSubject(selectedSubject);
-        saveActiveSubjectId(selectedSubject.id)
-          .then(() => {
-            remember_active_subject(selectedSubject.id, session.user.id);
-            handleChoice_2(true);
-          })
-          .catch((error) => {
-            console.error('Error saving active subject ID:', error);
-          });
-      }
-    }}
-  >
-    <Picker.Item label="Choisissez un projet" value="default" />
-    {subjects.map((subj, index) => (
-      <Picker.Item key={index} label={subj.content_subject.title} value={subj.content_subject.id} />
-    ))}
-  </Picker>
-  
-  
-  )}
-
-{progressiveMessage_2 !=="" &&( 
-  <Card style={globalStyles.QuestionBubble}>
-    <Card.Content>
-      <Paragraph style={globalStyles.globalButtonText_tag}>{progressiveMessage_2}</Paragraph>
-    </Card.Content>
-  </Card>
-)}
-
-  {showChoices_2 && (
-                <View style={{ flexDirection: isLargeScreen ? 'column' : 'column', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-
-                {['Contribuer en fournissant des éléments ou en suggérant des thèmes', 'Participer à la rédaction du projet sur la base des contributions existantes', 'Lire et commenter les chapitres déjà rédigés'].map((choix) => (
-                      <Card style={[globalStyles.ResponseBubble, selectedChoice_4 === choix && globalStyles.ResponseBubble_selected, { marginHorizontal: 20 }]} key={choix}>
-                          <Card.Content>
-                              <TouchableOpacity
-                                onPress={() => handleChoice_3(choix)}
-                                onMouseEnter={() => setIsHoveredButton(choix)}
-                                onMouseLeave={() => setIsHoveredButton('')}
-                              >
-  <Paragraph style={[globalStyles.choiceButtonText, isHoveredButton === choix && { fontWeight: 'bold' }, selectedChoice_4 === choix && { color: 'white' }]}>
-    {choix}
-  </Paragraph>
-</TouchableOpacity>
-</Card.Content>
-</Card>
-))}
-                </View>
-  
-  )}
-
-
-
+      return (
+        <>
 
 
 
         
-            
-            <Text> </Text>
-            <Text> </Text>
-            <Text> </Text>
-            <Text> </Text>
-            <Text> </Text>
-            <Text> </Text>
-            <Text> </Text>
-            <Text> </Text>
-            <Text> </Text>
-  
-            </>
-     
+ 
 
+
+
+        <TouchableOpacity
+          key={`card-${index}`} 
+          onPress={handlers[index]} // Exécute la fonction associée à la carte
+          onMouseEnter={() => handleMouseEnter(index)}
+          onMouseLeave={() => handleMouseLeave(index)}
+          style={{ zIndex: zIndexes[index] }}
+        >
+          <Animated.View style={[styles.card, { backgroundColor: colors[index] }, animatedStyle]}>
+            <Text style={styles.title}>{title}</Text>
+            <Text> </Text>
+            <Text> </Text>
+            <Text style={styles.details}>{details[index]}</Text>
+            <View style={styles.holeContainer}>
+              <View style={styles.hole} />
+            </View>
+          </Animated.View>
+        </TouchableOpacity>
       
+      
+      </>
+    );
+    });
+  };
 
+
+
+  return (
+    <View style={globalStyles.container} ref={containerRef}>
+       <Card style={globalStyles.QuestionBubble}>
+    <Card.Content>
+      <Paragraph style={globalStyles.globalButtonText_tag}>{progressiveMessage_0}</Paragraph>
+    </Card.Content>
+  </Card>
+    {progressiveMessage_1 !=="" &&(
+      <Card style={globalStyles.QuestionBubble}>
+        <Card.Content>
+          <Paragraph style={globalStyles.globalButtonText_tag}>{progressiveMessage_1}</Paragraph>
+        </Card.Content>
+      </Card>
+      )}
+    
+      {showChoices_1 && (
+        <Picker
+        selectedValue={subject?.id || "Sélectionner un projet"}
+        style={styles.picker}
+        onValueChange={(itemValue, itemIndex) => {
+          if (itemValue !== "Sélectionner un projet") {
+            const selectedSubject = subjects.find(subj => subj.content_subject.id === itemValue).content_subject;
+            setSubject(selectedSubject);
+            saveActiveSubjectId(selectedSubject.id)
+              .then(() => {
+                remember_active_subject(selectedSubject.id, session.user.id);
+                handleChoice_2(true);
+              })
+              .catch((error) => {
+                console.error('Error saving active subject ID:', error);
+              });
+          }
+        }}
+      >
+        <Picker.Item label="Choisissez un projet" value="default" />
+        {subjects.map((subj, index) => (
+          <Picker.Item key={index} label={subj.content_subject.title} value={subj.content_subject.id} />
+        ))}
+      </Picker>
+      
+      
+      )}
+    
+    
+    
+            {progressiveMessage_2 !=="" &&( 
+              <> 
+              <Card style={globalStyles.QuestionBubble}>
+                <Card.Content>
+                  <Paragraph style={globalStyles.globalButtonText_tag}>{progressiveMessage_2}</Paragraph>
+                </Card.Content>
+              </Card>
+   
+    <View style={styles.container}>
+      {renderCards()}
     </View>
+    <Text> </Text>
+    <Text> </Text>
+    <Text> </Text>
+    <Text> </Text>
+    <Text> </Text>
+    <Text> </Text>
+    <Text> </Text>
+    <Text> </Text>
+    <Text> </Text>
+    <Text> </Text>
+    <Text> </Text>
+    <Text> </Text>
+    <Text> </Text>
+    <Text> </Text>
+    <Text> </Text>
+    <Text> </Text>
+    <Text> </Text>
+    <Text> </Text>
+
+
+
+
+
+
+    </>
+    )}
+
+</View>
   );
-
-}
-
+};
 
 const styles = StyleSheet.create({
-  largeScreenContainer: {
-    flexDirection: 'row',
+  container: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+    transform: [{ translateY: -Dimensions.get('window').height * 0.2 }],
   },
-  smallScreenContainer: {
-    flex: 1,
-  },
-  rightPanel: {
+  card: {
+    position: 'absolute',
+    width: Dimensions.get('window').height * 0.2,
+    height: Dimensions.get('window').height * 0.8,
+    justifyContent: 'flex-start', // Aligne le contenu en haut
+    alignItems: 'center',
     padding: 10,
-    marginRight: 5,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: 'rgba(0, 0, 0, 0.1)', // Bordure subtile
+    shadowColor: '#000', // Ombre de la carte
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 8, // Utilisé pour Android
   },
-  chatContainer: {
-    flexDirection: 'row',
-    marginVertical: 10,
+  title: {
+    fontSize: 34,
+    color: '#fff',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 10, // Espace entre le titre et les détails
   },
-  chatBubble: {
-    borderRadius: 15,
-    padding: 10,
-    maxWidth: '80%',
+  details: {
+    fontSize: 18,
+    color: '#fff',
+    textAlign: 'left',
   },
-  chatStart: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#f1f0f0', // Couleur de la bulle de chat du début
+  holeContainer: {
+    position: 'absolute',
+    bottom: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  chatEnd: {
-    alignSelf: 'flex-end',
-    backgroundColor: '#007aff', // Couleur de la bulle de chat de fin
+  hole: {
+    width: 20,
+    height: 20,
+    borderRadius: 10, // Crée un cercle
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: 'rgba(0, 0, 0, 0.1)', // Bordure subtile pour le trou
+    shadowColor: '#000', // Ombre pour le trou
+    shadowOffset: { width: 0, height: -3 }, // Ombre vers le haut
+    shadowOpacity: 0.5,
+    shadowRadius: 6,
+    elevation: 5, // Élévation pour Android
   },
-  chatTextEnd: {
-    color: '#fff', // Couleur du texte de la bulle de chat de fin
-  },
-    picker: {
-      height: 50,
-      width: '100%',
-    },
-
 });
-
 
 export default OrientationScreen;
