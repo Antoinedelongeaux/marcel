@@ -177,7 +177,7 @@ function ReadAnswersScreen({ route }) {
       const windowWidth = Dimensions.get('window').width;
       setMiscState(prevState => ({
         ...prevState,
-        middlePanelWidth: 0.5 * windowWidth,
+        middlePanelWidth: prevState.isLargeScreen ? 0.5 * windowWidth : windowWidth,
         rightPanelWidth: prevState.userStatus.chapters === "Pas d'accès" ? windowWidth - 550 : windowWidth - prevState.middlePanelWidth - 550
       }));
     });
@@ -474,6 +474,7 @@ function ReadAnswersScreen({ route }) {
             <View style={globalStyles.container_wide}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Text style={globalStyles.title}>{subject.title}</Text>
+                {miscState.userStatus.chapters !== "Lecteur"  && (
                 <TouchableOpacity
                   onPress={() => {
                     setMiscState(prevState => ({
@@ -485,6 +486,7 @@ function ReadAnswersScreen({ route }) {
                 >
                   <Image source={miscState.toggleIcon} style={{ width: 25, height: 25, opacity: 0.5, marginVertical: 5 }} />
                 </TouchableOpacity>
+                  )}
               </View>
               <View style={{ height: 10 }} />
             </View>
@@ -562,12 +564,17 @@ function ReadAnswersScreen({ route }) {
               </View>
 
               <View style={{ flexDirection: 'column', justifyContent: 'space-between', padding: 10 }}>
-                <TouchableOpacity style={globalStyles.globalButton_wide} onPress={() => setModals(prevState => ({ ...prevState, isModalVisible: true }))}>
+                
+              {miscState.userStatus.chapters !== "Lecteur"  && ( 
+               <>
+               <TouchableOpacity style={globalStyles.globalButton_wide} onPress={() => setModals(prevState => ({ ...prevState, isModalVisible: true }))}>
                   <Text style={globalStyles.globalButtonText}>Nouvelle partie</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={globalStyles.globalButton_wide} onPress={() => setModals(prevState => ({ ...prevState, isModalNewQuestionVisible: true }))}>
                   <Text style={globalStyles.globalButtonText}>Nouveau chapitre</Text>
                 </TouchableOpacity>
+              </>
+              )}
                 <View style={{ height: 10 }} />
                 <View style={{ height: 10 }} />
                 <View style={{ height: 10 }} />
@@ -584,7 +591,7 @@ function ReadAnswersScreen({ route }) {
         )}
           
 
-        {miscState.isLargeScreen && miscState.userStatus &&(miscState.question && miscState.question.question) && (miscState.userStatus.chapters === "Editeur" || miscState.userStatus.chapters === "Lecteur" || miscState.userStatus.chapters === "Auditeur") && (
+        { miscState.isLargeScreen && miscState.userStatus &&(miscState.question && miscState.question.question) && (miscState.userStatus.chapters === "Editeur" || miscState.userStatus.chapters === "Lecteur" || miscState.userStatus.chapters === "Auditeur") && (
           <View style={[styles.resizer, { right: miscState.rightPanelWidth - 30 }]} onMouseDown={handleMouseDown}>
             <Image source={doubleArrowIcon} style={{ width: 120, height: 120, opacity: 0.5 }} />
           </View>
@@ -635,7 +642,7 @@ function ReadAnswersScreen({ route }) {
           )}
         </TouchableOpacity>
 
-        {miscState.isLargeScreen && (
+        {(miscState.isLargeScreen || !miscState.isLeftPanelVisible) && (
           <View style={miscState.isLargeScreen ? styles.middlePanelContainer : styles.fullWidth}>
             
          
@@ -729,7 +736,7 @@ function ReadAnswersScreen({ route }) {
               filterSelectedQuestion: filterSelectedQuestion, 
               setFilterSelectedQuestion: setFilterSelectedQuestion, 
               question_reponse: miscState.question_reponse, 
-              mode: miscState.userStatus?.notes, 
+              mode: miscState.userStatus?.chapters, 
               reference: reference, 
               setReference: setReference, 
             } 

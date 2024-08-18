@@ -87,6 +87,7 @@ const useFetchData = (
 
 
 function OrientationScreen({ route }) {
+
   const navigation = useNavigation();
   const session = route.params?.session;
 

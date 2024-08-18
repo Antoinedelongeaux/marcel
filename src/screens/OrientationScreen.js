@@ -277,16 +277,16 @@ const OrientationScreen = ({ route }) => {
     });
   };
 
-
-
   return (
     <View style={globalStyles.container} ref={containerRef}>
+      {((progressiveMessage_2=="" && !isLargeScreen) || isLargeScreen)&&(
        <Card style={globalStyles.QuestionBubble}>
     <Card.Content>
       <Paragraph style={globalStyles.globalButtonText_tag}>{progressiveMessage_0}</Paragraph>
     </Card.Content>
   </Card>
-    {progressiveMessage_1 !=="" &&(
+  )}
+    {progressiveMessage_1 !=="" && progressiveMessage_2=="" &&(
       <Card style={globalStyles.QuestionBubble}>
         <Card.Content>
           <Paragraph style={globalStyles.globalButtonText_tag}>{progressiveMessage_1}</Paragraph>
@@ -294,7 +294,7 @@ const OrientationScreen = ({ route }) => {
       </Card>
       )}
     
-      {showChoices_1 && (
+      {showChoices_1  && progressiveMessage_2==""&& (
         <Picker
         selectedValue={subject?.id || "Sélectionner un projet"}
         style={styles.picker}
@@ -332,12 +332,13 @@ const OrientationScreen = ({ route }) => {
                 </Card.Content>
               </Card>
    
-    <View style={styles.container}>
+    
     {isLargeScreen ? (
-  <View style={styles.container}>
+  <View style={styles.container_fullScreen}>
     {renderCards()}    
   </View>
 ) : (
+<View style={styles.container}>
   <Carousel
   data={titles}
   renderItem={({ item, index }) => (
@@ -358,18 +359,10 @@ const OrientationScreen = ({ route }) => {
     </TouchableOpacity>
   )}
   sliderWidth={Dimensions.get('window').width}
-  itemWidth={Dimensions.get('window').width * 0.8} // Augmente la largeur des cartes
+  itemWidth={Dimensions.get('window').width * 0.5} // Augmente la largeur des cartes
 />
-
+</View>
 )}
-
-    </View>
-
-
-
-
-
-
 
     </>
     )}
@@ -384,7 +377,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'transparent',
-    transform: [{ translateY: -Dimensions.get('window').height * 0.2 }],
+    transform: [{ translateY: 0}],
+
+  },
+
+  container_fullScreen: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+    transform: [{ translateY: -Dimensions.get('window').height * 0.3 }],
+
+
   },
   card: {
     position: 'absolute',
@@ -405,7 +409,7 @@ const styles = StyleSheet.create({
 
   card_SmallScreen: {
     position: 'absolute',
-    width: Dimensions.get('window').height * 0.45,
+    width: Dimensions.get('window').height * 0.2,
     height: Dimensions.get('window').height * 0.8,
     justifyContent: 'flex-start', // Aligne le contenu en haut
     alignItems: 'center',

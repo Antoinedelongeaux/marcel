@@ -869,8 +869,12 @@ useEffect(() => {
   </View>
 )}
 
+{notesMode === "Lecteur"  && (<Text style={globalStyles.title}>
+   Notes
+  </Text> )}
 
-{notesMode === "Contributeur" && (<>
+
+{(notesMode === "Editeur" || notesMode === "Auditeur") && (<>
 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
  
 
@@ -938,7 +942,7 @@ useEffect(() => {
 
         <View style={{ flexDirection: 'row', justifyContent: 'center', marginBottom: 5 }}>
         
-        {notesMode === "Contributeur" && (<>
+        {(notesMode === "Editeur" || notesMode === "Auditeur") && (<>
         {!questionReponseFilter.includes('question') &&(
       <TouchableOpacity onPress={() => {setAnswerAndQuestion("réponse");setModalVisible(true)}} style={globalStyles.globalButton_narrow}>
       <Text style={globalStyles.globalButtonText}>Ajouter une note</Text>
@@ -1075,12 +1079,16 @@ useEffect(() => {
 
 
 <View style={{ flexDirection: 'row', justifyContent: 'center', marginBottom: 5 }}>
+
+{(notesMode === "Editeur" || notesMode === "Auditeur"|| notesMode === "full") && (<>
 <TouchableOpacity onPress={() => setShowDetails(!showDetails)} style={styles.filterIcon}>
   <Image 
     source={showDetails ? minusIcon : plusIcon} 
     style={{ width: 50, height: 50, opacity: 0.5, marginVertical: 30 }} 
   />
 </TouchableOpacity>
+</>)}
+
   <TouchableOpacity onPress={() => setShowFilters(!showFilters)} style={styles.filterIcon}>
     <Image source={filterIcon} style={{ width: 50, height: 50, opacity: 0.5, marginVertical : 30 }} />
   </TouchableOpacity>
@@ -1089,10 +1097,11 @@ useEffect(() => {
   <Image source={EmptyfilterIcon} style={{ width: 50, height: 50, opacity: 0.5, marginVertical : 30 }} />
   </TouchableOpacity>
 
+  {(notesMode === "Editeur" || notesMode === "Auditeur"|| notesMode === "full") && (
   <TouchableOpacity onPress={() => { copyAllToClipboard() }}>
      <Image source={copyIcon} style={{ width: 50, height: 50, opacity: 0.5, marginVertical : 30 }} />
    </TouchableOpacity>
-
+)}
 {/*
   {notesMode !== 'full' &&(
   <TouchableOpacity onPress={() => setIsShareModalVisible(true)} style={styles.filterIcon}>
