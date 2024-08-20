@@ -482,7 +482,7 @@ import {
             </Picker>
           </View>
         )}
-        {themesAllUsers.length > 0 && (
+        {themesAllUsers.length > 0 && !new_theme && (
           <View style={{ marginTop: 10 }}>
             <Picker
               selectedValue={theme?.id || ""}
@@ -501,6 +501,18 @@ import {
             </Picker>
           </View>
         )}
+        {themesAllUsers.length > 0 && new_theme && (
+          <View style={{ marginTop: 10 }}>
+            <Picker
+              selectedValue={theme?.id || ""}
+            >
+              <Picker.Item label="Pour information, voici tous les thèmes existants" value="" />
+              {themesAllUsers.map((theme) => (
+                <Picker.Item key={theme.id} label={theme.theme} value={theme.id} />
+              ))}
+            </Picker>
+          </View>
+        )}
   
         {!new_theme &&  (
           <TouchableOpacity
@@ -511,7 +523,7 @@ import {
           </TouchableOpacity>
         )}
   
-        {showThemeInput && (
+        {(showThemeInput || new_theme) && (
           <View style={{ marginTop: 10 }}>
             <TextInput
               style={globalStyles.input}
@@ -527,7 +539,7 @@ import {
           </View>
         )}
   
-        {theme ? (
+        {theme ? ( 
           !new_theme && (
             <View style={{ flexDirection: isLargeScreen ? 'row' : 'column' }}>
             <TouchableOpacity

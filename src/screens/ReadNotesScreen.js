@@ -63,7 +63,7 @@ const useFetchActiveSubjectId = ( setSubject, setIsLoading, navigation) => {
         if (temp) {
           const temp2 = await getSubject(temp);
           setSubject(temp2);
-          console.log(temp2)
+
         } else {
           navigation.navigate('Projets');
         }
@@ -215,7 +215,6 @@ function ReadNotesScreen({ route }) {
   const scrollToBottom = () => {
     console.log("Trying to scroll to bottom");
     if (containerRef.current) {
-      console.log("containerRef.current", containerRef.current);
       containerRef.current.scrollTop = containerRef.current.scrollHeight;
     } else {
       console.log("containerRef is not valid");
@@ -346,7 +345,7 @@ function ReadNotesScreen({ route }) {
     if(choice ==="Non, j'ai besoin d'inspiration"){
         await fetchThemesAllUsers()
         message = "Voici quelques questions qui peuvent vous inspirer"
-        console.log("themesAllUsers : ",themesAllUsers)
+
     };
     if(choice ==='Thème ok'){
       setShowChoices_2(false)
@@ -364,9 +363,16 @@ function ReadNotesScreen({ route }) {
   };
 
 
+  useEffect(() => {
+    if (theme) {
+      console.log("Theme mis à jour : ", theme);
+      handleChoice_3("Thème ok");
+    }
+  }, [theme]); 
 
   const handleChoice_3 = (format) => {
 
+    console.log("Theme 2 : ",theme)
     setSelectedChoice_3(format)
     setProgressiveMessage_4('');
     //setShowChoices_2(false);
@@ -487,6 +493,7 @@ function ReadNotesScreen({ route }) {
 
 
   const refreshAnswers = async () => {
+
     const answers = await getMemories_Answers_to_theme(theme.id);
     const sortedAnswers = answers.sort((a, b) => a.rank - b.rank);
       setAnswers(sortedAnswers);
@@ -779,36 +786,28 @@ function ReadNotesScreen({ route }) {
 )}
 </>)}
 {selectedChoice_2 === "Non, j'ai besoin d'inspiration" && (
-                  <>
-                    <Card style={globalStyles.QuestionBubble}>
-                      <Card.Content>
-                        <Paragraph style={globalStyles.globalButtonText_tag}>{progressiveMessage_3}</Paragraph>
-                      </Card.Content>
-                    </Card>
-                    {showChoices_3 && ( 
-                      <> 
-                          <CarrousselThemes
-                            themes={themesAllUsers}
-                            isLargeScreen={isLargeScreen}
-                            theme={theme}
-                            setTheme={setTheme}
-                          />
-         
-                      {theme && (
-                        <TouchableOpacity
-                          style={globalStyles.globalButton_wide}
-                          onPress={() => {
-                            handleChoice_3("Thème ok");
-                          }}
-                        >
-                          <Text style={globalStyles.globalButtonText}>Choisir ce thème</Text>
-                        </TouchableOpacity>
-                      ) }
+  <>
+  <Card style={globalStyles.QuestionBubble}>
+    <Card.Content>
+      <Paragraph style={globalStyles.globalButtonText_tag}>{progressiveMessage_3}</Paragraph>
+    </Card.Content>
+  </Card>
+  {showChoices_3 && ( 
+    <> 
+      <CarrousselThemes
+        themes={themesAllUsers}
+        isLargeScreen={isLargeScreen}
+        theme={theme}
+        setTheme={(selectedTheme) => {
+          
+          console.log("Theme 1 : ",selectedTheme)
+          setTheme(selectedTheme)
+        }}
+      />
+    </>
+  )}                 
+</>
 
-                      </>
-                      
-                    )}                 
-                  </>
                 )}
 
 
@@ -1116,7 +1115,6 @@ function ReadNotesScreen({ route }) {
   onClose={() => setIsModalVisible(false)}
   title={`Êtes-vous sûr de vouloir supprimer cette note ? Cette action est irréversible.`}
   onConfirm={async () => {
-     console.log("selectedAnswer : ",selectedAnswer)
       await handleDeleteAnswer(selectedAnswer);
 
     setIsModalVisible(false);

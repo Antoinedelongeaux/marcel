@@ -48,6 +48,10 @@ import {
 } from './data_handling';
 import Carousel from 'react-native-snap-carousel';
 import PropTypes from 'prop-types';
+import leftArrowIcon from '../../assets/icons/left-arrow.png';  // Remplacez par le chemin de votre icône
+import rightArrowIcon from '../../assets/icons/right-arrow.png'; // Remplacez par le chemin de votre icône
+
+
 
 export const AnswerCard = ({  item, showDetails, isLargeScreen,users,setFullscreenImage }) => {
   const [editingAnswerId, setEditingAnswerId] = useState(null);
@@ -364,98 +368,66 @@ const handleUpdateAnswer = async (answerId, newText) => {
   );
 };
 
-export const CarrousselThemes = ({ themes, isLargeScreen, theme, setTheme }) => {
+export const CarrousselThemes = ({ themes, isLargeScreen, setTheme }) => {
   const SLIDER_WIDTH = Dimensions.get('window').width;
-  const ITEM_WIDTH = Dimensions.get('window').width * (isLargeScreen ? 0.6 : 0.7);
-  const ITEM_HEIGHT = 150;
-  const SELECTED_ITEM_HEIGHT = ITEM_HEIGHT * 1.5;
+  const ITEM_WIDTH = SLIDER_WIDTH * (isLargeScreen ? 0.6 : 0.7); // Ajuste la taille des éléments en fonction de l'écran
   const carouselRef = useRef(null);
-  const initialIndex = themes.findIndex(item => item.theme === theme);
-  const [currentIndex, setCurrentIndex] = useState(initialIndex);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
-  const renderItem = ({ item, index }) => (
-    <View style={[
-      styles.carouselItem,
-      index === currentIndex ? styles.selectedCarouselItem : null
-    ]}>
+  const renderItem = ({ item }) => (
+    <TouchableOpacity onPress={() => {console.log("Theme : ", item), setTheme(item)}} style={styles.carouselItem}>
       <Text style={styles.carouselText}>{item.theme}</Text>
-    </View>
+    </TouchableOpacity>
   );
 
-  useEffect(() => {
+  // Fonction pour faire défiler vers la gauche
+  const scrollLeft = () => {
     if (carouselRef.current) {
-      carouselRef.current.snapToItem(initialIndex, false, false);
-    }
-    //if (typeof setTheme === 'function') {
-    //  setTheme(themes[initialIndex].theme); // Mettre à jour le thème initial
-    //}
-  }, [initialIndex]);
-  
-  const handleSnapToItem = (index) => {
-    setCurrentIndex(index);
-    if (typeof setTheme === 'function') {
-      setTheme(themes[index].theme); // Mettre à jour le thème lors du défilement
+      const prevIndex = currentIndex - 1 < 0 ? themes.length - 1 : currentIndex - 1;
+      carouselRef.current.snapToItem(prevIndex);
+      setCurrentIndex(prevIndex);  // Mise à jour de l'index actuel
     }
   };
 
-
-  
-  const handlePrev = () => {
+  // Fonction pour faire défiler vers la droite
+  const scrollRight = () => {
     if (carouselRef.current) {
-      const newIndex = (currentIndex - 1 + themes.length) % themes.length;
- 
-      setCurrentIndex(newIndex);
-      if (newIndex === 0) {
-        carouselRef.current._carouselRef.scrollToOffset({ offset: 0, animated: true });
-      } else {
-        carouselRef.current.snapToItem(newIndex, true, false);
-      }
-
-      if (typeof setTheme === 'function') {
-
-        setTheme(themes[newIndex]); // Mettre à jour le thème
-      }
+      const nextIndex = (currentIndex + 1) % themes.length;
+      carouselRef.current.snapToItem(nextIndex);
+      setCurrentIndex(nextIndex);  // Mise à jour de l'index actuel
     }
   };
-  
-  const handleNext = () => {
-    if (carouselRef.current) {
-      const newIndex = (currentIndex + 1) % themes.length;
-      setCurrentIndex(newIndex);
-      if (newIndex === 0) {
-        carouselRef.current._carouselRef.scrollToOffset({ offset: 0, animated: true });
-      } else {
-        carouselRef.current.snapToItem(newIndex, true, false);
-      }
 
-      if (typeof setTheme === 'function') {
-        setTheme(themes[newIndex]); // Mettre à jour le thème
-      }
-    }
-  };
-  
-  
   return (
-    <View style={[styles.carouselContainer, { height: SELECTED_ITEM_HEIGHT + 20 }]}>
-      <TouchableOpacity onPress={handlePrev} style={styles.arrowButton}>
-        <Text style={styles.arrowText}>{'<'}</Text>
-      </TouchableOpacity>
-      <Carousel
-        ref={carouselRef}
-        data={themes}
-        renderItem={renderItem}
-        sliderWidth={SLIDER_WIDTH}
-        itemWidth={ITEM_WIDTH}
-        onSnapToItem={handleSnapToItem}
-        inactiveSlideScale={(isLargeScreen? 0.7 : 0)}
-        inactiveSlideOpacity={0.7}
-        firstItem={initialIndex}
-        contentContainerStyle={{ justifyContent: 'center', paddingHorizontal: Dimensions.get('window').width * 0.1 }}
-      />
+    <View style={styles.carouselWrapper}>
+      {isLargeScreen && (
+        <TouchableOpacity onPress={scrollLeft} style={styles.arrowButtonLeft}>
+          <Image source={leftArrowIcon} style={styles.arrowIcon} />
+        </TouchableOpacity>
+      )}
 
-      <TouchableOpacity onPress={handleNext} style={styles.arrowButton}>
-        <Text style={styles.arrowText}>{'>'}</Text>
-      </TouchableOpacity>
+      <View style={styles.carouselContainer}>
+        <Carousel
+          ref={carouselRef}
+          data={themes}
+          renderItem={renderItem}
+          sliderWidth={SLIDER_WIDTH}  // Ajuste le slider à la largeur d'un seul élément
+          itemWidth={ITEM_WIDTH}    // La largeur de chaque élément
+          inactiveSlideScale={isLargeScreen ? 0.0 : 0.9}  // Masque complètement les éléments inactifs sur grand écran
+          inactiveSlideOpacity={isLargeScreen ? 0.0 : 0.7} // Rend les éléments inactifs invisibles sur grand écran
+          loop={true}
+          enableMomentum={true}
+          decelerationRate={0.9}
+          useScrollView={true}
+          onSnapToItem={(index) => setCurrentIndex(index)}  // Mets à jour l'index actuel à chaque défilement
+        />
+      </View>
+
+      {isLargeScreen && (
+        <TouchableOpacity onPress={scrollRight} style={styles.arrowButtonRight}>
+          <Image source={rightArrowIcon} style={styles.arrowIcon} />
+        </TouchableOpacity>
+      )}
     </View>
   );
 };
@@ -467,7 +439,9 @@ CarrousselThemes.propTypes = {
     })
   ).isRequired,
   isLargeScreen: PropTypes.bool.isRequired,
+  setTheme: PropTypes.func.isRequired,
 };
+
 
 const styles = StyleSheet.create({
   answerCard: {
@@ -527,36 +501,59 @@ const styles = StyleSheet.create({
     width: 100,
   },
 
-  carouselContainer: {
+
+
+  carouselWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',  // Pour s'assurer que les flèches sont bien positionnées de chaque côté
+    width: '100%',
   },
-  arrowButton: {
-    padding: 10,
+  carouselContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  arrowText: {
-    fontSize: 30,
-    color: '#000',
+    width: '80%',
   },
   carouselItem: {
-    backgroundColor: '#f5f5f5',
-    borderRadius: 10,
-    height: 150,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.23,
-    shadowRadius: 2.62,
-    elevation: 4,
+    padding: 20,
+    backgroundColor: '#0c2d48',
+    borderRadius: 10,
+    height: 150,
+    padding: 10,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: 'rgba(0, 0, 0, 0.1)', // Bordure subtile
+    shadowColor: '#000', // Ombre de la carte
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 8, // Utilisé pour Android
+    paddingHorizontal: 20,
   },
   carouselText: {
     fontSize: 18,
-    textAlign: 'center',
-    marginHorizontal: 20,
+    fontWeight:'bold',
+    color: '#fff',
   },
+  arrowButtonLeft: {
+    padding: 20,  // Augmente la surface cliquable
+    position: 'absolute',
+    left: 0,
+    zIndex: 100,  // Assurez-vous que l'icône de gauche est bien au-dessus des autres éléments
+  },
+  arrowButtonRight: {
+    padding: 20,  // Augmente la surface cliquable
+    position: 'absolute',
+    right: 0,
+    zIndex: 100,  // Assurez-vous que l'icône de droite est bien au-dessus des autres éléments
+  },
+  arrowIcon: {
+    width: 60,
+    height: 60,
+  },
+
 });
 
 

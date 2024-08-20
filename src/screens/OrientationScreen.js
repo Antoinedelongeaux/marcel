@@ -405,6 +405,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 10,
     elevation: 8, // Utilisé pour Android
+    paddingHorizontal: 20,
   },
 
   card_SmallScreen: {
@@ -422,17 +423,20 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 10,
     elevation: 8, // Utilisé pour Android
+    paddingHorizontal: 20,
   },
 
   title: {
-    fontSize: 34,
+    fontSize: 28,
     color: '#fff',
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 10, // Espace entre le titre et les détails
   },
+
+
   details: {
-    fontSize: 18,
+    fontSize: 16,
     color: '#fff',
     textAlign: 'left',
   },
