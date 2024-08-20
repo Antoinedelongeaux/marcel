@@ -154,17 +154,17 @@ const OrientationScreen = ({ route }) => {
   // Handlers pour chaque carte
   const handleStructurer = async () => {
     await validate_project_contributors(subject.id,session.user.id,true,"Contributeur","Pas d'accès")   
-    navigateToScreen('Incipit');
+    navigateToScreen('Incipit',{'Etape': 1});
   };
 
   const handleRaconter = async () => {
     await validate_project_contributors(subject.id,session.user.id,true,"Contributeur","Pas d'accès")   
-    navigateToScreen('Incipit');
+    navigateToScreen('Incipit',{'Etape': 2});
   };
 
   const handleReagir = async () => {
     await validate_project_contributors(subject.id,session.user.id,true,"Contributeur","Pas d'accès")   
-    navigateToScreen('Incipit');
+    navigateToScreen('Incipit',{'Etape': 3});
   };
 
   const handleRediger = async () => {
@@ -201,18 +201,20 @@ const OrientationScreen = ({ route }) => {
 
   useEffect(() => {
     if (progressiveMessage_2 !== "") { 
-    console.log('Animations started'); // Pour vérifier si l'animation démarre
-    animationValues.forEach((anim, index) => {
-      Animated.timing(anim, {
-        toValue: 1,
-        duration: 1000 + index * 200,
-        useNativeDriver: true, // Gardez cela à true pour les transformations
-      }).start(() => {
-        forceUpdate({}); // Forcer la mise à jour après l'animation
+      animationValues.forEach((anim, index) => {
+        Animated.timing(anim, {
+          toValue: 1,
+          duration: 1000 + index * 200,
+          useNativeDriver: true,
+        }).start(() => {
+          if (index === animationValues.length - 1) {
+            forceUpdate({}); // Forcer la mise à jour après la fin de toutes les animations
+          }
+        });
       });
-    });
-  }
+    }
   }, [progressiveMessage_2]);
+  
 
   const handleMouseLeave = (index) => {
     Animated.timing(zoomAnimations[index], {

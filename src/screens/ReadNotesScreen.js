@@ -104,6 +104,7 @@ const displayProgressiveText = (message, setMessage) => {
 function ReadNotesScreen({ route }) {
   const navigation = useNavigation();
   const session = route.params?.session;
+  const etape = route.params?.Etape;
   const [questions, setQuestions] = useState([]);
   //const [subjectActive, setSubjectActive] = useState(null);
   const [subjects, setSubjects] = useState();
@@ -204,13 +205,7 @@ function ReadNotesScreen({ route }) {
     setFullscreenImage(null);
   };
 
-
-
-
-
   const containerRef = useRef();
-
-
 
   const scrollToBottom = () => {
     console.log("Trying to scroll to bottom");
@@ -226,7 +221,14 @@ function ReadNotesScreen({ route }) {
   useFetchActiveSubjectId(setSubject, setIsLoading, navigation);
   useFetchData(session.user.id, subject, setQuestions, tags, personal, setChapters, setUserStatus,setThemes,setSubjects,setUsers);
   
-
+  useEffect(() => {
+    const gotToEtape = async () => {
+     if (etape === 1){handleChoice_1('Proposer un thème')}
+     if (etape === 2){handleChoice_1('Ajouter une note')}
+     if (etape === 3){handleChoice_1('Ajouter une note')}
+    };
+    gotToEtape();
+  }, [etape]);
   
   useEffect(() => {
     const refreshData = async () => {
@@ -344,7 +346,7 @@ function ReadNotesScreen({ route }) {
     };
     if(choice ==="Non, j'ai besoin d'inspiration"){
         await fetchThemesAllUsers()
-        message = "Voici quelques questions qui peuvent vous inspirer"
+        message = "Voici quelques thèmes existants qui peuvent vous inspirer ..."
 
     };
     if(choice ==='Thème ok'){

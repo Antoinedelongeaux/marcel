@@ -375,9 +375,7 @@ const copyLinkToClipboard = (text) => {
                         <View style={styles.headerRow}>
                             <Text style={styles.headerText}>Utilisateur</Text>
                             <Text style={styles.headerText}>Accès au projet</Text>
-                            <Text style={styles.headerText}>Accès aux notes et aux questions</Text>
-                            <Text style={styles.headerText}>Accès au texte des chapitres</Text>
- 
+                         
                         </View>
                     )}
                     {contributors.map((contributor) => (
@@ -412,64 +410,7 @@ const copyLinkToClipboard = (text) => {
 </Picker>
 
 
-        {!isLargeScreen && <Text style={styles.labelText}>Notes :</Text>}
-        <Picker
-    selectedValue={contributorStates[contributor.id_user]?.notes}
-    onValueChange={async (itemValue) => {
-        const newState = {
-            ...contributorStates,
-            [contributor.id_user]: {
-                ...contributorStates[contributor.id_user],
-                notes: itemValue
-            }
-        };
-        setContributorStates(newState);
-        await validate_project_contributors(
-            subject_active.id,
-            contributor.id_user,
-            newState[contributor.id_user].access,
-            newState[contributor.id_user].notes,
-            newState[contributor.id_user].chapters
-        );
-    }}
-    style={styles.picker}
->
-
-            <Picker.Item label="Pas d'accès" value="Pas d'accès" />
-            <Picker.Item label="Lecteur" value="Lecteur" />
-            <Picker.Item label="Contributeur" value="Contributeur" />
-        </Picker>
-        {!isLargeScreen && <Text style={styles.labelText}>Chapitres :</Text>}
-        <Picker
-    selectedValue={contributorStates[contributor.id_user]?.chapters}
-    onValueChange={async (itemValue) => {
-        const newState = {
-            ...contributorStates,
-            [contributor.id_user]: {
-                ...contributorStates[contributor.id_user],
-                chapters: itemValue
-            }
-        };
-        setContributorStates(newState);
-        await validate_project_contributors(
-            subject_active.id,
-            contributor.id_user,
-            newState[contributor.id_user].access,
-            newState[contributor.id_user].notes,
-            newState[contributor.id_user].chapters
-        );
-        if (contributor.id_user === session.user.id) {
-            setUserStatus({ ...userStatus, chapters: newState[contributor.id_user].chapters });
-        }
-    }}
-    style={styles.picker}
->
-
-            <Picker.Item label="Pas d'accès" value="Pas d'accès" />
-            <Picker.Item label="Lecteur" value="Lecteur" />
-            <Picker.Item label="Auditeur" value="Auditeur" />
-            <Picker.Item label="Editeur" value="Editeur" />
-        </Picker>
+       
 
         <TouchableOpacity onPress={async () => {
     await deleteExistingContributor(contributor.id_user, subject_active.id);
