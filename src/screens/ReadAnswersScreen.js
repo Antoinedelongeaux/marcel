@@ -51,6 +51,7 @@ import rightArrowIcon from '../../assets/icons/right-arrow.png';
 import settingsIcon from '../../assets/icons/accueil.png';
 import saveIcon from '../../assets/icons/save.png';
 import editIcon from '../../assets/icons/pen-to-square-regular.svg';
+import viewIcon from '../../assets/icons/view.png';
 import trash from '../../assets/icons/baseline_delete_outline_black_24dp.png';
 import linkIcon from '../../assets/icons/link.png';
 import { decode, encode } from 'he';
@@ -139,6 +140,8 @@ function ReadAnswersScreen({ route }) {
     expandedAnswers: {},
     isLargeScreen: Dimensions.get('window').width > 768,
     content: '<p>Commencez à écrire ici...</p>',
+    contentRead: '<p>Commencez à écrire ici...</p>',
+    contentEdit: '<p>Le chapitre n\'a pas encore été rédigé ...</p>',
     isEditorReady: false,
     isLoading: true,
     isShareModalVisible: false,
@@ -147,6 +150,7 @@ function ReadAnswersScreen({ route }) {
   const [subject, setSubject] = useState([]);
   const [reference, setReference] = useState('');
   const [filterSelectedQuestion, setFilterSelectedQuestion] = useState('');
+  const [editVsView,setEditVsView] = useState('edit');
 
   const editor = useRef();
 
@@ -189,6 +193,9 @@ function ReadAnswersScreen({ route }) {
       setMiscState(prevState => ({ ...prevState, rightPanelWidth: Dimensions.get('window').width - 550 }));
     } else {
       setMiscState(prevState => ({ ...prevState, rightPanelWidth: Dimensions.get('window').width - prevState.middlePanelWidth - 550 }));
+      if (miscState.userStatus && (miscState.userStatus.chapters === "Auditeur"|| miscState.userStatus.chapters === "Lecteur")) {
+        setEditVsView('view')
+      }
     }
     
   }, [miscState.userStatus]);
@@ -199,6 +206,17 @@ function ReadAnswersScreen({ route }) {
     }    
   }, [miscState.userStatus]);
 
+  
+  useEffect(() => {
+    if (editVsView ==='edit') {
+       setMiscState(prevState => ({ ...prevState, content: miscState.contentEdit }));
+    }
+    if (editVsView ==='view') {
+      setMiscState(prevState => ({ ...prevState, content: miscState.contentRead }));
+   }
+  }, [miscState.contentEdit,miscState.contentRead]);
+
+  
   useEffect(() => {
     if (miscState.question && miscState.question.id) {
       toggleAnswersDisplay(miscState.question.id);
@@ -389,18 +407,13 @@ function ReadAnswersScreen({ route }) {
           const decodedContent = decode(miscState.question.full_text);
           const parsedContent = JSON.parse(decodedContent);
           const html = new QuillDeltaToHtmlConverter(parsedContent.ops, {}).convert();
-          const cleanHtml = (miscState.userStatus && miscState.userStatus.chapters !== "Editeur")
-                ? decode(html.replace(/<p>(.*?)&lt;reference&gt;/, '<p>$1</p>&lt;reference&gt;<p>')
-                      .replace(/&lt;&#x2F;reference&gt;(.*?)<\/p>/, '</p>&lt;&#x2F;reference&gt;<p>$1</p>'))
-                      : html.replace(/&lt;reference&gt;/g, '&lt;reference&gt;')
-                      .replace(/&lt;\/reference&gt;/g, '&lt;&#x2F;reference&gt;')
-                      .replace(/&lt;br\/&gt;/g, '<br/>');
+          const cleanReadHtml = decode(html.replace(/<p>(.*?)&lt;reference&gt;/, '<p>$1</p>&lt;reference&gt;<p>')
+                            .replace(/&lt;&#x2F;reference&gt;(.*?)<\/p>/, '</p>&lt;&#x2F;reference&gt;<p>$1</p>'))
+          const cleanEditHtml = html.replace(/&lt;reference&gt;/g, '&lt;reference&gt;')
+                            .replace(/&lt;\/reference&gt;/g, '&lt;&#x2F;reference&gt;')
+                            .replace(/&lt;br\/&gt;/g, '<br/>');               
                       
-  
-      //setMiscState(prevState => ({ ...prevState, content: decode(cleanHtml), isLoading: false }));
-      setMiscState(prevState => ({ ...prevState, content: cleanHtml, isLoading: false }));
-
-
+      setMiscState(prevState => ({ ...prevState, contentRead: cleanReadHtml,contentEdit: cleanEditHtml, isLoading: false }));
 
           
 
@@ -652,16 +665,30 @@ function ReadAnswersScreen({ route }) {
              
               <Text style={globalStyles.title}>
                 {miscState.question && miscState.question.question ? miscState.question.question : 'Veuillez sélectionner un chapitre'}
-                {miscState.isContentModified && (
+                {miscState.isContentModified && editVsView ==='edit' &&(
                   <TouchableOpacity style={{ marginLeft: 10 }} onPress={handleSaving}>
                     <Image source={saveIcon} style={{ width: 20, height: 20, opacity: 0.5 }} />
                   </TouchableOpacity>
                 )}
+                {miscState.userStatus.chapters && (miscState.userStatus.chapters === 'Editeur' || miscState.userStatus.chapters === 'Auditeur') && editVsView ==='edit' && (
+                  <TouchableOpacity style={{ marginLeft: 10 }} onPress={() => (setEditVsView('view'))}>
+                    <Image source={viewIcon} style={{ width: 20, height: 20, opacity: 0.5 }} />
+                  </TouchableOpacity>
+                )}
+
+                {miscState.userStatus.chapters && (miscState.userStatus.chapters === 'Editeur' || miscState.userStatus.chapters === 'Auditeur') && editVsView ==='view' && (
+                  <TouchableOpacity style={{ marginLeft: 10 }} onPress={() => (setEditVsView('edit'))}>
+                    <Image source={editIcon} style={{ width: 20, height: 20, opacity: 0.5 }} />
+                  </TouchableOpacity>
+                )}
+
+
+
               </Text>
               
               <View style={styles.container}>
                 
-                {miscState.userStatus && miscState.userStatus.chapters === "Editeur" ? (
+                {miscState.userStatus && editVsView==='edit' ? (
                   <>
                     {Platform.OS === 'web' ? (
                       <>

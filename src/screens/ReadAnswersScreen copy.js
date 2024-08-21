@@ -162,6 +162,7 @@ function ReadQuestionsScreen({ route }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isShareModalVisible, setIsShareModalVisible] = useState(false);
   const [reference, setReference] = useState('');
+  const [editVsView,setEditVsView] = useState('edit');
 
 
   const CustomParser = ({ content, onReferencePress }) => {
