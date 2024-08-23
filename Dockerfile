@@ -17,6 +17,9 @@ RUN npm install @expo/webpack-config --legacy-peer-deps
 # Copier tout le reste du code dans le conteneur
 COPY . .
 
+# Construire l'application Next.js pour la production
+RUN npm run build
+
 # Exposer le port sur lequel l'application tourne
 EXPOSE 3001
 
