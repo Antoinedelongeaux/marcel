@@ -8,10 +8,11 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 
 # Installer les dépendances
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 # Assure-toi que @expo/webpack-config est installé
-RUN npm install @expo/webpack-config
+RUN npm install @expo/webpack-config --legacy-peer-deps
+
 
 # Copier tout le reste du code dans le conteneur
 COPY . .
