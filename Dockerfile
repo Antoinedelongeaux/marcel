@@ -14,7 +14,7 @@ RUN npm install --legacy-peer-deps
 COPY . .
 
 # Construire l'application Expo pour le web
-RUN npx expo export --public-url http://localhost:3001/
+RUN npx expo export
 
 # Installer 'serve' pour servir les fichiers statiques
 RUN npm install -g serve
@@ -23,4 +23,4 @@ RUN npm install -g serve
 EXPOSE 3001
 
 # Démarrer le serveur pour servir les fichiers statiques
-CMD ["serve", "-s", "web-build", "-l", "3001"]
+CMD ["serve", "-s", "dist", "-l", "3001"]
