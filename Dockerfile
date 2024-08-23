@@ -8,11 +8,6 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 
 # Installer les dépendances
-RUN npm install -g rn-nodeify \
-    && npm install --production --legacy-peer-deps --force \
-    && rn-nodeify --install --hack
-
-# Installer les dépendances
 RUN npm install --production --legacy-peer-deps
 
 # Copier le reste de l'application
