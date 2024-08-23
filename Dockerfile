@@ -1,20 +1,23 @@
-# Utiliser l'image officielle Node.js
+# Utiliser une image Node.js officielle
 FROM node:18
 
-# Créer et définir le répertoire de travail dans le container
+# Définir le répertoire de travail dans le conteneur
 WORKDIR /usr/src/app
 
-# Copier les fichiers package.json et package-lock.json
+# Copier package.json et package-lock.json dans le conteneur
 COPY package*.json ./
 
 # Installer les dépendances
-RUN npm install --production --legacy-peer-deps
+RUN npm install
 
-# Copier le reste de l'application
+# Assure-toi que @expo/webpack-config est installé
+RUN npm install @expo/webpack-config
+
+# Copier tout le reste du code dans le conteneur
 COPY . .
 
-# Exposer le port que l'application utilisera
+# Exposer le port sur lequel l'application tourne
 EXPOSE 3001
 
-# Commande de lancement de l'application
+# Démarrer l'application
 CMD ["npm", "start"]
