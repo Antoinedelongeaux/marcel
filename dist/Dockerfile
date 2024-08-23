@@ -8,13 +8,10 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 
 # Installer les dépendances
-RUN npm install --production
+RUN npm install --production --legacy-peer-deps
 
 # Copier le reste de l'application
 COPY . .
-
-# Construire l'application pour la production
-RUN npm run build
 
 # Exposer le port que l'application utilisera
 EXPOSE 3001
