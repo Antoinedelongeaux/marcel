@@ -13,11 +13,14 @@ RUN npm install --legacy-peer-deps
 # Copier tout le reste du code dans le conteneur
 COPY . .
 
-# Construire l'application Next.js pour la production
-RUN npm run build
+# Construire l'application Expo pour le web
+RUN npm run web-build
+
+# Installer 'serve' pour servir les fichiers statiques
+RUN npm install -g serve
 
 # Exposer le port sur lequel l'application tourne
 EXPOSE 3001
 
-# Démarrer l'application en mode production
-CMD ["npm", "start"]
+# Démarrer le serveur pour servir les fichiers statiques
+CMD ["serve", "-s", "web-build", "-l", "3001"]
