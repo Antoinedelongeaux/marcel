@@ -9,7 +9,7 @@ COPY package*.json ./
 
 # Installer les dépendances
 RUN npm install -g rn-nodeify \
-    && npm install --production --legacy-peer-deps \
+    && npm install --production --legacy-peer-deps --force \
     && rn-nodeify --install --hack
 
 # Installer les dépendances
