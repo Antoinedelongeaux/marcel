@@ -471,6 +471,9 @@ export const uploadAudioToSupabase = async (uri, fileName) => {
 
 export const uploadAudioToSupabase = async (uri, fileName) => {
   try {
+    // Nettoyage du nom de fichier pour qu'il soit compatible avec Supabase
+    const cleanedFileName = fileName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_\.-]/g, '');
+
     let audioBlob;
 
     if (Platform.OS === 'web') {
@@ -482,8 +485,8 @@ export const uploadAudioToSupabase = async (uri, fileName) => {
     }
 
     const arrayBuffer = await audioBlob.arrayBuffer();
-
-    const { error } = await supabase.storage.from('audio').upload(fileName, arrayBuffer, {
+    
+    const { error } = await supabase.storage.from('audio').upload(cleanedFileName, arrayBuffer, {
       contentType: audioBlob.type,
       cacheControl: '3600',
       upsert: false,
@@ -493,13 +496,14 @@ export const uploadAudioToSupabase = async (uri, fileName) => {
       throw error;
     }
 
-    console.log(`File uploaded and accessible at: ${fileName}`);
-    return fileName;
+    console.log(`File uploaded and accessible at: ${cleanedFileName}`);
+    return cleanedFileName;
   } catch (error) {
     console.error('Error uploading audio to Supabase:', error);
     return null;
   }
 };
+
 
 
 export const uploadImageToSupabase = async (uri, fileName) => {

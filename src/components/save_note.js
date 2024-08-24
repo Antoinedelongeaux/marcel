@@ -136,8 +136,9 @@ import {
                             // Start a new recording chunk immediately
                             await startNewRecording();
                             console.log(`Created chunk: ${chunkName} with URI: ${chunkUri}`);
-                              await uploadAudioToSupabase(chunkUri, chunkName);
-                              await handleAnswerSubmit("L'audio est en cours de transcription ...", ID_USER, Id_question, Id_connection, question_reponse, chunkName, refreshAnswers);            
+                            const cleanedChunkName = chunkName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_\.-]/g, '');
+                              await uploadAudioToSupabase(chunkUri, cleanedChunkName);
+                              await handleAnswerSubmit("L'audio est en cours de transcription ...", ID_USER, Id_question, Id_connection, question_reponse, cleanedChunkName, refreshAnswers);            
                   }
               }, 60000); // Change back to 60000 for 1-minute chunks
           } catch (error) {
@@ -154,8 +155,9 @@ import {
                   const chunkName = `${namePrefix}_part_${count}.mp3`;
                   const chunkUri = await createAudioChunk(uri, chunkName, 0, duration);
                   console.log(`Created chunk: ${chunkName} with URI: ${chunkUri}`);
-                    await uploadAudioToSupabase(chunkUri, chunkName);
-                    await handleAnswerSubmit("L'audio est en cours de transcription ...", ID_USER, Id_question, Id_connection, question_reponse, chunkName, refreshAnswers);
+                  const cleanedChunkName = chunkName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_\.-]/g, '');
+                    await uploadAudioToSupabase(chunkUri, cleanedChunkName)
+                    await handleAnswerSubmit("L'audio est en cours de transcription ...", ID_USER, Id_question, Id_connection, question_reponse, cleanedChunkName, refreshAnswers);
                   }
                catch (error) {
                   console.error('Error during handleRecording:', error);
@@ -192,7 +194,7 @@ import {
   
     const handleAnswerSubmit = async (answer, ID_USER, Id_question, Id_connection, question_reponse, name, refreshAnswers) => {
         const ID_answer= customUUIDv4()
-        await submitMemories_Answer_oral(answer, ID_USER, Id_question, Id_connection, question_reponse, name);
+        await submitMemories_Answer_oral(answer, ID_USER, Id_question, Id_connection, question_reponse, name,ID_answer);
         transcribeAudio_slow(name, ID_answer);
         await refreshAnswers();
     };
@@ -239,7 +241,6 @@ import {
       
             if (mimeType && mimeType.startsWith('audio/')) {
               try {
-                console.log("Coco")
                 const duration = await getAudioDuration(uri); // Modifié pour récupérer directement la durée
                 console.log("Audio duration:", duration);
                 const maxDuration = 60;  // Durée maximale d'un morceau en secondes
@@ -255,8 +256,9 @@ import {
       
                   if (chunkUri) {
                     console.log(`Uploading chunk: ${chunkName}`);
-                    await uploadAudioToSupabase(chunkUri, chunkName);
-                    await handleAnswerSubmit("L'audio est en cours de transcription ...", ID_USER, Id_question, Id_connection, question_reponse, chunkName, refreshAnswers);
+                    const cleanedChunkName = chunkName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_\.-]/g, '');
+                    await uploadAudioToSupabase(chunkUri, cleanedChunkName);
+                    await handleAnswerSubmit("L'audio est en cours de transcription ...", ID_USER, Id_question, Id_connection, question_reponse, cleanedChunkName, refreshAnswers);
                   } else {
                     console.error(`Failed to create chunk: ${chunkName}`);
                   }
