@@ -146,9 +146,28 @@ const transcribeSegmentSlow = async (audioFile, id_answer) => {
   }
 };
 
+const transcribeSegmentHQ = async (audioFile, id_answer) => {
+  console.log('Transcribing audio segment with High Quality');
+  const formData = new FormData();
+  formData.append('file', audioFile);
+  formData.append('id_answer', id_answer);
+
+  const response = await axios.post(
+    `${BASE_URL}/transcribe_hq`,
+    formData,
+    { headers: { 'Content-Type': 'multipart/form-data' } }
+  );
+
+  if (response.data && response.data.message) {
+    return response.data.message;
+  } else {
+    throw new Error("No transcription results found");
+  }
+};
+
 export const transcribeAudio_slow = async (audioFileName, id_answer) => {
   try {
-    console.log('Transcribing audio slowly:', audioFileName, ', id_answer : ', id_answer);
+    console.log('Transcribing audio basic quality :', audioFileName, ', id_answer : ', id_answer);
 
     const publicURL = `https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/audio/${audioFileName}`;
     console.log('Fetching audio file from:', publicURL);
@@ -170,6 +189,44 @@ export const transcribeAudio_slow = async (audioFileName, id_answer) => {
 
       const audioBlob = new Blob([new Uint8Array(Buffer.from(segmentBase64, 'base64'))], { type: 'audio/wav' });
       await transcribeSegmentSlow(audioBlob, id_answer);
+    }
+
+    console.log('Transcription process initiated successfully');
+    return 'Transcription process initiated successfully';
+  } catch (error) {
+    console.error('Error in transcribeAudio_slow:', error.message);
+    if (error.response) {
+      console.error('Detailed error response:', error.response.data);
+    }
+    return null;
+  }
+};
+
+
+export const transcribeAudio_HQ = async (audioFileName, id_answer) => {
+  try {
+    console.log('Transcribing audio with High Quality :', audioFileName, ', id_answer : ', id_answer);
+
+    const publicURL = `https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/audio/${audioFileName}`;
+    console.log('Fetching audio file from:', publicURL);
+
+    const audioBuffer = await fetchAudioBuffer(publicURL);
+    const segments = splitAudioBuffer(audioBuffer, SEGMENT_DURATION);
+
+    console.log(`Total segments to transcribe: ${segments.length}`);
+
+    for (let i = 0; i < segments.length; i++) {
+      const segmentBase64 = await convertAudioBufferToWavBase64(segments[i]);
+      const segmentSizeInBytes = calculateBase64SizeInBytes(segmentBase64);
+
+      if (segmentSizeInBytes > MAX_PAYLOAD_SIZE) {
+        throw new Error(`Segment ${i + 1} exceeds the maximum payload size.`);
+      }
+
+      console.log(`Size of segment ${i + 1}: ${segmentSizeInBytes} bytes`);
+
+      const audioBlob = new Blob([new Uint8Array(Buffer.from(segmentBase64, 'base64'))], { type: 'audio/wav' });
+      await transcribeSegmentHQ(audioBlob, id_answer);
     }
 
     console.log('Transcription process initiated successfully');

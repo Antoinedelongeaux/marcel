@@ -13,6 +13,7 @@ import eyeIcon from '../../assets/icons/view.png';
 import questionIcon from '../../assets/icons/question.png';
 import copyIcon from '../../assets/icons/paste.png';
 import trashIcon from '../../assets/icons/baseline_delete_outline_black_24dp.png';
+import refreshIcon from '../../assets/icons/refresh_black_24dp.svg';
 import closeIcon from '../../assets/icons/close.png'; 
 import { createAudioChunk, 
   startRecording, 
@@ -50,37 +51,47 @@ import Carousel from 'react-native-snap-carousel';
 import PropTypes from 'prop-types';
 import leftArrowIcon from '../../assets/icons/left-arrow.png';  // Remplacez par le chemin de votre icône
 import rightArrowIcon from '../../assets/icons/right-arrow.png'; // Remplacez par le chemin de votre icône
+import { transcribeAudio_slow,transcribeAudio_HQ } from '../components/call_to_whisper';
 
 
 
 export const AnswerCard = ({  item, showDetails, isLargeScreen,users,setFullscreenImage }) => {
+  const [Item, setItem ] = useState(item);
   const [editingAnswerId, setEditingAnswerId] = useState(null);
   const [editingText, setEditingText] = useState('');
   const [playbackStatus, setPlaybackStatus] = useState({});
   const [currentAudioId, setCurrentAudioId] = useState(null);
   const [userNames, setUserNames] = useState({});
   const [selectedAnswerIds, setSelectedAnswerIds] = useState([]);
-  const [isUsed, setIsUsed] = useState(item.used);
-  const [isQuality, setIsQuality] = useState(item.quality);
+  const [isUsed, setIsUsed] = useState(Item.used);
+  const [isQuality, setIsQuality] = useState(Item.quality);
   const [isAssignModalVisible, setIsAssignModalVisible] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(users.length > 0 ? users[0].id_user : '');
+  const [isTranscriptionModalVisible, setIsTranscriptionModalVisible] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  
 
 
 
   useEffect(() => {
     const fetchUserNames = async () => {
       const names = {};
-      const name = await get_user_name(item.id_user);
-      names[item.id_user] = name;
+      const name = await get_user_name(Item.id_user);
+      names[Item.id_user] = name;
       setUserNames(names);
     };
 
     fetchUserNames();
-  }, [item.id_user]);
+  }, [Item.id_user]);
 
 // Actualisation de la réponse
 
 
+const refreshAnswer = async () => {
+
+  setItem(await getAnswer(Item.id));
+  
+};
 
 
 
@@ -92,7 +103,7 @@ const handleUpdateAnswer = async (answerId, newText) => {
     await update_answer_text(answerId, newText);
     setEditingAnswerId(null);
     setEditingText('');
-    item.answer = newText; // Mise à jour de item.answer
+    Item.answer = newText; // Mise à jour de Item.answer
   } catch (error) {
     alert("Error updating answer: " + error.message);
   }
@@ -100,9 +111,9 @@ const handleUpdateAnswer = async (answerId, newText) => {
 
 
   const handleUpdateOwner = async () => {
-    if (item.id && selectedUserId) {
-      await update_answer_owner(item.id, selectedUserId);
-      item.id_user = selectedUserId; 
+    if (Item.id && selectedUserId) {
+      await update_answer_owner(Item.id, selectedUserId);
+      Item.id_user = selectedUserId; 
       setIsAssignModalVisible(false);
     } else {
       Alert.alert("Erreur", "Veuillez sélectionner un utilisateur.");
@@ -121,13 +132,13 @@ const handleUpdateAnswer = async (answerId, newText) => {
   };
 
   const handleToggleUsed = async () => {
-    await updateAnswer(item.id, 'used', !isUsed);
+    await updateAnswer(Item.id, 'used', !isUsed);
     setIsUsed(!isUsed);
   };
   
   
   const handleToggleQuality = async () => {
-    await updateAnswer(item.id, 'quality', !isQuality);
+    await updateAnswer(Item.id, 'quality', !isQuality);
     setIsQuality(!isQuality);
   };
   
@@ -144,9 +155,36 @@ const handleUpdateAnswer = async (answerId, newText) => {
   };
 
 
+  const handleCaptionClick = () => {
+    setIsTranscriptionModalVisible(true);
+  };
+
+  const handleConfirmTranscription_slow = async () => {
 
 
+      
+      setIsTranscribing(true)
+      setIsTranscriptionModalVisible(false);
+      const temp = await transcribeAudio_slow(Item.link_storage, Item.id);
+      setIsTranscribing(false);
+      refreshAnswer();
 
+
+    
+  };
+  const handleConfirmTranscription_hq = async () => {
+
+
+      
+    setIsTranscribing(true)
+    setIsTranscriptionModalVisible(false);
+    const temp = await transcribeAudio_HQ(Item.link_storage, Item.id);
+    setIsTranscribing(false);
+    refreshAnswer();
+
+
+  
+};
 
   return (
     <>
@@ -156,7 +194,7 @@ const handleUpdateAnswer = async (answerId, newText) => {
     <TouchableOpacity
       style={[
         styles.answerCard,
-        selectedAnswerIds.includes(item.id) && styles.selectedAnswerCard,
+        selectedAnswerIds.includes(Item.id) && styles.selectedAnswerCard,
       ]}
 
     >
@@ -165,11 +203,11 @@ const handleUpdateAnswer = async (answerId, newText) => {
           {showDetails && (
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
               <Text style={{ fontWeight: 'bold' }}>
-                {new Date(item.created_at).toLocaleDateString()} {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                {new Date(Item.created_at).toLocaleDateString()} {new Date(Item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </Text>
             </View>
           )}
-          {item.id === editingAnswerId ? (
+          {Item.id === editingAnswerId ? (
             <>
               <TextInput
                 style={globalStyles.input}
@@ -179,7 +217,7 @@ const handleUpdateAnswer = async (answerId, newText) => {
                 numberOfLines={10}
               />
               <TouchableOpacity
-                onPress={() => handleUpdateAnswer(item.id, editingText)}
+                onPress={() => handleUpdateAnswer(Item.id, editingText)}
                 style={[globalStyles.globalButton_wide, { backgroundColor: '#b1b3b5', alignItems: 'center', paddingVertical: 10, marginRight: 5 }]}
               >
                 <Text style={globalStyles.globalButtonText}>Enregistrer</Text>
@@ -187,24 +225,24 @@ const handleUpdateAnswer = async (answerId, newText) => {
             </>
           ) : (
             <>
-              {item.answer === "audio not yet transcribed" && (
+              {isTranscribing&& (
                 <View style={styles.container}>
                   <ActivityIndicator size="large" color="#0b2d52" />
                 </View>
               )}
-              {item.answer !== "audio not yet transcribed" && (
+              {!isTranscribing && (
                 <>
-                  {item.image && (
-                    <TouchableOpacity onPress={() => setFullscreenImage(`https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/photos/${item.link_storage}`)} >
-                      <Image source={{ uri: `https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/photos/${item.link_storage}` }} style={{ width: '100%', height: 300, resizeMode: 'contain' }} />
+                  {Item.image && (
+                    <TouchableOpacity onPress={() => setFullscreenImage(`https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/photos/${Item.link_storage}`)} >
+                      <Image source={{ uri: `https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/photos/${Item.link_storage}` }} style={{ width: '100%', height: 300, resizeMode: 'contain' }} />
                       <Text></Text>
-                      <Text style={{ justifyContent: 'center', textAlign: 'center' }}>{item.answer}</Text>
+                      <Text style={{ justifyContent: 'center', textAlign: 'center' }}>{Item.answer}</Text>
                     </TouchableOpacity>
                   )}
                   <View style={{ flexDirection: 'row'}}>
-                  {item.question_reponse == "question" && (<Image source={questionIcon} style={{ width: 36, height: 36, opacity: 0.5, marginLeft: 15 }} />)}
-                  {!item.image && item.answer !== 'audio à convertir en texte' &&(
-                    <Text style={styles.answerText}>{item.answer}</Text>
+                  {Item.question_reponse == "question" && (<Image source={questionIcon} style={{ width: 36, height: 36, opacity: 0.5, marginLeft: 15 }} />)}
+                  {!Item.image && Item.answer !== 'audio à convertir en texte' &&(
+                    <Text style={styles.answerText}>{Item.answer}</Text>
                   )}
                   </View>
                 </>
@@ -214,19 +252,21 @@ const handleUpdateAnswer = async (answerId, newText) => {
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 20 }}>
             {showDetails && (
               <>
-                { item.id !== editingAnswerId && (
-                  <TouchableOpacity onPress={() => { setEditingAnswerId(item.id); setEditingText(item.answer); }}>
+                { Item.id !== editingAnswerId && (
+               
+                  <TouchableOpacity onPress={() => { setEditingAnswerId(Item.id); setEditingText(Item.answer); }}>
                     <Image source={editIcon} style={{ width: 28, height: 28, opacity: 0.5 }} />
                     {isLargeScreen && <Text>Edit</Text>}
                   </TouchableOpacity>
+                      
                 )}
-                {item.audio && (
+                {Item.audio && (
                   <TouchableOpacity onPress={() => alert('Transcribe')}>
                     <Image source={captionIcon} style={{ width: 25, height: 25, opacity: 0.5, marginHorizontal: 15 }} />
                     {isLargeScreen && <Text>Transcribe</Text>}
                   </TouchableOpacity>
                 )}
-                {item.image && (
+                {Item.image && (
                   <TouchableOpacity >
                     <Image source={eyeIcon} style={{ width: 35, height: 35, opacity: 0.5, marginHorizontal: 15 }} />
                     {isLargeScreen && <Text>View</Text>}
@@ -268,7 +308,7 @@ const handleUpdateAnswer = async (answerId, newText) => {
 
 
 
-                <TouchableOpacity onPress={() => handleDeleteAnswer(item)}>
+                <TouchableOpacity onPress={() => handleDeleteAnswer(Item)}>
                   <Image source={trashIcon} style={{ width: 36, height: 36, opacity: 0.5, marginLeft: 15 }} />
                   {isLargeScreen && <Text>Delete</Text>}
                 </TouchableOpacity>
@@ -276,12 +316,12 @@ const handleUpdateAnswer = async (answerId, newText) => {
             )}
 
           {!showDetails && (<>
-            {(item.audio || item.id === editingAnswerId) && (
+            {(Item.audio || Item.id === editingAnswerId) && (
               <Text> </Text>
               )}
-              {!item.audio &&item.id !== editingAnswerId && (
+              {!Item.audio &&Item.id !== editingAnswerId && (
                      
-                     <TouchableOpacity onPress={() => { setEditingAnswerId(item.id); setEditingText(item.answer); }} style={{ marginRight: 30 }}>
+                     <TouchableOpacity onPress={() => { setEditingAnswerId(Item.id); setEditingText(Item.answer); }} style={{ marginRight: 30 }}>
   <Image source={editIcon} style={{ width: 28, height: 28, opacity: 0.5 }} />
   {isLargeScreen && <Text>Editer</Text>}
 </TouchableOpacity>
@@ -293,39 +333,52 @@ const handleUpdateAnswer = async (answerId, newText) => {
               
               
               <Text style={{ textAlign: 'right', marginTop: 10, fontStyle: 'italic' }}>
-               le {new Date(item.created_at).toLocaleDateString()} à {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+               le {new Date(Item.created_at).toLocaleDateString()} à {new Date(Item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </Text>
               
               </>
         
           )}
 
-            <Text style={{ textAlign: 'right', marginTop: 10, fontStyle: 'italic' }} onPress={() => handleAssignOwner(item.id)}>
-              {userNames[item.id_user]}
+            <Text style={{ textAlign: 'right', marginTop: 10, fontStyle: 'italic' }} onPress={() => handleAssignOwner(Item.id)}>
+              {userNames[Item.id_user]}
             </Text>
           </View>
           
 
                
-          {item.audio  && (
+          {Item.audio  && (
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-               {!showDetails &&item.id !== editingAnswerId && (
-                     
-                     <TouchableOpacity onPress={() => { setEditingAnswerId(item.id); setEditingText(item.answer); }} style={{ marginRight: 30 }}>
+               {!showDetails &&Item.id !== editingAnswerId && (
+   <>                  
+                     <TouchableOpacity onPress={() => { setEditingAnswerId(Item.id); setEditingText(Item.answer); }} style={{ marginRight: 30 }}>
   <Image source={editIcon} style={{ width: 28, height: 28, opacity: 0.5 }} />
-  {isLargeScreen && <Text>Editer</Text>}
+   {/* {isLargeScreen && <Text>Editer</Text>} */} 
 </TouchableOpacity>
+
+<TouchableOpacity onPress={() => handleCaptionClick()} style={styles.playButton}>
+    <Image source={captionIcon} style={{ width: 25, height: 25, opacity: 0.5, marginHorizontal: 15 }} />
+    {/*  {isLargeScreen && <Text>Retranscrire</Text>} */}
+  </TouchableOpacity>
+
+  <TouchableOpacity onPress={() => refreshAnswer()} style={styles.playButton}>
+    <Image source={refreshIcon} style={{ width: 25, height: 25, opacity: 0.5, marginHorizontal: 15 }} />
+    {/*  {isLargeScreen && <Text>Refraichir</Text>} */} 
+  </TouchableOpacity>
+
+  <Text> </Text>
+</>
 
              
                )}
               
-              <TouchableOpacity onPress={() => handlePlayPauseInternal(item.id, item.link_storage)}>
-                <Image source={playbackStatus.isPlaying && currentAudioId === item.id ? pauseIcon : playIcon} style={{ width: 25, height: 25 }} />
+              <TouchableOpacity onPress={() => handlePlayPauseInternal(Item.id, Item.link_storage)}>
+                <Image source={playbackStatus.isPlaying && currentAudioId === Item.id ? pauseIcon : playIcon} style={{ width: 25, height: 25 }} />
               </TouchableOpacity>
               
               <Slider
                 style={{ flex: 1, marginHorizontal: 10 }}
-                value={currentAudioId === item.id ? playbackStatus.positionMillis || 0 : 0}
+                value={currentAudioId === Item.id ? playbackStatus.positionMillis || 0 : 0}
                 minimumValue={0}
                 maximumValue={playbackStatus.durationMillis || 0}
                 onSlidingComplete={async (value) => {
@@ -335,6 +388,10 @@ const handleUpdateAnswer = async (answerId, newText) => {
                 }}
               />
               
+                
+ 
+
+
             </View>
           )}
 
@@ -350,7 +407,7 @@ const handleUpdateAnswer = async (answerId, newText) => {
       <Text style={globalStyles.modalTitle}>Attribuer à un utilisateur</Text>
       <Picker
         selectedValue={selectedUserId || ''}
-        onValueChange={(itemValue) => setSelectedUserId(itemValue)}
+        onValueChange={(ItemValue) => setSelectedUserId(ItemValue)}
       >
         {users.map((user) => (
           <Picker.Item key={user.id_user} label={user.name} value={user.id_user} />
@@ -363,7 +420,29 @@ const handleUpdateAnswer = async (answerId, newText) => {
   </View>
 </Modal>
 
+<Modal isVisible={isTranscriptionModalVisible}>
+    <View style={globalStyles.overlay}>
+      <View style={globalStyles.modalContainer}>
+      <TouchableOpacity onPress={() => setIsTranscriptionModalVisible(false)} style={globalStyles.closeButton}>
+              <Image source={closeIcon} style={globalStyles.closeIcon} />
+      </TouchableOpacity>
+      <Text style={globalStyles.modalTitle}>Confirmation de retranscription</Text>
+      <Text style={globalStyles.modalText}>
+        Voulez-vous vraiment retranscrire ce message audio ? Le texte existant sera alors effacé et remplacé par la nouvelle retranscription.
+      </Text>
+      <TouchableOpacity onPress={handleConfirmTranscription_slow} style={globalStyles.globalButton_wide}>
+        <Text style={globalStyles.globalButtonText}>Transcrire avec le modèle le plus rapide</Text>
+      </TouchableOpacity>
+      <TouchableOpacity onPress={handleConfirmTranscription_hq} style={globalStyles.globalButton_wide}>
+        <Text style={globalStyles.globalButtonText}>Transcrire avec le modèle le plus précis</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</Modal>
+
     </TouchableOpacity>
+   
+
     </>
   );
 };
@@ -374,9 +453,9 @@ export const CarrousselThemes = ({ themes, isLargeScreen, setTheme }) => {
   const carouselRef = useRef(null);
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  const renderItem = ({ item }) => (
-    <TouchableOpacity onPress={() => {console.log("Theme : ", item), setTheme(item)}} style={styles.carouselItem}>
-      <Text style={styles.carouselText}>{item.theme}</Text>
+  const renderItem = ({ Item }) => (
+    <TouchableOpacity onPress={() => {console.log("Theme : ", Item), setTheme(Item)}} style={styles.carouselItem}>
+      <Text style={styles.carouselText}>{Item.theme}</Text>
     </TouchableOpacity>
   );
 
