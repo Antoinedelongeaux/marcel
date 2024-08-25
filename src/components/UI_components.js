@@ -347,53 +347,50 @@ const handleUpdateAnswer = async (answerId, newText) => {
           
 
                
-          {Item.audio  && (
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-               {!showDetails &&Item.id !== editingAnswerId && (
-   <>                  
-                     <TouchableOpacity onPress={() => { setEditingAnswerId(Item.id); setEditingText(Item.answer); }} style={{ marginRight: 30 }}>
-  <Image source={editIcon} style={{ width: 28, height: 28, opacity: 0.5 }} />
-   {/* {isLargeScreen && <Text>Editer</Text>} */} 
-</TouchableOpacity>
+          {Item.audio && (
+  <View style={{ flexDirection: isLargeScreen ? 'row' : 'column', alignItems: 'center' }}>
+    {!showDetails && Item.id !== editingAnswerId && (
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: isLargeScreen ? 0 : 15 }}>  {/* Ajout d'une marge verticale en smallScreen */}
+        <TouchableOpacity onPress={() => { setEditingAnswerId(Item.id); setEditingText(Item.answer); }} style={{ marginRight: 30 }}>
+          <Image source={editIcon} style={{ width: 28, height: 28, opacity: 0.5 }} />
+          {/* {isLargeScreen && <Text>Editer</Text>} */}
+        </TouchableOpacity>
 
-<TouchableOpacity onPress={() => handleCaptionClick()} style={styles.playButton}>
-    <Image source={captionIcon} style={{ width: 25, height: 25, opacity: 0.5, marginHorizontal: 15 }} />
-    {/*  {isLargeScreen && <Text>Retranscrire</Text>} */}
-  </TouchableOpacity>
+        <TouchableOpacity onPress={() => handleCaptionClick()} style={styles.playButton}>
+          <Image source={captionIcon} style={{ width: 25, height: 25, opacity: 0.5, marginHorizontal: 15 }} />
+          {/* {isLargeScreen && <Text>Retranscrire</Text>} */}
+        </TouchableOpacity>
 
-  <TouchableOpacity onPress={() => refreshAnswer()} style={styles.playButton}>
-    <Image source={refreshIcon} style={{ width: 25, height: 25, opacity: 0.5, marginHorizontal: 15 }} />
-    {/*  {isLargeScreen && <Text>Refraichir</Text>} */} 
-  </TouchableOpacity>
+        <TouchableOpacity onPress={() => refreshAnswer()} style={styles.playButton}>
+          <Image source={refreshIcon} style={{ width: 25, height: 25, opacity: 0.5, marginHorizontal: 15 }} />
+          {/* {isLargeScreen && <Text>Refraichir</Text>} */}
+        </TouchableOpacity>
 
-  <Text> </Text>
-</>
+        <Text> </Text>
+      </View>
+    )}
 
-             
-               )}
-              
-              <TouchableOpacity onPress={() => handlePlayPauseInternal(Item.id, Item.link_storage)}>
-                <Image source={playbackStatus.isPlaying && currentAudioId === Item.id ? pauseIcon : playIcon} style={{ width: 25, height: 25 }} />
-              </TouchableOpacity>
-              
-              <Slider
-                style={{ flex: 1, marginHorizontal: 10 }}
-                value={currentAudioId === Item.id ? playbackStatus.positionMillis || 0 : 0}
-                minimumValue={0}
-                maximumValue={playbackStatus.durationMillis || 0}
-                onSlidingComplete={async (value) => {
-                  if (playbackStatus.sound) {
-                    await playbackStatus.sound.setPositionAsync(value);
-                  }
-                }}
-              />
-              
-                
- 
+    {/* Slider and Play/Pause Button */}
+    <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', width: isLargeScreen ? 'auto' : '100%', marginTop: isLargeScreen ? 0 : 15 }}>  {/* Ajout d'une marge verticale en smallScreen */}
+      <TouchableOpacity onPress={() => handlePlayPauseInternal(Item.id, Item.link_storage)}>
+        <Image source={playbackStatus.isPlaying && currentAudioId === Item.id ? pauseIcon : playIcon} style={{ width: 25, height: 25 }} />
+      </TouchableOpacity>
 
+      <Slider
+        style={{ flex: 1, marginLeft: 10 }}
+        value={currentAudioId === Item.id ? playbackStatus.positionMillis || 0 : 0}
+        minimumValue={0}
+        maximumValue={playbackStatus.durationMillis || 0}
+        onSlidingComplete={async (value) => {
+          if (playbackStatus.sound) {
+            await playbackStatus.sound.setPositionAsync(value);
+          }
+        }}
+      />
+    </View>
+  </View>
+)}
 
-            </View>
-          )}
 
                 
         </View>
