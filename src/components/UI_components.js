@@ -444,15 +444,18 @@ const handleUpdateAnswer = async (answerId, newText) => {
   );
 };
 
-export const CarrousselThemes = ({ themes, isLargeScreen, setTheme }) => {
+export const CarrousselThemes = ({ themes,theme, isLargeScreen, setTheme }) => {
+
   const SLIDER_WIDTH = Dimensions.get('window').width;
   const ITEM_WIDTH = SLIDER_WIDTH * (isLargeScreen ? 0.6 : 0.7); // Ajuste la taille des éléments en fonction de l'écran
   const carouselRef = useRef(null);
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  const renderItem = ({ Item }) => (
-    <TouchableOpacity onPress={() => {console.log("Theme : ", Item), setTheme(Item)}} style={styles.carouselItem}>
-      <Text style={styles.carouselText}>{Item.theme}</Text>
+  const renderItem = ({ item }) => (
+    <TouchableOpacity 
+      onPress={() => { console.log("Theme : ", item); setTheme(item); }} 
+      style={styles.carouselItem}>
+      <Text style={styles.carouselText}>{item.theme}</Text>
     </TouchableOpacity>
   );
 
@@ -492,7 +495,6 @@ export const CarrousselThemes = ({ themes, isLargeScreen, setTheme }) => {
           inactiveSlideScale={isLargeScreen ? 0.0 : 0.9}  // Masque complètement les éléments inactifs sur grand écran
           inactiveSlideOpacity={isLargeScreen ? 0.0 : 0.7} // Rend les éléments inactifs invisibles sur grand écran
           loop={true}
-          enableMomentum={true}
           decelerationRate={0.9}
           useScrollView={true}
           onSnapToItem={(index) => setCurrentIndex(index)}  // Mets à jour l'index actuel à chaque défilement

@@ -802,7 +802,6 @@ function ReadNotesScreen({ route }) {
         theme={theme}
         setTheme={(selectedTheme) => {
           
-          console.log("Theme 1 : ",selectedTheme)
           setTheme(selectedTheme)
         }}
       />
