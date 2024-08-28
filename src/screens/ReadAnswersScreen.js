@@ -151,6 +151,7 @@ function ReadAnswersScreen({ route }) {
   const [reference, setReference] = useState('');
   const [filterSelectedQuestion, setFilterSelectedQuestion] = useState('');
   const [editVsView,setEditVsView] = useState('edit');
+ 
 
   const editor = useRef();
 
@@ -207,6 +208,7 @@ function ReadAnswersScreen({ route }) {
   }, [miscState.userStatus]);
 
   
+  /*
   useEffect(() => {
     if (editVsView ==='edit') {
        setMiscState(prevState => ({ ...prevState, content: miscState.contentEdit }));
@@ -215,7 +217,7 @@ function ReadAnswersScreen({ route }) {
       setMiscState(prevState => ({ ...prevState, content: miscState.contentRead }));
    }
   }, [miscState.contentEdit,miscState.contentRead]);
-
+*/
   
   useEffect(() => {
     if (miscState.question && miscState.question.id) {
@@ -392,7 +394,14 @@ function ReadAnswersScreen({ route }) {
         console.error('Error updating:', errorUpdating);
       } else {
         console.log('Content successfully saved to Supabase');
-        setMiscState(prevState => ({ ...prevState, isContentModified: false }));
+        // Formater les balises <reference> correctement
+        const formattedContent = miscState.contentEdit.replace(/&lt;reference&gt;/g, '<reference>').replace(/&lt;\/reference&gt;/g, '</reference>');
+
+        setMiscState(prevState => ({ 
+          ...prevState, 
+          isContentModified: false, 
+          contentRead: formattedContent   // Mettre à jour contentRead avec contentEdit après sauvegarde
+        }));
       }
     } catch (error) {
       console.error('Failed to save content:', error);
@@ -404,6 +413,17 @@ function ReadAnswersScreen({ route }) {
     if (Object.keys(activeQuestionAnswers)[0]) {
       const loadData = async () => {
         if (miscState.question && miscState.question.full_text) {
+          if (miscState.question.full_text?.ops && miscState.question.full_text.ops[0]) {
+      
+          const html = new QuillDeltaToHtmlConverter(miscState.question.full_text.ops, {}).convert();
+          
+          setMiscState(prevState => ({
+            ...prevState,
+            contentRead: decode(html),
+            contentEdit: decode(html),
+            isLoading: false
+          }));
+         } else{
           const decodedContent = decode(miscState.question.full_text);
           const parsedContent = JSON.parse(decodedContent);
           const html = new QuillDeltaToHtmlConverter(parsedContent.ops, {}).convert();
@@ -414,8 +434,9 @@ function ReadAnswersScreen({ route }) {
                             .replace(/&lt;br\/&gt;/g, '<br/>');               
                       
       setMiscState(prevState => ({ ...prevState, contentRead: cleanReadHtml,contentEdit: cleanEditHtml, isLoading: false }));
+      
 
-          
+        }
 
         }
       };
@@ -670,13 +691,13 @@ function ReadAnswersScreen({ route }) {
                     <Image source={saveIcon} style={{ width: 20, height: 20, opacity: 0.5 }} />
                   </TouchableOpacity>
                 )}
-                {miscState.userStatus.chapters && (miscState.userStatus.chapters === 'Editeur' || miscState.userStatus.chapters === 'Auditeur') && editVsView ==='edit' && (
+                {!miscState.isContentModified && miscState.userStatus.chapters && (miscState.userStatus.chapters === 'Editeur' || miscState.userStatus.chapters === 'Auditeur') && editVsView ==='edit' && (
                   <TouchableOpacity style={{ marginLeft: 10 }} onPress={() => (setEditVsView('view'))}>
                     <Image source={viewIcon} style={{ width: 20, height: 20, opacity: 0.5 }} />
                   </TouchableOpacity>
                 )}
 
-                {miscState.userStatus.chapters && (miscState.userStatus.chapters === 'Editeur' || miscState.userStatus.chapters === 'Auditeur') && editVsView ==='view' && (
+                { miscState.userStatus.chapters && (miscState.userStatus.chapters === 'Editeur' || miscState.userStatus.chapters === 'Auditeur') && editVsView ==='view' && (
                   <TouchableOpacity style={{ marginLeft: 10 }} onPress={() => (setEditVsView('edit'))}>
                     <Image source={editIcon} style={{ width: 20, height: 20, opacity: 0.5 }} />
                   </TouchableOpacity>
@@ -700,10 +721,10 @@ function ReadAnswersScreen({ route }) {
                             modules={quillModules}
                             readOnly={false}
                             bounds={'#toolbar'}
-                            value={miscState.content}
+                            value={miscState.contentEdit}
                             onChange={newContent => {
                               if (!miscState.isSaving) {
-                                setMiscState(prevState => ({ ...prevState, content: newContent, isContentModified: true }));
+                                setMiscState(prevState => ({ ...prevState, contentEdit: newContent, isContentModified: true }));
                               }
                             }}
                             onChangeSelection={() => setMiscState(prevState => ({ ...prevState, isInitialLoad: false }))}
@@ -715,7 +736,7 @@ function ReadAnswersScreen({ route }) {
                         <RichEditor
                           ref={editor}
                           style={styles.editor}
-                          initialContentHTML={miscState.content}
+                          initialContentHTML={miscState.contentEdit}
                           onChange={() => {
                             if (!miscState.isSaving && !miscState.isInitialLoad) setMiscState(prevState => ({ ...prevState, isContentModified: true }));
                           }}
@@ -738,7 +759,7 @@ function ReadAnswersScreen({ route }) {
                 ) : (
                   <>
                     {miscState.question && miscState.question.question && (
-                      <RenderContent content={miscState.content} onReferencePress={handleReferencePress} />
+                      <RenderContent content={miscState.contentRead} onReferencePress={handleReferencePress} />
                     )}
                   </>
                 )}

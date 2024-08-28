@@ -449,7 +449,7 @@ const copyLinkToClipboard = (text) => {
           </TouchableOpacity>
         </View>
         <View style={styles.toggleContainer}>
-          <TouchableOpacity onPress={() => copyLinkToClipboard(`https://marcel-eight.vercel.app/${link.id}`)}>
+          <TouchableOpacity onPress={() => copyLinkToClipboard(`https://bioscriptum.com/marcel/${link.id}`)}>
             <Text style={styles.copyButtonText}>Copier le lien de partage</Text>
           </TouchableOpacity>
    

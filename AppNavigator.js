@@ -44,6 +44,7 @@ function AppNavigator({ session }) {
   useEffect(() => {
 
     if(suffix){
+      console.log("suffix : ",suffix )
     const fetchSuffixData= async () => {
       setCheck(await linkAnalysis(suffix));
     

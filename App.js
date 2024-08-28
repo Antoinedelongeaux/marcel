@@ -26,7 +26,7 @@ export default function App() {
       <NavigationContainer ref={ref}>
         <Routes> {/* Utiliser Routes pour définir les itinéraires */}
           <Route path="/*" element={<AppNavigator session={session} />} /> {/* Définir un itinéraire global */}
-          <Route path="/:suffix/*" element={<AppNavigator session={session} />} /> {/* Définir un itinéraire avec suffix */}
+          <Route path="/marcel/:suffix/*" element={<AppNavigator session={session} />} /> {/* Définir un itinéraire avec suffix */}
         </Routes>
       </NavigationContainer>
     </BrowserRouter>
