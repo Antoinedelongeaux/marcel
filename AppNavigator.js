@@ -97,6 +97,8 @@ function AppNavigator({ session }) {
             await saveActiveSubjectUserStatus(temp)
             setLoading(false)
 
+        }else{
+          setLoading(false)
         }
         
         } catch (error) {
