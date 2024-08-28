@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, TouchableOpacity, Text, Alert, StyleSheet, View, AppState, TextInput } from 'react-native';
 import { supabase } from '../lib/supabase';
 import { globalStyles } from '../../global';
+import { useParams } from 'react-router-dom'; // Importer useParams
 
 AppState.addEventListener('change', (state) => {
   if (state === 'active') {
@@ -19,7 +20,12 @@ export default function Auth() {
   const [lastName, setLastName] = useState('');
   const [loading, setLoading] = useState(false);
   const [isSigningUp, setIsSigningUp] = useState(false);
+  const [isSigningIn, setIsSigningIn] = useState(false);
+  const [isForgottenPassword, setIsForgottenPassword] = useState(false);
+  const [isTokenPage,setTokenPage]=useState(false);
   const [error, setError] = useState('');
+  const { suffix } = useParams(); 
+
 
   const translateErrorMessage = (message) => {
     if (message === 'User already registered') {
@@ -31,6 +37,18 @@ export default function Auth() {
     }
   };
 
+  useEffect(() => {
+    if (suffix) {
+      console.log("suffix : ", suffix);
+      // Vérifie si le suffix commence par '#access_token=' et met à jour l'état isTokenPage
+      if (suffix.startsWith('#access_token=')) {
+        setTokenPage(true);
+      } else {
+        setTokenPage(false);
+      }
+    }
+  }, [suffix]); 
+  
   
 
 
@@ -50,7 +68,6 @@ export default function Auth() {
   const signInWithEmail = async () => {
     setLoading(true);
     setError('');
-    console.log("Coucou !")
     const { error } = await supabase.auth.signInWithPassword({
       email: email,
       password: password,
@@ -119,7 +136,9 @@ export default function Auth() {
     }
     setLoading(true);
     setError('');
-    const { error } = await supabase.auth.resetPasswordForEmail(email);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: 'https://bioscriptum.com',
+    })
 
     if (error) {
       setError(translateErrorMessage(error.message));
@@ -129,10 +148,34 @@ export default function Auth() {
     setLoading(false);
   };
 
+  async function updatePassword() {
+    if ( !password || !confirmPassword ) {
+      setError('Veuillez remplir tous les champs.');
+      return false;
+    }
+    if (password !== confirmPassword) {
+      setError('Les mots de passe ne correspondent pas.');
+      return false;
+    }
+    
+    const { error } = await supabase.auth.updateUser({
+      password: password,
+    })
+  
+    if (error) {
+      console.error('Erreur lors de la mise à jour du mot de passe:', error.message)
+    } else {
+      console.log('Mot de passe mis à jour avec succès.')
+    }
+  }
+
+  
+
   return (
     <View style={globalStyles.container_center}>
       <View style={globalStyles.form}>
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
+        { !isTokenPage  && ( 
         <TextInput
           onChangeText={setEmail}
           value={email}
@@ -141,6 +184,8 @@ export default function Auth() {
           placeholder="Adresse email"
           autoCapitalize="none"
         />
+      )}
+        { !isForgottenPassword && (
         <TextInput
           onChangeText={setPassword}
           value={password}
@@ -149,9 +194,9 @@ export default function Auth() {
           placeholder="Mot de passe"
           autoCapitalize="none"
         />
-
-        {isSigningUp && (
-          <>
+        )}
+        {(isSigningUp ||isTokenPage )   && !isForgottenPassword && (
+          
             <TextInput
               onChangeText={setConfirmPassword}
               value={confirmPassword}
@@ -160,7 +205,9 @@ export default function Auth() {
               placeholder="Confirmation du mot de passe"
               autoCapitalize="none"
             />
-          
+         )}
+        {isSigningUp && !isForgottenPassword && !isTokenPage && (
+          <>
             <TextInput
               onChangeText={setFirstName}
               value={firstName}
@@ -180,28 +227,47 @@ export default function Auth() {
         )}
 
         <View>
-          {isSigningUp ? (
+          {isSigningUp && !isForgottenPassword && !isTokenPage &&(
             <TouchableOpacity onPress={signUpWithEmail} disabled={loading} style={globalStyles.globalButton_wide}>
               <Text style={globalStyles.globalButtonText}>Créer un compte</Text>
             </TouchableOpacity>
-          ) : (
+          )} 
+          { isSigningIn && !isForgottenPassword && !isTokenPage &&(
             <TouchableOpacity onPress={signInWithEmail} disabled={loading} style={globalStyles.globalButton_wide}>
               <Text style={globalStyles.globalButtonText}>Se connecter</Text>
             </TouchableOpacity>
           )}
+          { isForgottenPassword && !isTokenPage && (
+            <TouchableOpacity onPress={resetPassword} disabled={loading} style={globalStyles.globalButton_wide}>
+              <Text style={globalStyles.globalButtonText}>M'envoyer un lien par email</Text>
+            </TouchableOpacity>
+          )}
+
+
+
         </View>
+        {!isForgottenPassword && !isTokenPage &&(
         <View>
+        
           <TouchableOpacity onPress={() => setIsSigningUp(!isSigningUp)} style={globalStyles.globalButton_wide}>
             <Text style={globalStyles.globalButtonText}>
               {isSigningUp ? "Vous avez déjà un compte ? Connectez-vous" : "Vous n'avez pas encore de compte ? Inscrivez-vous"}
             </Text>
           </TouchableOpacity>
         </View>
-        {!isSigningUp && (
-          <TouchableOpacity onPress={resetPassword} style={globalStyles.globalButton_wide}>
+      )}
+        {!isForgottenPassword && !isTokenPage && (
+          <TouchableOpacity onPress={() => setIsForgottenPassword(true)} style={globalStyles.globalButton_wide}>
             <Text style={globalStyles.globalButtonText}>Mot de passe oublié ?</Text>
           </TouchableOpacity>
         )}
+
+        {isTokenPage && (
+          <TouchableOpacity onPress={updatePassword} style={globalStyles.globalButton_wide}>
+            <Text style={globalStyles.globalButtonText}>Changer mon mot de passe</Text>
+          </TouchableOpacity>
+        )}
+
       </View>
     </View>
   );
