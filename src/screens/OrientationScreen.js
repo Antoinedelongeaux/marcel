@@ -12,7 +12,7 @@ const useFetchData = (id_user, setUserName, subjects, setSubjects, navigateToScr
   useEffect(() => {
     const fetchMachin = async () => {
       if (id_user && subjects.length === 0) {
-        console.log("Coucou 9")
+
         const temp = await getSubjects(id_user);
         setSubjects(temp);
         await get_user_name(id_user).then(setUserName);

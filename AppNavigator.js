@@ -42,7 +42,7 @@ function AppNavigator({ session }) {
   
 
   useEffect(() => {
-    console.log("coucou 12")
+
     if(suffix){
       console.log("suffix : ",suffix )
     const fetchSuffixData= async () => {
@@ -59,7 +59,7 @@ function AppNavigator({ session }) {
   
 
   useEffect(() => {
-    console.log("coucou 13")
+
     if (session && session.user && check.nature === 'subject') {
       const joinSubjectAction = async () => {
         try {
@@ -157,14 +157,7 @@ function AppNavigator({ session }) {
         <> 
         <Stack.Screen name="Projets" component={ManageBiographyScreen} initialParams={{ session }} />
         <Stack.Screen name="ProfileScreen" component={ProfileScreen} initialParams={{ session }} />
-        <Stack.Screen name="Orientation" component={OrientationScreen} initialParams={{ session }} />
-          <Stack.Screen name="Marcel" component={ReadAnswersScreen} initialParams={{ session }} />
-          <Stack.Screen name="Account" component={Account} initialParams={{ session }} />
-          <Stack.Screen name="Incipit" component={ReadNotesScreen} initialParams={{ session }} />  
-          <Stack.Screen name="Notes" component={NoteScreen} initialParams={{ session }} />
-          <Stack.Screen name="AskQuestionScreen" component={AskQuestionScreen} initialParams={{ session }} />
-          <Stack.Screen name="EditChapterScreen" component={EditChapterScreen} initialParams={{ session }} />
-          <Stack.Screen name="AnswerQuestionScreen" component={AnswerQuestionScreen} initialParams={{ session }} />
+       
         </>
       )}
 

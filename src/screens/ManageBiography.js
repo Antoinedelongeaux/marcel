@@ -40,6 +40,7 @@ export default function ProfileScreen({ route }) {
     const navigation = useNavigation();
 
     const [subjects, setSubjects] = useState([]);
+    console.log("test 1")
     const [subjects_active, setSubjects_active] = useState([]);
 
 
@@ -102,19 +103,13 @@ const copyLinkToClipboard = (text) => {
     setLinks(updatedLinks);
   };
   
-
-
-
+  useEffect(() => {
+console.log("subjects_active : ",subjects_active)
+  },[subjects_active]);
 
   useEffect(() => {
 
-    const prevSubjectActive = prevSubjectActiveRef.current;
 
-    // Comparez les valeurs actuelles et précédentes pour voir si elles ont changé
-    if (prevSubjectActive.id === subject_active.id) {
-        // Si subject_active n'a pas changé, sortez du useEffect
-        return;
-    }
 
     const fetchUserStatus = async () => {
       if (!subject_active?.id) return;
@@ -143,8 +138,9 @@ const copyLinkToClipboard = (text) => {
         if (session) {
             getProfile();
             try {
-                console.log("Coucou 5")
+
                 const temp = await getSubjects(session.user.id);
+                console.log("temp : ",temp)
                 const temp_bis = await getSubjects_pending(session.user.id);
                 setSubjects_active(temp);
                 setSubjects_pending(temp_bis);
@@ -164,25 +160,13 @@ const copyLinkToClipboard = (text) => {
 
     useEffect(() => {
 
-        const prevSession = prevSessionRef.current;
-        // Comparez les valeurs actuelles et précédentes pour voir si elles ont changé
-        if (prevSession === session) {
-            // Si subject_active n'a pas changé, sortez du useEffect
-            return;
-        }else{
-        console.group("Coucou 1")
+
         fetchSubjects();
-    }
+    
     }, [session]);
 
     useEffect(() => {
-        const prevSubjectActive = prevSubjectActiveRef.current;
 
-        // Comparez les valeurs actuelles et précédentes pour voir si elles ont changé
-        if (prevSubjectActive.id === subject_active.id) {
-            // Si subject_active n'a pas changé, sortez du useEffect
-            return;
-        }
         if (subject_active &&subject_active.id!=0) {
         const fetchLinks = async () => {
             saveActiveSubjectId(String(subject_active.id));
@@ -215,7 +199,7 @@ const copyLinkToClipboard = (text) => {
             await remember_active_subject(id,session?.user.id)
             
             // Après une mise à jour réussie, rafraîchissez les données
-            console.group("Coucou 2")
+
             await fetchSubjects(); // Cette fonction va récupérer à nouveau les sujets actifs et disponibles
         } catch (error) {
             console.error('Erreur lors de la mise à jour du profil', error.message);
@@ -286,7 +270,7 @@ const copyLinkToClipboard = (text) => {
             .then(creationResult => {
 
                 setShowModal(true);  // Afficher la modal
-                console.group("Coucou 3")
+   
                 return fetchSubjects();  // Continuer avec la récupération des sujets si la création est réussie
 
             })
@@ -342,7 +326,7 @@ const copyLinkToClipboard = (text) => {
             <View style={[globalStyles.navigationContainer, { position: 'fixed', bottom: '0%', alignSelf: 'center' }]}>
 
                 <TouchableOpacity
-  onPress={() => { console.log("Coucou 10");navigateToScreen('Orientation') }}
+  onPress={() => { navigateToScreen('Orientation') }}
   style={[globalStyles.navButton, isHovered && globalStyles.navButton_over]}
   onMouseEnter={() => setIsHovered(true)}
   onMouseLeave={() => setIsHovered(false)}
@@ -378,7 +362,7 @@ const copyLinkToClipboard = (text) => {
                             title="OK"
                             onPress={() => {
                                 setShowModal(!showModal);
-                                console.group("Coucou 4")
+                  
                                 fetchSubjects();
                             }}
                         />
@@ -653,7 +637,7 @@ const copyLinkToClipboard = (text) => {
                     </View>
                     </View>
                 )}
-<TouchableOpacity style={globalStyles.globalButton_wide} onPress={() => {console.log("Coucou 11");navigateToScreen('ProfileScreen')}}>
+<TouchableOpacity style={globalStyles.globalButton_wide} onPress={() => {navigateToScreen('ProfileScreen')}}>
                         <Text style={globalStyles.globalButtonText}>Informations utilisateur</Text>
                     </TouchableOpacity>
 

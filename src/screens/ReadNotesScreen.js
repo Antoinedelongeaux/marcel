@@ -81,7 +81,6 @@ const useFetchData = (id_user, subject, setQuestions, tags, personal, setChapter
       get_chapters(subject.id, setChapters);
       getUserStatus(id_user, subject.id).then(setUserStatus);
       getTheme_byUser(id_user, subject.id).then(setThemes);
-      console.log("Coucou 8")
       getSubjects(id_user).then(setSubjects);
       get_project_contributors(subject.id).then(setUsers);
       

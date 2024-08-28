@@ -696,7 +696,7 @@ export async function joinSubject(id_subject, id_user,access) {
 
 
 export async function getSubjects(id_user) {
-  console.log("Coucou 6")
+
   try {
 
     console.log("id_user : ",id_user)

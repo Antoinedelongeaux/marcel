@@ -35,7 +35,7 @@ export default function Auth() {
 
 
   const validateForm = () => {
-    if (!email || !password || !confirmPassword || !firstName || !lastName) {
+    if (!email || !password || !confirmPassword ) {
       setError('Veuillez remplir tous les champs.');
       return false;
     }
@@ -92,15 +92,21 @@ export default function Auth() {
       return;
     }
 
+    const session = await supabase.auth.getSession()
+    const id_user = session.data.session.user.id
+    
     const full_name = `${firstName} ${lastName}`;
 
-    const { error: profileError } = await supabase.from('profiles').upsert([{ username: firstName, full_name: full_name,last_name: lastName, first_name: firstName  }]);
+    //console.log(firstName,lastName,full_name)
+    //console.log(id_user)
+    const { error: profileError } = await supabase.from('profiles').update({ username: firstName, full_name: full_name}).match({id: id_user   });
 
-    if (profileError || userError) {
-      console.log("Erreur lors de l'insertion du profil ou de l'utilisateur", profileError?.message, userError?.message);
+
+    if (profileError ) {
+      console.log("Erreur lors de l'insertion du profil ou de l'utilisateur", profileError?.message);
       setError('Erreur lors de la création du profil. Veuillez réessayer.');
     } else {
-      Alert.alert('Merci', 'Votre compte a bien été créé. Bienvenue dans la communauté Séléné !');
+      Alert.alert('Merci', 'Votre compte a bien été créé. Bienvenue dans la communauté BioScriptum !');
     }
 
     setLoading(false);
@@ -154,6 +160,7 @@ export default function Auth() {
               placeholder="Confirmation du mot de passe"
               autoCapitalize="none"
             />
+          
             <TextInput
               onChangeText={setFirstName}
               value={firstName}
@@ -168,6 +175,7 @@ export default function Auth() {
               placeholder="Nom"
               autoCapitalize="none"
             />
+            
           </>
         )}
 
