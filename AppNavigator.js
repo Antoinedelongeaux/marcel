@@ -96,6 +96,9 @@ function AppNavigator({ session }) {
             await saveActiveSubjectUserStatus(temp)
             setLoading(false)
 
+        }else{
+          setLoading(true)
+
         }
         
         } catch (error) {
@@ -135,6 +138,7 @@ function AppNavigator({ session }) {
 <>
       {session && session.user ? (
         <>
+        {activeSubjectId?  (<> 
           <Stack.Screen name="Orientation" component={OrientationScreen} initialParams={{ session }} />
           <Stack.Screen name="Marcel" component={ReadAnswersScreen} initialParams={{ session }} />
           <Stack.Screen name="Account" component={Account} initialParams={{ session }} />
@@ -145,6 +149,14 @@ function AppNavigator({ session }) {
           <Stack.Screen name="AskQuestionScreen" component={AskQuestionScreen} initialParams={{ session }} />
           <Stack.Screen name="EditChapterScreen" component={EditChapterScreen} initialParams={{ session }} />
           <Stack.Screen name="AnswerQuestionScreen" component={AnswerQuestionScreen} initialParams={{ session }} />
+          </>) : (<> 
+          <Stack.Screen name="Projets" component={ManageBiographyScreen} initialParams={{ session }} />
+          <Stack.Screen name="ProfileScreen" component={ProfileScreen} initialParams={{ session }} />
+     
+          
+          </>)}
+        
+        
         </>
       ) : (
         <Stack.Screen name="Auth" component={Auth} />
