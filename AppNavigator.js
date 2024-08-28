@@ -96,9 +96,6 @@ function AppNavigator({ session }) {
             await saveActiveSubjectUserStatus(temp)
             setLoading(false)
 
-        }else{
-          setLoading(true)
-
         }
         
         } catch (error) {
@@ -108,6 +105,9 @@ function AppNavigator({ session }) {
       };
   
       reachActiveSubject();
+    }else{
+      setLoading(false)
+
     }
 
   }, [check, session]);
@@ -116,6 +116,7 @@ function AppNavigator({ session }) {
 
  
   if (loading && session && session.user ){
+
     return (
       <View >
         <Text>Veuillez rafraichir la page...</Text>
