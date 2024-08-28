@@ -24,7 +24,7 @@ export default function Auth() {
   const [isForgottenPassword, setIsForgottenPassword] = useState(false);
   const [isTokenPage,setTokenPage]=useState(false);
   const [error, setError] = useState('');
-  const { suffix } = useParams(); 
+  //const { suffix } = useParams(); 
 
 
   const translateErrorMessage = (message) => {
@@ -37,6 +37,7 @@ export default function Auth() {
     }
   };
 
+  /*
   useEffect(() => {
     if (suffix) {
       console.log("suffix : ", suffix);
@@ -49,8 +50,22 @@ export default function Auth() {
     }
   }, [suffix]); 
   
-  
+  */
 
+  useEffect(() => {
+    const hash = window.location.hash; // Capturer le fragment de l'URL
+    if (hash) {
+      console.log("Hash : ", hash);
+      // Vérifie si le fragment commence par '#access_token=' et met à jour l'état isTokenPage
+      if (hash.startsWith('#access_token=')) {
+        setTokenPage(true);
+        console.log("access_token : ", hash.slice(14)); // Log du token, si besoin
+      } else {
+        setTokenPage(false);
+      }
+    }
+  }, []); // Exécuter une seule fois au montage du composant
+  
 
   const validateForm = () => {
     if (!email || !password || !confirmPassword ) {
