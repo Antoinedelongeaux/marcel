@@ -20,7 +20,7 @@ export default function Auth() {
   const [lastName, setLastName] = useState('');
   const [loading, setLoading] = useState(false);
   const [isSigningUp, setIsSigningUp] = useState(false);
-  const [isSigningIn, setIsSigningIn] = useState(false);
+  const [isSigningIn, setIsSigningIn] = useState(true);
   const [isForgottenPassword, setIsForgottenPassword] = useState(false);
   const [isTokenPage,setTokenPage]=useState(false);
   const [error, setError] = useState('');
@@ -249,13 +249,14 @@ export default function Auth() {
         {!isForgottenPassword && !isTokenPage &&(
         <View>
         
-          <TouchableOpacity onPress={() => setIsSigningUp(!isSigningUp)} style={globalStyles.globalButton_wide}>
+          <TouchableOpacity onPress={() => {setIsSigningUp(!isSigningUp);setIsSigningIn(!isSigningIn) }} style={globalStyles.globalButton_wide}>
             <Text style={globalStyles.globalButtonText}>
               {isSigningUp ? "Vous avez déjà un compte ? Connectez-vous" : "Vous n'avez pas encore de compte ? Inscrivez-vous"}
             </Text>
           </TouchableOpacity>
         </View>
       )}
+     
         {!isForgottenPassword && !isTokenPage && (
           <TouchableOpacity onPress={() => setIsForgottenPassword(true)} style={globalStyles.globalButton_wide}>
             <Text style={globalStyles.globalButtonText}>Mot de passe oublié ?</Text>

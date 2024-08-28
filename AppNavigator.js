@@ -44,7 +44,6 @@ function AppNavigator({ session }) {
   useEffect(() => {
 
     if(suffix){
-      console.log("suffix : ",suffix )
     const fetchSuffixData= async () => {
       setCheck(await linkAnalysis(suffix));
     
@@ -59,7 +58,6 @@ function AppNavigator({ session }) {
   
 
   useEffect(() => {
-
     if (session && session.user && check.nature === 'subject') {
       const joinSubjectAction = async () => {
         try {
@@ -86,7 +84,6 @@ function AppNavigator({ session }) {
   
       joinSubjectAction();
     }
-
     if (session && session.user && check.nature!== 'subject') {
       const reachActiveSubject = async () => {
         try {
@@ -99,8 +96,6 @@ function AppNavigator({ session }) {
             await saveActiveSubjectUserStatus(temp)
             setLoading(false)
 
-        }else{
-          setLoading(false)
         }
         
         } catch (error) {
@@ -139,8 +134,6 @@ function AppNavigator({ session }) {
 
 <>
       {session && session.user ? (
-        <> 
-        { activeSubjectId ? (
         <>
           <Stack.Screen name="Orientation" component={OrientationScreen} initialParams={{ session }} />
           <Stack.Screen name="Marcel" component={ReadAnswersScreen} initialParams={{ session }} />
@@ -153,15 +146,6 @@ function AppNavigator({ session }) {
           <Stack.Screen name="EditChapterScreen" component={EditChapterScreen} initialParams={{ session }} />
           <Stack.Screen name="AnswerQuestionScreen" component={AnswerQuestionScreen} initialParams={{ session }} />
         </>
-      ):(
-        <> 
-        <Stack.Screen name="Projets" component={ManageBiographyScreen} initialParams={{ session }} />
-        <Stack.Screen name="ProfileScreen" component={ProfileScreen} initialParams={{ session }} />
-       
-        </>
-      )}
-
-</>
       ) : (
         <Stack.Screen name="Auth" component={Auth} />
       )}
