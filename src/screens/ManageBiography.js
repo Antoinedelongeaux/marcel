@@ -1,5 +1,5 @@
 import React from 'react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect,useRef } from 'react'
 import { useNavigation } from '@react-navigation/native';
 import { Modal, Image, View, StyleSheet, Button, Text, Alert, Keyboard, TouchableWithoutFeedback, TextInput, TouchableOpacity } from 'react-native'
 import { globalStyles } from '../../global'
@@ -25,6 +25,7 @@ import BookIcon from '../../assets/icons/book.svg';
 import note from '../../assets/icons/notes.png';
 import { Picker } from '@react-native-picker/picker';
 import Clipboard from '@react-native-clipboard/clipboard';
+import { Dimensions } from 'react-native';
 
 
 
@@ -40,6 +41,7 @@ export default function ProfileScreen({ route }) {
 
     const [subjects, setSubjects] = useState([]);
     const [subjects_active, setSubjects_active] = useState([]);
+
 
     const [subjects_pending, setSubjects_pending] = useState([]);
     const [subject_active, setSubject_active] = useState({ id: 0 });
@@ -64,21 +66,26 @@ export default function ProfileScreen({ route }) {
     const [isLargeScreen, setIsLargeScreen] = useState(false);
     const [links, setLinks] = useState(false);
     const [userStatus, setUserStatus] = useState('');
-
+    const prevSubjectActiveRef = useRef(subject_active);
+    const prevSessionRef = useRef(session);
     
 
-useEffect(() => {
-    const updateLayout = () => {
-        setIsLargeScreen(window.innerWidth > 768); // Exemple de seuil pour grand écran
-    };
 
-    window.addEventListener('resize', updateLayout);
-    updateLayout(); // Appeler une fois pour définir l'état initial
 
-    return () => {
-        window.removeEventListener('resize', updateLayout);
-    };
-}, []);
+
+    useEffect(() => {
+        const updateLayout = () => {
+            const { width } = Dimensions.get('window');
+            setIsLargeScreen(width > 768); // Exemple de seuil pour grand écran
+        };
+    
+        const subscription = Dimensions.addEventListener('change', updateLayout);
+        updateLayout(); // Appeler une fois pour définir l'état initial
+    
+        return () => {
+            subscription?.remove(); // Supprimez l'abonnement pour éviter les fuites de mémoire
+        };
+    }, []);
 
 const copyLinkToClipboard = (text) => {
     Clipboard.setString(text);
@@ -100,13 +107,24 @@ const copyLinkToClipboard = (text) => {
 
 
   useEffect(() => {
+
+    const prevSubjectActive = prevSubjectActiveRef.current;
+
+    // Comparez les valeurs actuelles et précédentes pour voir si elles ont changé
+    if (prevSubjectActive.id === subject_active.id) {
+        // Si subject_active n'a pas changé, sortez du useEffect
+        return;
+    }
+
     const fetchUserStatus = async () => {
+      if (!subject_active?.id) return;
       const status = await getUserStatus(session.user.id, subject_active.id);
       console.log("UserStatus :",status)
       setUserStatus(status);
       
     };
-    if(subject_active.id){
+    if(subject_active && subject_active.id){
+        console.log("subject_active.id : ",subject_active.id)
       fetchUserStatus();
     }
     
@@ -125,13 +143,13 @@ const copyLinkToClipboard = (text) => {
         if (session) {
             getProfile();
             try {
- 
+                console.log("Coucou 5")
                 const temp = await getSubjects(session.user.id);
                 const temp_bis = await getSubjects_pending(session.user.id);
                 setSubjects_active(temp);
                 setSubjects_pending(temp_bis);
 
-
+                
 
                 const temp2 = await listSubjects(session.user.id);
                 setSubjects(temp2);
@@ -146,10 +164,26 @@ const copyLinkToClipboard = (text) => {
 
     useEffect(() => {
 
+        const prevSession = prevSessionRef.current;
+        // Comparez les valeurs actuelles et précédentes pour voir si elles ont changé
+        if (prevSession === session) {
+            // Si subject_active n'a pas changé, sortez du useEffect
+            return;
+        }else{
+        console.group("Coucou 1")
         fetchSubjects();
+    }
     }, [session]);
 
     useEffect(() => {
+        const prevSubjectActive = prevSubjectActiveRef.current;
+
+        // Comparez les valeurs actuelles et précédentes pour voir si elles ont changé
+        if (prevSubjectActive.id === subject_active.id) {
+            // Si subject_active n'a pas changé, sortez du useEffect
+            return;
+        }
+        if (subject_active &&subject_active.id!=0) {
         const fetchLinks = async () => {
             saveActiveSubjectId(String(subject_active.id));
             const links = await getExistingLink(subject_active.id, 'id_subject');
@@ -159,6 +193,7 @@ const copyLinkToClipboard = (text) => {
         if (subject_active.id) {
             fetchLinks();
         }
+    }
     }, [subject_active]);
     
 
@@ -180,6 +215,7 @@ const copyLinkToClipboard = (text) => {
             await remember_active_subject(id,session?.user.id)
             
             // Après une mise à jour réussie, rafraîchissez les données
+            console.group("Coucou 2")
             await fetchSubjects(); // Cette fonction va récupérer à nouveau les sujets actifs et disponibles
         } catch (error) {
             console.error('Erreur lors de la mise à jour du profil', error.message);
@@ -250,6 +286,7 @@ const copyLinkToClipboard = (text) => {
             .then(creationResult => {
 
                 setShowModal(true);  // Afficher la modal
+                console.group("Coucou 3")
                 return fetchSubjects();  // Continuer avec la récupération des sujets si la création est réussie
 
             })
@@ -305,7 +342,7 @@ const copyLinkToClipboard = (text) => {
             <View style={[globalStyles.navigationContainer, { position: 'fixed', bottom: '0%', alignSelf: 'center' }]}>
 
                 <TouchableOpacity
-  onPress={() => { navigateToScreen('Orientation') }}
+  onPress={() => { console.log("Coucou 10");navigateToScreen('Orientation') }}
   style={[globalStyles.navButton, isHovered && globalStyles.navButton_over]}
   onMouseEnter={() => setIsHovered(true)}
   onMouseLeave={() => setIsHovered(false)}
@@ -341,6 +378,7 @@ const copyLinkToClipboard = (text) => {
                             title="OK"
                             onPress={() => {
                                 setShowModal(!showModal);
+                                console.group("Coucou 4")
                                 fetchSubjects();
                             }}
                         />
@@ -615,7 +653,7 @@ const copyLinkToClipboard = (text) => {
                     </View>
                     </View>
                 )}
-<TouchableOpacity style={globalStyles.globalButton_wide} onPress={() => navigateToScreen('ProfileScreen')}>
+<TouchableOpacity style={globalStyles.globalButton_wide} onPress={() => {console.log("Coucou 11");navigateToScreen('ProfileScreen')}}>
                         <Text style={globalStyles.globalButtonText}>Informations utilisateur</Text>
                     </TouchableOpacity>
 
