@@ -3,6 +3,7 @@ import { Button, TouchableOpacity, Text, Alert, StyleSheet, View, AppState, Text
 import { supabase } from '../lib/supabase';
 import { globalStyles } from '../../global';
 import { useParams } from 'react-router-dom'; // Importer useParams
+import ModalComponent from '../components/ModalComponent';
 
 AppState.addEventListener('change', (state) => {
   if (state === 'active') {
@@ -24,6 +25,7 @@ export default function Auth() {
   const [isForgottenPassword, setIsForgottenPassword] = useState(false);
   const [isTokenPage,setTokenPage]=useState(false);
   const [error, setError] = useState('');
+  const [isModalVisibleEmail, setIsModalVisibleEmail] = useState(false);
   //const { suffix } = useParams(); 
 
 
@@ -158,31 +160,68 @@ export default function Auth() {
     if (error) {
       setError(translateErrorMessage(error.message));
     } else {
-      Alert.alert('Réinitialisation de mot de passe', 'Un email de réinitialisation de mot de passe a été envoyé.');
+      setIsModalVisibleEmail(true);
     }
     setLoading(false);
   };
 
   async function updatePassword() {
-    if ( !password || !confirmPassword ) {
+    if (!password || !confirmPassword) {
       setError('Veuillez remplir tous les champs.');
       return false;
     }
+  
     if (password !== confirmPassword) {
       setError('Les mots de passe ne correspondent pas.');
       return false;
     }
-    
-    const { error } = await supabase.auth.updateUser({
-      password: password,
-    })
   
-    if (error) {
-      console.error('Erreur lors de la mise à jour du mot de passe:', error.message)
+    const hash = window.location.hash;
+    if (hash.startsWith('#access_token=')) {
+      const accessToken = hash.split('#access_token=')[1].split('&')[0]; // Extraction du token
+  
+      try {
+        // Configuration de la session avec le token
+        const { data, error: setSessionError } = await supabase.auth.setSession({ access_token: accessToken });
+  
+        if (setSessionError) {
+          console.error('Erreur lors de la configuration de la session:', setSessionError);
+          setError('Erreur lors de la configuration de la session. Veuillez réessayer.');
+          return;
+        }
+  
+        // Vérifiez que la session est disponible
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+  
+        if (sessionError || !sessionData?.session) {
+          console.error('Erreur: Session d\'authentification manquante!', sessionError);
+          setError('Session d\'authentification manquante! Veuillez vous reconnecter.');
+          return;
+        }
+  
+        // Mise à jour du mot de passe
+        const { error: updateError } = await supabase.auth.updateUser({
+          password: password,
+        });
+  
+        if (updateError) {
+          console.error('Erreur lors de la mise à jour du mot de passe:', updateError.message);
+          setError('Erreur lors de la mise à jour du mot de passe.');
+        } else {
+          console.log('Mot de passe mis à jour avec succès.');
+          Alert.alert('Succès', 'Votre mot de passe a été mis à jour avec succès.');
+        }
+  
+      } catch (err) {
+        console.error('Erreur inattendue:', err);
+        setError('Une erreur inattendue s\'est produite. Veuillez réessayer.');
+      }
     } else {
-      console.log('Mot de passe mis à jour avec succès.')
+      setError('Token d\'accès manquant ou invalide.');
     }
   }
+  
+
 
   
 
@@ -285,6 +324,14 @@ export default function Auth() {
         )}
 
       </View>
+      <ModalComponent
+        isVisible={isModalVisibleEmail}
+        onClose={() => (setIsModalVisibleEmail(false))}
+        title="Merci !"
+        content={
+          <View> <Text> Un email vient de vous être envoyé avec un lien pour modifier votre mot de passe. Vous pouvez fermer cette page.</Text></View>
+        }
+      />
     </View>
   );
 }
