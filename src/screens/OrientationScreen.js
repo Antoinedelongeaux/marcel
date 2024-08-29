@@ -30,9 +30,9 @@ const useFetchData = (id_user, setUserName, subjects, setSubjects, navigateToScr
 const OrientationScreen = ({ route }) => {
   const windowWidth = Dimensions.get('window').width;
   const isLargeScreen = windowWidth > 768;
-  const [animationValues] = useState([...Array(6)].map(() => new Animated.Value(0)));
+  const [animationValues] = useState([...Array(8)].map(() => new Animated.Value(0)));
   const containerRef = useRef();
-  const titles = ['Structurer', 'Raconter', 'Réagir', 'Rédiger', 'Corriger', 'Lire'];
+  const titles = ['Inspirer', 'Raconter', 'Réagir','Structurer',  'Rédiger', 'Corriger', 'Publier','Lire'];
   const details = [
     <>
       <Text style={{ fontWeight: 'bold' }}>Proposez</Text> un thème autour duquel l'information sera collectée
@@ -60,7 +60,7 @@ const OrientationScreen = ({ route }) => {
     </>
   ];
 
-  const colors = ['#0c2d48','#145da0',  '#2e8bc0','#fc2e20' ,  '#fd7f20','#fdb750'];
+  const colors = ['#0c2d48','#145da0',  '#2e8bc0','#570701','#fc2e20' ,  '#fd7f20','#fdb750','#01693c'];
 
   // Valeurs d'animation de zoom pour chaque carte
   const [zoomAnimations] = useState(titles.map(() => new Animated.Value(1)));
@@ -153,7 +153,7 @@ const OrientationScreen = ({ route }) => {
 
 
   // Handlers pour chaque carte
-  const handleStructurer = async () => {
+  const handleInspirer = async () => {
     await validate_project_contributors(subject.id,session.user.id,true,"Contributeur","Pas d'accès")   
     navigateToScreen('Incipit',{'Etape': 1});
   };
@@ -168,6 +168,12 @@ const OrientationScreen = ({ route }) => {
     navigateToScreen('Incipit',{'Etape': 3});
   };
 
+  const handleStructurer = async () => {
+    await validate_project_contributors(subject.id,session.user.id,true,"Contributeur","Editeur")   
+    navigateToScreen('Marcel');
+  };
+
+
   const handleRediger = async () => {
     await validate_project_contributors(subject.id,session.user.id,true,"Contributeur","Editeur")   
     navigateToScreen('Marcel');
@@ -178,13 +184,19 @@ const OrientationScreen = ({ route }) => {
     navigateToScreen('Marcel');
   };
 
+
+  const handlePublier = async () => {
+    await validate_project_contributors(subject.id,session.user.id,true,"Contributeur","Lecteur")   
+    navigateToScreen('Marcel');
+  }; 
+
   const handleLire = async () => {
     await validate_project_contributors(subject.id,session.user.id,true,"Contributeur","Lecteur")   
     navigateToScreen('Marcel');
   };
 
   // Associe chaque fonction à la carte correspondante
-  const handlers = [handleStructurer, handleRaconter, handleReagir, handleRediger, handleCorriger, handleLire];
+  const handlers = [ handleInspirer, handleRaconter, handleReagir,handleStructurer, handleRediger, handleCorriger, handlePublier, handleLire];
 
   const handleMouseEnter = (index) => {
     setZIndexes((prevZIndexes) => {
@@ -238,7 +250,7 @@ const OrientationScreen = ({ route }) => {
           {
             rotate: animationValues[index].interpolate({
               inputRange: [0, 1],
-              outputRange: ['-70deg', `${index * 25 - 60}deg`], // Rotation calculée pour chaque carte
+              outputRange: ['-90deg', `${index * 25 - 87}deg`], // Rotation calculée pour chaque carte
             }),
           },
           { translateY: -Dimensions.get('window').width * 0.1 }, // Décalage pour chaque carte
