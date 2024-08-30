@@ -51,6 +51,7 @@ import settings from '../../assets/icons/accueil.png';
 import copyIcon from '../../assets/icons/paste.png';
 import noteIcon from '../../assets/icons/notes.png';
 import filterIcon from '../../assets/icons/filtre.png';
+import calendarIcon from '../../assets/icons/calendar.png';
 import EmptyfilterIcon from '../../assets/icons/filtre_empty.png';
 import Modal from 'react-native-modal'; // Ajoutez cette ligne pour importer le composant Modal
 import { 
@@ -387,7 +388,6 @@ if(session.user){
   const navigateToScreen = (screenName, params) => {
     navigation.navigate(screenName, params);
   };
-
 
 
   const handleRemoveFilters = () => {
@@ -859,6 +859,7 @@ useEffect(() => {
   return (
     <View style={globalStyles.container}>
       
+      <Text> Coucou ! </Text>
 
       {fullscreenImage && (
   <View style={styles.fullscreenContainer}>

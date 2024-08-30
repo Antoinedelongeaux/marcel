@@ -171,8 +171,8 @@ const OrientationScreen = ({ route }) => {
   };
 
   const handleReagir = async () => {
-    await validate_project_contributors(subject.id,session.user.id,true,"Contributeur","Pas d'accès")   
-    navigateToScreen('Incipit',{'Etape': 3});
+    await validate_project_contributors(subject.id,session.user.id,true,"Contributeur","Editeur")   
+    navigateToScreen('Marcel');
   };
 
   const handleStructurer = async () => {
@@ -182,12 +182,12 @@ const OrientationScreen = ({ route }) => {
 
 
   const handleRediger = async () => {
-    await validate_project_contributors(subject.id,session.user.id,true,"Contributeur","Editeur")   
+    await validate_project_contributors(subject.id,session.user.id,true,"Exploitant","Editeur")   
     navigateToScreen('Marcel');
   };
 
   const handleCorriger = async () => {
-    await validate_project_contributors(subject.id,session.user.id,true,"Contributeur","Auditeur")   
+    await validate_project_contributors(subject.id,session.user.id,true,"Exploitant","Auditeur")   
     navigateToScreen('Marcel');
   };
 
@@ -198,7 +198,7 @@ const OrientationScreen = ({ route }) => {
   }; 
 
   const handleLire = async () => {
-    await validate_project_contributors(subject.id,session.user.id,true,"Contributeur","Lecteur")   
+    await validate_project_contributors(subject.id,session.user.id,true,"Exploitant","Lecteur")   
     navigateToScreen('Marcel');
   };
 

@@ -570,7 +570,7 @@ function ReadAnswersScreen({ route }) {
       <View style={miscState.isLargeScreen ? styles.largeScreenContainer : styles.smallScreenContainer}>
          
         
-        {miscState.isLeftPanelVisible && (
+        {miscState.isLeftPanelVisible && miscState.userStatus.notes!='Contributeur' && (
           <View style={(miscState.isLargeScreen && miscState.userStatus.notes!='Structurateur'&& miscState.userStatus.notes!='Publicateur') ? styles.leftPanel : styles.fullWidth}>
 
             <View style={globalStyles.container_wide}>
@@ -779,7 +779,7 @@ function ReadAnswersScreen({ route }) {
         )}
         </TouchableOpacity>
 
-        {(miscState.isLargeScreen || !miscState.isLeftPanelVisible) && (
+        {(miscState.isLargeScreen || !miscState.isLeftPanelVisible)&&(miscState.userStatus.notes !='Contributeur') && (
           <View style={miscState.isLargeScreen ? styles.middlePanelContainer : styles.fullWidth}>
             
          
@@ -875,8 +875,8 @@ function ReadAnswersScreen({ route }) {
           </View>
         )}
 
-{(miscState.isLargeScreen || !miscState.isLeftPanelVisible) && (miscState.question && miscState.question.question) && (
-    <View style={[styles.rightPanel, { width: miscState.rightPanelWidth }]}>
+{(miscState.isLargeScreen || !miscState.isLeftPanelVisible) && ((miscState.userStatus.notes ==='Contributeur') || (miscState.question && miscState.question.question) )&& (
+    <View style={[styles.rightPanel, { width: (miscState.userStatus.notes !='Contributeur')? miscState.rightPanelWidth : '100%' }]}>
       <ScrollView>
         <NoteScreen 
           route={{ 
@@ -887,7 +887,8 @@ function ReadAnswersScreen({ route }) {
               filterSelectedQuestion: filterSelectedQuestion, 
               setFilterSelectedQuestion: setFilterSelectedQuestion, 
               question_reponse: miscState.question_reponse, 
-              mode: miscState.userStatus?.chapters, 
+              mode: miscState.userStatus?.chapters,
+//              mode: (miscState.userStatus?.notes === 'Contributeur'?  'full':miscState.userStatus?.chapters), 
               reference: reference, 
               setReference: setReference, 
             } 

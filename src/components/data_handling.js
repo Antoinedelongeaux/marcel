@@ -729,7 +729,7 @@ export async function joinSubject(id_subject, id_user,access) {
     if (existing) {
       console.log('Vous avez dejà émis une demande d\'accès à ce projet. Le propriétaire doit valider votre demande');
       return; // Sortir de la fonction pour éviter d'ajouter un doublon
-    }
+    }else{
 
     // Si aucun enregistrement existant n'a été trouvé, procéder à l'insertion
     const { error: insertError } = await supabase
@@ -742,6 +742,7 @@ export async function joinSubject(id_subject, id_user,access) {
 
     // L'insertion a réussi
     console.log('Le contributeur a été ajouté avec succès.');
+  }
   } catch (error) {
     console.error('Erreur lors de la tentative d\'ajout du contributeur :', error.message);
     throw error; // Propager l'erreur pour une gestion ultérieure si nécessaire
