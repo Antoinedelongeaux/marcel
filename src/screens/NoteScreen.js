@@ -859,7 +859,6 @@ useEffect(() => {
   return (
     <View style={globalStyles.container}>
       
-      <Text> Coucou ! </Text>
 
       {fullscreenImage && (
   <View style={styles.fullscreenContainer}>

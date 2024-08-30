@@ -725,13 +725,13 @@ function ReadAnswersScreen({ route }) {
         )}
           
 
-        { miscState.isLargeScreen && miscState.userStatus &&(miscState.question && miscState.question.question) && (miscState.userStatus.notes!="Structurateur") && (miscState.userStatus.notes!='Publicateur') && (miscState.userStatus.chapters === "Editeur" || miscState.userStatus.chapters === "Lecteur" || miscState.userStatus.chapters === "Auditeur") && (
+        { miscState.isLargeScreen && miscState.userStatus &&(miscState.question && miscState.question.question) && (miscState.userStatus.notes!="Structurateur") && (miscState.userStatus.notes!='Publicateur') && (miscState.userStatus.notes!='Contributeur') && (miscState.userStatus.chapters === "Editeur" || miscState.userStatus.chapters === "Lecteur" || miscState.userStatus.chapters === "Auditeur") && (
           <View style={[styles.resizer, { right: miscState.rightPanelWidth - 30 }]} onMouseDown={handleMouseDown}>
             <Image source={doubleArrowIcon} style={{ width: 120, height: 120, opacity: 0.5 }} />
           </View>
         )}
  
-        
+        {(miscState.userStatus.notes !='Contributeur')&&(
         <TouchableOpacity
           onPress={toggleLeftPanel}
           style={[
@@ -744,7 +744,7 @@ function ReadAnswersScreen({ route }) {
               left: !miscState.isLargeScreen && !miscState.isLeftPanelVisible ? 0 : 'auto'
             }
           ]}
-        >
+        > 
           {miscState.userStatus.notes!='Structurateur'&& (miscState.userStatus.notes!='Publicateur')  && (<>
           {miscState.isLeftPanelVisible ? (
             <Image
@@ -778,6 +778,7 @@ function ReadAnswersScreen({ route }) {
           </>
         )}
         </TouchableOpacity>
+        )}
 
         {(miscState.isLargeScreen || !miscState.isLeftPanelVisible)&&(miscState.userStatus.notes !='Contributeur') && (
           <View style={miscState.isLargeScreen ? styles.middlePanelContainer : styles.fullWidth}>
