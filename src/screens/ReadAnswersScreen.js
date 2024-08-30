@@ -32,7 +32,14 @@ import {
   get_Question_by_id,
   getUserStatus,
   save_question,
+  createTheme,
+  updateQuestion,
+  getMemories_Questions_Published,
 } from '../components/data_handling';
+import {
+  ToggleButton
+} from '../components/UI_components';
+
 import { useFocusEffect } from '@react-navigation/native';
 import { getActiveSubjectId } from '../components/local_storage';
 import { globalStyles } from '../../global';
@@ -49,12 +56,17 @@ import doubleArrowIcon from '../../assets/icons/arrows_1.png';
 import leftArrowIcon from '../../assets/icons/left-arrow.png';
 import rightArrowIcon from '../../assets/icons/right-arrow.png';
 import settingsIcon from '../../assets/icons/accueil.png';
+import orientationIcon from '../../assets/icons/echantillon.png';
 import saveIcon from '../../assets/icons/save.png';
 import editIcon from '../../assets/icons/pen-to-square-regular.svg';
 import viewIcon from '../../assets/icons/view.png';
 import trash from '../../assets/icons/baseline_delete_outline_black_24dp.png';
 import linkIcon from '../../assets/icons/link.png';
 import { decode, encode } from 'he';
+
+const deepEqual = (obj1, obj2) => {
+  return JSON.stringify(obj1) === JSON.stringify(obj2);
+};
 
 
 const useFetchActiveSubjectId = (setSubjectActive, setSubject, setMiscState, navigation) => {
@@ -77,15 +89,38 @@ const useFetchActiveSubjectId = (setSubjectActive, setSubject, setMiscState, nav
   );
 };
 
-const useFetchData = (id_user, subjectActive, setQuestions, tags, personal, setChapters, setMiscState) => {
+const useFetchData = (userStatus, id_user, subjectActive, setQuestions, tags, personal, setChapters, setMiscState) => {
+  // Utilisez useRef pour stocker les valeurs précédentes
+  const previousValues = useRef({ userStatus, id_user, subjectActive, tags, personal });
+
   useEffect(() => {
-    if (subjectActive) {
-      getMemories_Questions(subjectActive, setQuestions, tags, personal);
-      get_chapters(subjectActive, setChapters);
-      getUserStatus(id_user, subjectActive).then(result => setMiscState(prevState => ({ ...prevState, userStatus: result })));
+    
+    // Comparer les valeurs actuelles avec les valeurs précédentes
+    const hasChanged = 
+      !deepEqual(previousValues.current.userStatus, userStatus) 
+
+    if (hasChanged) {
+      // Si une valeur a changé, mettre à jour les valeurs précédentes
+      previousValues.current = { userStatus, id_user, subjectActive, tags, personal };
+
+      // Exécute le code de récupération des données
+      if (subjectActive && userStatus) {
+        if (userStatus.chapters === "Lecteur" &&userStatus.notes != "Publicateur") { 
+          getMemories_Questions_Published(subjectActive, setQuestions, tags, personal);
+        } else {
+          getMemories_Questions(subjectActive, setQuestions, tags, personal);
+        }
+        
+        get_chapters(subjectActive, setChapters);
+        getUserStatus(id_user, subjectActive).then(result => 
+          setMiscState(prevState => ({ ...prevState, userStatus: result }))
+        );
+      }
     }
-  }, [subjectActive, tags, personal, id_user]);
+  }, [userStatus]); // Toujours surveiller ces valeurs
 };
+
+
 
 function ReadAnswersScreen({ route }) {
   const navigation = useNavigation();
@@ -130,6 +165,7 @@ function ReadAnswersScreen({ route }) {
     showIntegratedNotes: false,
     userStatus: '',
     isHovered: false,
+    isHoveredOrientation: false,
     iconsVisible: false,
     userName: '',
     toggleIcon: plusIcon,
@@ -139,9 +175,9 @@ function ReadAnswersScreen({ route }) {
     isDragging: false,
     expandedAnswers: {},
     isLargeScreen: Dimensions.get('window').width > 768,
-    content: '<p>Commencez à écrire ici...</p>',
-    contentRead: '<p>Commencez à écrire ici...</p>',
-    contentEdit: '<p>Le chapitre n\'a pas encore été rédigé ...</p>',
+    content: '',
+    contentRead: '<p>Le chapitre n\'a pas encore été rédigé</p>',
+    contentEdit: '<p>Commencez à écrire ici</p>',
     isEditorReady: false,
     isLoading: true,
     isShareModalVisible: false,
@@ -156,7 +192,11 @@ function ReadAnswersScreen({ route }) {
   const editor = useRef();
 
   useFetchActiveSubjectId(setSubjectActive, setSubject, setMiscState, navigation);
-  useFetchData(session.user.id, subjectActive, setQuestions, tags, personal, setChapters, setMiscState);
+  
+
+  useFetchData(miscState.userStatus,session.user.id, subjectActive, setQuestions, tags, personal, setChapters, setMiscState);
+
+  
 
   useEffect(() => {
     const fetchUserStatus = async () => {
@@ -329,19 +369,12 @@ function ReadAnswersScreen({ route }) {
     navigation.navigate(screenName, params);
   };
 
-  const toggleTag = (tag) => {
-    const updatedTags = tags.includes(tag) ? tags.filter(t => t !== tag) : [...tags, tag];
-    setTags(updatedTags);
-    if (tag === 'posée par un proche') {
-      setPersonal(!personal);
-      getMemories_Questions(subjectActive, setQuestions, updatedTags, !personal);
-      get_chapters(subjectActive, setChapters);
-    }
-  };
+
 
   const handleJoinQuestionToChapter = async (id_question, id_chapter) => {
     await join_question_to_chapter(id_question, id_chapter);
-    getMemories_Questions(subjectActive, setQuestions, tags, personal);
+    refreshPage();
+    //getMemories_Questions(subjectActive, setQuestions, tags, personal);
   };
 
   const handleAssociateQuestion = (questionId) => {
@@ -372,7 +405,12 @@ function ReadAnswersScreen({ route }) {
 
   const refreshPage = async () => {
     if (subjectActive) {
-      await getMemories_Questions(subjectActive, setQuestions, tags, personal);
+      if(miscState.userStatus.chapters ==='Lecteur') { 
+        await getMemories_Questions_published(subjectActive, setQuestions, tags, personal);
+      }else {
+     
+        await getMemories_Questions(subjectActive, setQuestions, tags, personal);
+    }
       await get_chapters(subjectActive, setChapters);
     } else {
       Alert.alert('Erreur', 'Aucun sujet actif sélectionné. Veuillez sélectionner un sujet pour rafraîchir les données.');
@@ -408,6 +446,26 @@ function ReadAnswersScreen({ route }) {
     }
     setMiscState(prevState => ({ ...prevState, isSaving: false }));
   };
+
+  const handlePublication_private = async (id_question, statut) => {
+    await updateQuestion(id_question, 'published_private', statut);
+    setQuestions(questions.map((q) =>
+        q.id === id_question ? { ...q, published_private: statut } : q
+      ),
+    );
+  };
+  
+
+  const handlePublication_public = async (id_question, statut) => {
+    await updateQuestion(id_question, 'published_public', statut);
+    setQuestions(questions.map((q) =>
+      q.id === id_question ? { ...q, published_public: statut } : q
+    ),
+  );
+  };
+  
+
+
 
   useEffect(() => {
     if (Object.keys(activeQuestionAnswers)[0]) {
@@ -489,6 +547,16 @@ function ReadAnswersScreen({ route }) {
   return (
     <View style={globalStyles.container}>
       <View style={[globalStyles.navigationContainer, { position: 'fixed', bottom: '0%', alignSelf: 'center' }]}>
+      
+      <TouchableOpacity
+          onPress={() => navigateToScreen('Orientation')}
+          style={[globalStyles.navButton, miscState.isHoveredOrientation && globalStyles.navButton_over]}
+          onMouseEnter={() => setMiscState(prevState => ({ ...prevState, isHoveredOrientation: true }))}
+          onMouseLeave={() => setMiscState(prevState => ({ ...prevState, isHoveredOrientation: false }))}
+        >
+          <Image source={orientationIcon} style={{ width: 120, height: 120, opacity: 0.5 }} />
+        </TouchableOpacity>
+
         <TouchableOpacity
           onPress={() => navigateToScreen('Projets')}
           style={[globalStyles.navButton, miscState.isHovered && globalStyles.navButton_over]}
@@ -503,12 +571,12 @@ function ReadAnswersScreen({ route }) {
          
         
         {miscState.isLeftPanelVisible && (
-          <View style={miscState.isLargeScreen ? styles.leftPanel : styles.fullWidth}>
+          <View style={(miscState.isLargeScreen && miscState.userStatus.notes!='Structurateur'&& miscState.userStatus.notes!='Publicateur') ? styles.leftPanel : styles.fullWidth}>
 
             <View style={globalStyles.container_wide}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Text style={globalStyles.title}>{subject.title}</Text>
-                {miscState.userStatus.chapters !== "Lecteur"  && (
+                {miscState.userStatus.chapters !== "Lecteur" && miscState.userStatus.notes !== 'Structurateur' && miscState.userStatus.notes!='Publicateur' && (
                 <TouchableOpacity
                   onPress={() => {
                     setMiscState(prevState => ({
@@ -523,6 +591,23 @@ function ReadAnswersScreen({ route }) {
                   )}
               </View>
               <View style={{ height: 10 }} />
+              {miscState.userStatus.notes === 'Structurateur' && (<>
+  <p>
+    Voici la structure du projet. Les parties apparaissent en <strong style={{ color: 'black' }}>noir</strong> et les chapitres en <strong style={{ color: 'blue' }}>bleu</strong> à l'intérieur de chacune des parties.
+  </p>
+  </>
+)}
+
+{miscState.userStatus.notes === 'Publicateur' && (<>
+  <p>
+    Les chapitres doivent être publiés individuellement. Vous pouvez choisir une publication <strong style={{ color: '#008080' }}>privée</strong> ou une publication <strong style={{ color: '#008080' }}>publique</strong>. </p>
+    <p>Dans le premier cas, seuls les presonnes ayant accès au projet auront accès à la publication. </p>
+    <p>Dans le second cas, toute personne se rendant sur le site internet bioScriptum y aura accès.
+  </p>
+  </>
+)}
+
+
             </View>
 
             <ScrollView>
@@ -533,7 +618,7 @@ function ReadAnswersScreen({ route }) {
                       <TouchableOpacity onPress={() => toggleChapter(chapter.id)}>
                         <Text style={globalStyles.title_chapter}>{chapter.title}</Text>
                       </TouchableOpacity>
-                      {miscState.iconsVisible && (
+                      {(miscState.iconsVisible || miscState.userStatus.notes === 'Structurateur') && (
                         <View style={{ flexDirection: 'row' }}>
                           <TouchableOpacity
                             onPress={() => {
@@ -550,10 +635,15 @@ function ReadAnswersScreen({ route }) {
                           </TouchableOpacity>
                         </View>
                       )}
+
+
                     </View>
                     {openChapters[chapter.id] && (
                       <>
-                        {questions.filter(q => q.id_chapitre === chapter.id).map(question => (
+                      {questions.filter(q => q.id_chapitre === chapter.id).length === 0 ? (
+                        <Text style={{ color: 'grey', fontStyle: 'italic', marginVertical: 10 }}>Aucun chapitre trouvé dans cette partie</Text>
+                      ) : (
+                        questions.filter(q => q.id_chapitre === chapter.id).map(question => (
                           <TouchableOpacity
                             key={question.id}
                             style={[styles.questionCard, question.id === selected.selectedQuestionId && { backgroundColor: 'lightblue' }]}
@@ -562,33 +652,51 @@ function ReadAnswersScreen({ route }) {
                               toggleAnswersDisplay(question.id);
                             }}
                           >
-                            <Text style={styles.questionText}>{question.question}</Text>
-                            {miscState.iconsVisible && (
-                              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                                <Text style={styles.answersCount}>{question.answers_count} réponses</Text>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                              <Text style={styles.questionText}>{question.question}</Text>
+                    
+                              {(miscState.iconsVisible || miscState.userStatus.notes === 'Structurateur') ? (
+                                <>
+                                  {/*
+                                  <Text style={styles.answersCount}>{question.answers_count} réponses</Text>
+                                  */}
+                                  
+                                  <View style={{ flexDirection: 'row' }}>
+                                    <TouchableOpacity
+                                      onPress={() => {
+                                        setSelected(prevState => ({ ...prevState, editQuestionId: question.id }));
+                                        setNewTitles(prevState => ({ ...prevState, editQuestionTitle: question.question }));
+                                        setModals(prevState => ({ ...prevState, isEditChapterModalVisible: true }));
+                                      }}
+                                      style={{ marginRight: 10 }}
+                                    >
+                                      <Image source={editIcon} style={{ width: 20, height: 20, opacity: 0.5 }} />
+                                    </TouchableOpacity>
+                                    <TouchableOpacity onPress={() => handleAssociateQuestion(question.id)} style={styles.associateButton}>
+                                      <Image source={linkIcon} style={{ width: 18, height: 18, opacity: 0.5 }} />
+                                    </TouchableOpacity>
+                                    <TouchableOpacity onPress={() => confirmDeletion(question.id, false)} style={styles.deleteButton}>
+                                      <Image source={trash} style={{ width: 25, height: 25, opacity: 0.5 }} />
+                                    </TouchableOpacity>
+                                  </View>
+                                </>
+                              ) : (<Text> </Text>)}
+                    
+                              {miscState.userStatus.notes === 'Publicateur' && (
                                 <View style={{ flexDirection: 'row' }}>
-                                  <TouchableOpacity
-                                    onPress={() => {
-                                      setSelected(prevState => ({ ...prevState, editQuestionId: question.id }));
-                                      setNewTitles(prevState => ({ ...prevState, editQuestionTitle: question.question }));
-                                      setModals(prevState => ({ ...prevState, isEditChapterModalVisible: true }));
-                                    }}
-                                    style={{ marginRight: 10 }}
-                                  >
-                                    <Image source={editIcon} style={{ width: 20, height: 20, opacity: 0.5 }} />
-                                  </TouchableOpacity>
-                                  <TouchableOpacity onPress={() => handleAssociateQuestion(question.id)} style={styles.associateButton}>
-                                    <Image source={linkIcon} style={{ width: 18, height: 18, opacity: 0.5 }} />
-                                  </TouchableOpacity>
-                                  <TouchableOpacity onPress={() => confirmDeletion(question.id, false)} style={styles.deleteButton}>
-                                    <Image source={trash} style={{ width: 25, height: 25, opacity: 0.5 }} />
-                                  </TouchableOpacity>
+                                  <Text> Publication privée : </Text>
+                                  <ToggleButton bool={question.published_private} setBool={() => handlePublication_private(question.id, !question.published_private)} />
+                                  <Text> </Text>
+                                  <Text> Publication publique : </Text>
+                                  <ToggleButton bool={question.published_public} setBool={() => handlePublication_public(question.id, !question.published_public)} />
                                 </View>
-                              </View>
-                            )}
+                              )}
+                            </View>
                           </TouchableOpacity>
-                        ))}
-                      </>
+                        ))
+                      )}
+                    </>
+                    
                     )}
                   </View>
                 ))}
@@ -609,15 +717,7 @@ function ReadAnswersScreen({ route }) {
                 </TouchableOpacity>
               </>
               )}
-                <View style={{ height: 10 }} />
-                <View style={{ height: 10 }} />
-                <View style={{ height: 10 }} />
-                <View style={{ height: 10 }} />
-                <View style={{ height: 10 }} />
-                <View style={{ height: 10 }} />
-                <View style={{ height: 10 }} />
-                <View style={{ height: 10 }} />
-                <View style={{ height: 10 }} />
+                <View style={{ height: 200 }} />
               </View>
             </ScrollView>
           
@@ -625,7 +725,7 @@ function ReadAnswersScreen({ route }) {
         )}
           
 
-        { miscState.isLargeScreen && miscState.userStatus &&(miscState.question && miscState.question.question) && (miscState.userStatus.chapters === "Editeur" || miscState.userStatus.chapters === "Lecteur" || miscState.userStatus.chapters === "Auditeur") && (
+        { miscState.isLargeScreen && miscState.userStatus &&(miscState.question && miscState.question.question) && (miscState.userStatus.notes!="Structurateur") && (miscState.userStatus.notes!='Publicateur') && (miscState.userStatus.chapters === "Editeur" || miscState.userStatus.chapters === "Lecteur" || miscState.userStatus.chapters === "Auditeur") && (
           <View style={[styles.resizer, { right: miscState.rightPanelWidth - 30 }]} onMouseDown={handleMouseDown}>
             <Image source={doubleArrowIcon} style={{ width: 120, height: 120, opacity: 0.5 }} />
           </View>
@@ -645,6 +745,7 @@ function ReadAnswersScreen({ route }) {
             }
           ]}
         >
+          {miscState.userStatus.notes!='Structurateur'&& (miscState.userStatus.notes!='Publicateur')  && (<>
           {miscState.isLeftPanelVisible ? (
             <Image
               source={leftArrowIcon}
@@ -674,6 +775,8 @@ function ReadAnswersScreen({ route }) {
               ]}
             />
           )}
+          </>
+        )}
         </TouchableOpacity>
 
         {(miscState.isLargeScreen || !miscState.isLeftPanelVisible) && (
@@ -845,6 +948,7 @@ function ReadAnswersScreen({ route }) {
   onInputChange={(text) => setNewTitles(prevState => ({ ...prevState, newQuestionTitle: text }))}
   onSave={async () => {
     const question = await save_question(newTitles.newQuestionTitle, tags, subjectActive, setMiscState);
+    await createTheme(newTitles.newQuestionTitle, subjectActive);
     setSelected(prevState => ({ ...prevState, selectedQuestionId: question.id }));
     setModals(prevState => ({
       ...prevState,

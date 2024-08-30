@@ -22,6 +22,7 @@ import expand_less from '../../assets/icons/expand_less_black_24dp.svg';
 import edit from '../../assets/icons/pen-to-square-regular.svg';
 import Svg, { Path } from 'react-native-svg';
 import BookIcon from '../../assets/icons/book.svg';
+import orientationIcon from '../../assets/icons/echantillon.png';
 import note from '../../assets/icons/notes.png';
 import { Picker } from '@react-native-picker/picker';
 import Clipboard from '@react-native-clipboard/clipboard';
@@ -331,7 +332,7 @@ console.log("subjects_active : ",subjects_active)
   onMouseEnter={() => setIsHovered(true)}
   onMouseLeave={() => setIsHovered(false)}
 >
-  <Image source={BookIcon} style={{ width: 120, height: 120, opacity: 0.5 }} />
+  <Image source={orientationIcon} style={{ width: 120, height: 120, opacity: 0.5 }} />
 </TouchableOpacity>
                 {/* 
                 <TouchableOpacity onPress={() => navigateToScreen('NoteScreen')} style={styles.navButton}>

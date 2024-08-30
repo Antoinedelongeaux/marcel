@@ -1087,7 +1087,7 @@ useEffect(() => {
     style={{ width: 50, height: 50, opacity: 0.5, marginVertical: 30 }} 
   />
 </TouchableOpacity>
-</>)}
+
 
   <TouchableOpacity onPress={() => setShowFilters(!showFilters)} style={styles.filterIcon}>
     <Image source={filterIcon} style={{ width: 50, height: 50, opacity: 0.5, marginVertical : 30 }} />
@@ -1097,10 +1097,11 @@ useEffect(() => {
   <Image source={EmptyfilterIcon} style={{ width: 50, height: 50, opacity: 0.5, marginVertical : 30 }} />
   </TouchableOpacity>
 
-  {(notesMode === "Editeur" || notesMode === "Auditeur"|| notesMode === "full") && (
+
   <TouchableOpacity onPress={() => { copyAllToClipboard() }}>
      <Image source={copyIcon} style={{ width: 50, height: 50, opacity: 0.5, marginVertical : 30 }} />
    </TouchableOpacity>
+   </>
 )}
 {/*
   {notesMode !== 'full' &&(

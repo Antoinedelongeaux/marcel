@@ -35,7 +35,7 @@ const Stack = createStackNavigator();
 function AppNavigator({ session }) {
   const navigation = useNavigation();
   const [check, setCheck] = useState({nature : 'en cours'});
-  const[activeSubjectId,setActiveSubjectId]= useState();
+  const [activeSubjectId, setActiveSubjectId] = useState(null); 
   const { suffix } = useParams(); // Utiliser useParams pour extraire le suffixe
   const [loading, setLoading] = useState(true);
 
@@ -96,6 +96,10 @@ function AppNavigator({ session }) {
             await saveActiveSubjectUserStatus(temp)
             setLoading(false)
 
+        }else{
+          setActiveSubjectId('blue')
+          setLoading(false)
+    
         }
         
         } catch (error) {
@@ -105,15 +109,14 @@ function AppNavigator({ session }) {
       };
   
       reachActiveSubject();
-    }else{
-      setLoading(false)
-
     }
 
   }, [check, session]);
 
   
 
+
+  
  
   if (loading && session && session.user ){
 
@@ -128,7 +131,8 @@ function AppNavigator({ session }) {
 
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName={activeSubjectId==='blue' ?  "Projets":"Orientation"}>
+
 
       {check.nature==='question' ? (
         
@@ -139,7 +143,14 @@ function AppNavigator({ session }) {
 <>
       {session && session.user ? (
         <>
-        {activeSubjectId?  (<> 
+        {activeSubjectId==='blue'?  (<> 
+          
+          <Stack.Screen name="Projets" component={ManageBiographyScreen} initialParams={{ session }} />
+          <Stack.Screen name="ProfileScreen" component={ProfileScreen} initialParams={{ session }} />
+     
+          
+          </>) :(<> 
+
           <Stack.Screen name="Orientation" component={OrientationScreen} initialParams={{ session }} />
           <Stack.Screen name="Marcel" component={ReadAnswersScreen} initialParams={{ session }} />
           <Stack.Screen name="Account" component={Account} initialParams={{ session }} />
@@ -150,12 +161,7 @@ function AppNavigator({ session }) {
           <Stack.Screen name="AskQuestionScreen" component={AskQuestionScreen} initialParams={{ session }} />
           <Stack.Screen name="EditChapterScreen" component={EditChapterScreen} initialParams={{ session }} />
           <Stack.Screen name="AnswerQuestionScreen" component={AnswerQuestionScreen} initialParams={{ session }} />
-          </>) : (<> 
-          <Stack.Screen name="Projets" component={ManageBiographyScreen} initialParams={{ session }} />
-          <Stack.Screen name="ProfileScreen" component={ProfileScreen} initialParams={{ session }} />
-     
-          
-          </>)}
+          </>) }
         
         
         </>

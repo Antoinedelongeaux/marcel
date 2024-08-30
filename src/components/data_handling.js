@@ -188,7 +188,7 @@ export async function getMemories_Question_by_id(id_question,setQuestion, setAns
 export async function getMemories_Questions(subject_active, setQuestions, tags, personal) {
   try {
 
-
+    console.log("Gloups !")
     setQuestions([])
     const orCondition = tags.length > 0 ? tags.map(tag => `tags.cs.{"${tag}"}`).join(',') : 'true';
     
@@ -232,6 +232,7 @@ export async function getMemories_Questions(subject_active, setQuestions, tags, 
         }
       }
 
+
       return {
         ...question,
         answers_count: answersCount, // Ajouter le nombre de réponses à l'objet de la question
@@ -239,6 +240,7 @@ export async function getMemories_Questions(subject_active, setQuestions, tags, 
       };
     }));
 
+    console.log("Question bis : ",questionsWithDetails)
     setQuestions(questionsWithDetails);
   } catch (error) {
     Alert.alert("Error", error.message);
@@ -248,7 +250,60 @@ export async function getMemories_Questions(subject_active, setQuestions, tags, 
 
 
 
+export async function getMemories_Questions_Published(subject_active, setQuestions, tags, personal) {
+  try {
 
+    console.log("Hello world !")
+    console.log("Subject_active : ",subject_active)
+    setQuestions([])
+    
+    // Préparer la requête de base pour récupérer les questions
+    let query = supabase
+      .from('Memoires_questions')
+      .select('*')
+      .eq('published_private',true)
+      .eq('id_subject', subject_active);
+
+
+    // Exécuter la requête pour récupérer les questions
+    const { data: questions, error: errorQuestions } = await query;
+
+    console.log("questions : ", questions)
+
+    if (errorQuestions) throw errorQuestions;
+
+    // Pour chaque question, compter le nombre de réponses et conditionnellement récupérer le nom d'utilisateur du propriétaire
+    const questionsWithDetails = await Promise.all(questions.map(async (question) => {
+      const answersCount = question.Memoires_answers?.length || 0;
+
+
+      let username = 'Marcel'; // Valeur par défaut si id_owner est null
+      if (question.id_owner) {
+        const { data: ownerData, error: errorOwner } = await supabase
+          .from('profiles')
+          .select('username')
+          .eq('id', question.id_owner)
+          .single();
+
+        if (!errorOwner && ownerData) {
+          username = ownerData.username;
+        }
+      }
+
+      return {
+        ...question,
+        answers_count: answersCount, // Ajouter le nombre de réponses à l'objet de la question
+        username: username, // Utiliser la variable username qui peut être "Marcel" par défaut ou un nom d'utilisateur récupéré
+      };
+    }));
+
+
+    setQuestions(questionsWithDetails);
+  } catch (error) {
+    Alert.alert("Error", error.message);
+    setQuestions([]);
+  }
+}
 
 export async function getMemories_Answers_to_Question(questionId) {
   try {
@@ -1084,6 +1139,24 @@ export async function updateAnswer(id_answer, column_to_update, value) {
       .from('Memoires_answers')
       .update(updates)
       .match({ id: id_answer });
+
+    if (errorUpdating) {
+      throw errorUpdating;
+    }
+  } catch (errorUpdating) {
+    Alert.alert('Erreur lors de la mise à jour : ', errorUpdating.message);
+  }
+}
+
+export async function updateQuestion(id_question, column_to_update, value) {
+  try {
+    const updates = {};
+    updates[column_to_update] = value;
+
+    const { error: errorUpdating } = await supabase
+      .from('Memoires_questions')
+      .update(updates)
+      .match({ id: id_question });
 
     if (errorUpdating) {
       throw errorUpdating;

@@ -39,6 +39,7 @@ import { globalStyles } from '../../global';
 import settings from '../../assets/icons/accueil.png';
 import { Card, Paragraph } from 'react-native-paper';
 import trash from '../../assets/icons/baseline_delete_outline_black_24dp.png';
+import orientationIcon from '../../assets/icons/echantillon.png';
 import { createAudioChunk, startRecording, stopRecording, uploadAudioToSupabase, delete_audio,playRecording_fromAudioFile, uploadImageToSupabase,handlePlayPause } from '../components/sound_handling'; 
 import { v4 as uuidv4 } from 'uuid';
 import ModalComponent from '../components/ModalComponent';
@@ -583,6 +584,17 @@ function ReadNotesScreen({ route }) {
   { position: 'fixed' },
   isLargeScreen ? { top: '0%', alignSelf: 'flex-end' } : { bottom: '0%', alignSelf: 'center' }
 ]}>
+
+          <TouchableOpacity
+          onPress={() => navigateToScreen('Orientation')}
+          style={[globalStyles.navButton, isHoveredButton === 'orientation' && globalStyles.navButton_over]}
+          onMouseEnter={() => setIsHoveredButton('orientation')}
+          onMouseLeave={() => setIsHoveredButton('')}
+        >
+          <Image source={orientationIcon} style={{ width: 120, height: 120, opacity: 0.5 }} />
+        </TouchableOpacity>
+
+
 
         <TouchableOpacity
           onPress={() => navigateToScreen('Projets')}

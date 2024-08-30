@@ -28,6 +28,7 @@ const useFetchData = (id_user, setUserName, subjects, setSubjects, navigateToScr
 };
 
 const OrientationScreen = ({ route }) => {
+  console.log("Orientation")
   const windowWidth = Dimensions.get('window').width;
   const isLargeScreen = windowWidth > 768;
   const [animationValues] = useState([...Array(8)].map(() => new Animated.Value(0)));
@@ -47,13 +48,19 @@ const OrientationScreen = ({ route }) => {
       - etc.
     </>,
     <>
-      <Text style={{ fontWeight: 'bold' }}>Prenez</Text> la suite d'un thème existant en y apportant vos compléments ou vos questions
+    Faites vos <Text style={{ fontWeight: 'bold' }}>commentaires</Text>, poser vos <Text style={{ fontWeight: 'bold' }}>questions</Text>, concernant qui a été raconté. {"\n\n"}  Ou bien {"\n\n"}  <Text style={{ fontWeight: 'bold' }}>répondez</Text> à des questions déjà posées.
     </>,
+     <>
+     <Text style={{ fontWeight: 'bold' }}>Définissez</Text>  les parties de l'ouvrage ainsi que leurs chapitres
+   </>,
     <>
       <Text style={{ fontWeight: 'bold' }}>Rédigez</Text> un chapitre à partir de la matière déjà collectée
     </>,
     <>
       <Text style={{ fontWeight: 'bold' }}>Relisez</Text>, complétez, annotez un chapitre rédigé
+    </>,
+      <>
+      <Text style={{ fontWeight: 'bold' }}>Définissez</Text> quels chapitres sont prêts à être publier, et comment ils vont l'être
     </>,
     <>
       <Text style={{ fontWeight: 'bold' }}>Lisez</Text> les chapitres rédigés
@@ -169,7 +176,7 @@ const OrientationScreen = ({ route }) => {
   };
 
   const handleStructurer = async () => {
-    await validate_project_contributors(subject.id,session.user.id,true,"Contributeur","Editeur")   
+    await validate_project_contributors(subject.id,session.user.id,true,"Structurateur","Editeur")   
     navigateToScreen('Marcel');
   };
 
@@ -186,7 +193,7 @@ const OrientationScreen = ({ route }) => {
 
 
   const handlePublier = async () => {
-    await validate_project_contributors(subject.id,session.user.id,true,"Contributeur","Lecteur")   
+    await validate_project_contributors(subject.id,session.user.id,true,"Publicateur","Lecteur")   
     navigateToScreen('Marcel');
   }; 
 

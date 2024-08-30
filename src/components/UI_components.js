@@ -520,6 +520,28 @@ CarrousselThemes.propTypes = {
   setTheme: PropTypes.func.isRequired,
 };
 
+export const ToggleButton = ({ bool, setBool }) => {
+  return (
+    <TouchableOpacity
+      style={[
+        globalStyles.toggleButton,
+        bool && globalStyles.selectedToggle
+      ]}
+      onPress={setBool} // Corrigez en passant simplement setBool
+    >
+      <View
+        style={[
+          globalStyles.toggleButtonCircle,
+          bool ? { right: 2 } : { left: 2 }
+        ]}
+      />
+    </TouchableOpacity>
+  );
+};
+
+
+
+
 
 const styles = StyleSheet.create({
   answerCard: {
