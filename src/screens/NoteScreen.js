@@ -41,7 +41,7 @@ import {
   updateAnswer,
   getTheme_byProject,
 } from '../components/data_handling';
-
+import ModalComponent from '../components/ModalComponent';
 import { useFocusEffect } from '@react-navigation/native';
 import { getActiveSubjectId } from '../components/local_storage';
 import { globalStyles } from '../../global';
@@ -51,6 +51,7 @@ import settings from '../../assets/icons/accueil.png';
 import copyIcon from '../../assets/icons/paste.png';
 import noteIcon from '../../assets/icons/notes.png';
 import filterIcon from '../../assets/icons/filtre.png';
+import sortIcon from '../../assets/icons/trier.png';
 import calendarIcon from '../../assets/icons/calendar.png';
 import EmptyfilterIcon from '../../assets/icons/filtre_empty.png';
 import Modal from 'react-native-modal'; // Ajoutez cette ligne pour importer le composant Modal
@@ -87,6 +88,13 @@ import shareIcon from '../../assets/icons/share.png';
 import playIcon from '../../assets/icons/play.png';
 import pauseIcon from '../../assets/icons/pause.png';
 import AnswerCard from '../components/UI_components';
+import {
+  AnswerPanel_written, 
+  AnswerPanel_oral,
+  AnswerPanel_AudioFile,
+  AnswerPanel_imageFile,
+  ThemePanel
+  }  from '../components/save_note';
 
 
 
@@ -149,6 +157,7 @@ function NoteScreen({ route }) {
   const [selectedQuestion, setSelectedQuestion] = useState(route.params?.miscState?.question || '');
   const [selectedChapter, setSelectedChapter] = useState('');
   const [showFilters, setShowFilters] = useState(false); 
+  const [showSorting, setShowSorting] = useState(false); 
   const [isModalVisible, setModalVisible] = useState(false); // Ajoutez cette ligne dans les états
 const [isRecording, setIsRecording] = useState(false); // Ajoutez cette ligne dans les états
 const [recording, setRecording] = useState(); // Ajoutez cette ligne dans les états
@@ -185,6 +194,9 @@ const [selectedUserId, setSelectedUserId] = useState(null);
 const [isShareModalVisible, setIsShareModalVisible] = useState(false);
 const [utiliseFilter, setUtiliseFilter] = useState('tous');
 const [reluFilter, setReluFilter] = useState('relu & non_relu');
+const [imageFilter, setImageFilter] = useState(true);
+const [audioFilter, setAudioFilter] = useState(true);
+const [commentFilter, setCommentFilter] = useState(true);
 const [playbackStatus, setPlaybackStatus] = useState({});
 const [currentAudioId, setCurrentAudioId] = useState(null);
 const [isTranscriptionModalVisible, setIsTranscriptionModalVisible] = useState(false);
@@ -500,6 +512,8 @@ useEffect(() => {
   
       const userName = userNames[answer.id_user];
       const theme = answer.id_connection;
+
+      console.log("imageFilter : ",imageFilter)
   
       return (
         
@@ -517,7 +531,11 @@ useEffect(() => {
         (questionReponseFilter === '' || answer.question_reponse === questionReponseFilter) &&
         ((reluFilter === 'relu' && answer.quality) || (reluFilter === 'non_relu' && !answer.quality) || (reluFilter === 'relu & non_relu')) &&
         ((utiliseFilter === 'used' && answer.used) || (utiliseFilter === 'not_used' && !answer.used) || utiliseFilter === 'tous')
-        )
+        )&&
+        (imageFilter || (!imageFilter && !answer.image))&&
+        (audioFilter || (!audioFilter && !answer.audio))&&
+        (commentFilter || (!commentFilter && (answer.audio ||answer.image)))
+
     )});
   
 
@@ -539,6 +557,9 @@ useEffect(() => {
   answers,
   userNames,
   themes,
+  imageFilter,
+  audioFilter,
+  commentFilter
 ]);
 
 
@@ -884,6 +905,8 @@ useEffect(() => {
     {!questionReponseFilter.includes('question') && !questionReponseFilter.includes('réponse') && (" & ")}
     {!questionReponseFilter.includes('réponse') && ("Questions")}
   </Text> 
+
+  {notesMode  != 'Editeur' &&(
   <View style={[styles.toggleTextContainer, { flexDirection: 'column', justifyContent: 'center' }]}>
     <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
       <Text style={styles.toggleText}>Notes </Text>
@@ -908,6 +931,7 @@ useEffect(() => {
         />
       </TouchableOpacity>
     </View>
+
     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
       <Text style={styles.toggleText}>Questions</Text>
       <TouchableOpacity
@@ -932,6 +956,8 @@ useEffect(() => {
       </TouchableOpacity>
     </View>
   </View>
+  )}
+
 </View>
 
 </>)}
@@ -943,6 +969,11 @@ useEffect(() => {
         <View style={{ flexDirection: 'row', justifyContent: 'center', marginBottom: 5 }}>
         
         {(notesMode === "Editeur" || notesMode === "Auditeur") && (<>
+          <TouchableOpacity onPress={() => {setModalVisible(true)}} style={globalStyles.globalButton_wide}>
+      <Text style={globalStyles.globalButtonText}>Réagir</Text>
+    </TouchableOpacity>
+
+{/*
         {!questionReponseFilter.includes('question') &&(
       <TouchableOpacity onPress={() => {setAnswerAndQuestion("réponse");setModalVisible(true)}} style={globalStyles.globalButton_narrow}>
       <Text style={globalStyles.globalButtonText}>Ajouter une note</Text>
@@ -953,6 +984,8 @@ useEffect(() => {
       <Text style={globalStyles.globalButtonText}>Poser une question</Text>
     </TouchableOpacity>
     )}
+*/}
+
     </>
   )}
 
@@ -965,7 +998,7 @@ useEffect(() => {
     <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.closeButton}>
       <Image source={closeIcon} style={styles.closeIcon} />
     </TouchableOpacity>
-    <Text style={styles.modalTitle}>Ajouter une note</Text>
+    <Text style={styles.modalTitle}>Ajouter une contribution</Text>
 
     <View style={{ flexDirection: 'column', justifyContent: 'space-between', marginBottom: 10 }}>
   
@@ -983,82 +1016,25 @@ useEffect(() => {
         </Picker>
 
 
-    <TouchableOpacity
-      style={[
-        globalStyles.globalButton_wide,
-        { backgroundColor: isRecording ? "red" : '#b1b3b5', marginRight: 5 },
-      ]}
-      onPress={handleRecording}
-    >
-      <View style={{ flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-        <Image source={MicroIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
-        <Text style={globalStyles.globalButtonText}>
-            
-          {isRecording ? "Arrêter l'enregistrement" : "Commencer l'enregistrement"}
-          
-        </Text>
-      </View>
-    </TouchableOpacity>
-    <TouchableOpacity onPress={handleFiles} style={{ flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }} >
-      
-    <Image source={AttachIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
-    </TouchableOpacity>
-    
-    {showAttachement && (
-      <>
-  <TouchableOpacity
-    style={[globalStyles.globalButton_wide, { backgroundColor: '#b1b3b5', flex: 1, marginLeft: 5 }]}
-    onPress={handleUploadAudio}
-  >
-    <View style={{ flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-      <Image source={Upload} style={{ width: 60, height: 60, opacity: 0.5 }} />
-      <Text style={globalStyles.globalButtonText}>
-        Envoyer un enregistrement vocal
-      </Text>
-    </View>
-    
-  </TouchableOpacity>
-  <TouchableOpacity
-  style={[globalStyles.globalButton_wide, { backgroundColor: '#b1b3b5', marginLeft: 5 }]}
-  onPress={handleUploadPhoto}
->
-  <View style={{ flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-    <Image source={Upload} style={{ width: 60, height: 60, opacity: 0.5 }} />
-    <Text style={globalStyles.globalButtonText}>
-      Envoyer une photographie
-    </Text>
-  </View>
-  
-</TouchableOpacity>
-</>
-)}
-
+        <AnswerPanel_oral
+        ID_USER={delegationUserId? delegationUserId:session.user.id}
+        Id_question={selectedChapter}
+        Id_connection={selectedTheme}
+        question_reponse={"réponse"}
+        refreshAnswers={refreshAnswers}
+ 
+      />
 
   
-  <TextInput
-    style={globalStyles.input}
-    value={answer}
-    onChangeText={setAnswer}
-    placeholder="Écrire une réponse..."
-    multiline={true}
-    numberOfLines={4}
-  />
-
-
-
-
-
-  <TouchableOpacity
-    style={[globalStyles.globalButton_wide, { backgroundColor: '#b1b3b5' , marginRight: 5 }]}
-    onPress={() => handleAnswerSubmit('', false)}
-  >
-    <Text style={globalStyles.globalButtonText}>Envoyer la réponse écrite</Text>
-  </TouchableOpacity>
   </View>      
-
   </View>
 </View>
+
+
+
 </Modal>
+
+
 
 <Modal isVisible={isTranscriptionModalVisible}>
   <View style={styles.overlay}>
@@ -1093,9 +1069,10 @@ useEffect(() => {
     <Image source={filterIcon} style={{ width: 50, height: 50, opacity: 0.5, marginVertical : 30 }} />
   </TouchableOpacity>
 
-  <TouchableOpacity onPress={() => handleRemoveFilters()} style={styles.filterIcon}>
-  <Image source={EmptyfilterIcon} style={{ width: 50, height: 50, opacity: 0.5, marginVertical : 30 }} />
+  <TouchableOpacity onPress={() => setShowSorting(!showSorting)} style={styles.filterIcon}>
+    <Image source={sortIcon} style={{ width: 50, height: 50, opacity: 0.5, marginVertical : 30 }} />
   </TouchableOpacity>
+
 
 
   <TouchableOpacity onPress={() => { copyAllToClipboard() }}>
@@ -1129,121 +1106,125 @@ useEffect(() => {
 
 {showFilters && (
   <View style={styles.filterContainer}>
-    <TextInput
-      style={[styles.input, { backgroundColor: 'white' }]}
-      placeholder="Filtrer par texte"
-      value={textFilter}
-      onChangeText={setTextFilter}
-    />
-    <View style={styles.dropdownContainer}>
-      <Picker
-        selectedValue={selectedUserName}
-        onValueChange={(itemValue, itemIndex) => setSelectedUserName(itemValue)}
-        style={styles.dropdown}
-      >
-        <Picker.Item label="Tous les utilisateurs" value="" />
-        {Object.values(userNames).map((name, index) => (
-          <Picker.Item key={index} label={name} value={name} />
-        ))}
-      </Picker>
-    </View>
-    <View style={styles.dropdownContainer}>
-  <Picker
-    selectedValue={selectedTheme}
-    onValueChange={(itemValue, itemIndex) => setSelectedTheme(itemValue)}
-    style={styles.dropdown}
-  >
-    <Picker.Item label="Tous les thèmes" value="" />
-    {themes
-      .filter(theme => answers.some(answer => answer.id_connection === theme.id)) // Filtrer les thèmes sans réponse
-      .map((theme, index) => (
-        <Picker.Item key={index} label={theme.theme} value={theme.id} />
-      ))}
-  </Picker>
-</View>
-<View style={styles.dropdownContainer}>
-<Picker
-  selectedValue={route.params?.filterSelectedQuestion}
-  onValueChange={(itemValue, itemIndex) => {
-    const itemValueNumber = Number(itemValue); // Convertir itemValue en nombre
-    const selectedQuestion_temp = questions.find(question => question.id === itemValueNumber);
 
-    if (selectedQuestion_temp) {
-      route.params?.setFilterSelectedQuestion(selectedQuestion_temp);
-    } else {
-      route.params?.setFilterSelectedQuestion('');
-    }
-}}
-
-  style={styles.dropdown}
->
-  <Picker.Item label="Tous les chapitres" value="" />
-  {questions
-    .filter(question => answers.some(answer => answer.id_question === question.id)) // Filtrer les thèmes sans réponse
-    .map((question, index) => (
-      <Picker.Item key={index} label={question.question} value={question.id} />
-    ))}
-</Picker>
-
-</View>
-
-    <View style={styles.dateFilterContainer}>
-      {Platform.OS === 'web' ? (
-        <DatePicker
-          selected={dateBefore}
-          onChange={(date) => setDateBefore(date)}
-          placeholderText="Filtrer avant la date"
-          className="date-picker"
-          style={styles.datePicker}
-        />
-      ) : (
-        <View style={styles.datePicker}>
-          <Button title="Filtrer avant la date" onPress={() => setShowDateBeforePicker(true)} />
-          {showDateBeforePicker && (
-            <DateTimePicker
-              value={dateBefore || new Date()}
-              mode="date"
-              display="default"
-              onChange={(event, selectedDate) => {
-                const currentDate = selectedDate || dateBefore;
-                setShowDateBeforePicker(false);
-                setDateBefore(currentDate);
-              }}
-              style={styles.datePicker}
-            />
-          )}
-        </View>
-      )}
-      {Platform.OS === 'web' ? (
-        <DatePicker
-          selected={dateAfter}
-          onChange={(date) => setDateAfter(date)}
-          placeholderText="Filtrer après la date"
-          className="date-picker"
-          style={styles.datePicker}
-        />
-      ) : (
-        <View style={styles.datePicker}>
-          <Button title="Filtrer après la date" onPress={() => setShowDateAfterPicker(true)} />
-          {showDateAfterPicker && (
-            <DateTimePicker
-              value={dateAfter || new Date()}
-              mode="date"
-              display="default"
-              onChange={(event, selectedDate) => {
-                const currentDate = selectedDate || dateAfter;
-                setShowDateAfterPicker(false);
-                setDateAfter(currentDate);
-              }}
-              style={styles.datePicker}
-            />
-          )}
-        </View>
-      )}
-    </View>
-
-    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 20, justifyContent: 'space-between',}}>
+<View style={{ flexDirection: isLargeScreen? 'row':'column', alignItems: 'center', marginTop: 20, justifyContent: 'space-between',}}>
       <Text></Text>
+      <View style={{ flexDirection: 'column', alignItems: 'center' }}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+  <Text style={styles.toggleText}>Audio</Text>
+  <TouchableOpacity
+    style={[
+      styles.toggleButton,
+      audioFilter && styles.selectedToggle
+    ]}
+    onPress={() =>
+      setAudioFilter(!audioFilter)
+    }
+  >
+    <View
+      style={[
+        styles.toggleButtonCircle,
+        audioFilter ? { right: 2 } : { left: 2 }
+      ]}
+    />
+  </TouchableOpacity>
+</View>
+
+<View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+  <Text style={styles.toggleText}>Image</Text>
+  <TouchableOpacity
+    style={[
+      styles.toggleButton,
+      imageFilter && styles.selectedToggle
+    ]}
+    onPress={() =>
+      setImageFilter(!imageFilter)
+    }
+  >
+    <View
+      style={[
+        styles.toggleButtonCircle,
+        imageFilter ? { right: 2 } : { left: 2 }
+      ]}
+    />
+  </TouchableOpacity>
+</View>
+<View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+  <Text style={styles.toggleText}>Texte</Text>
+  <TouchableOpacity
+    style={[
+      styles.toggleButton,
+      commentFilter && styles.selectedToggle
+    ]}
+    onPress={() =>
+      setCommentFilter(!commentFilter)
+    }
+  >
+    <View
+      style={[
+        styles.toggleButtonCircle,
+        commentFilter ? { right: 2 } : { left: 2 }
+      ]}
+    />
+  </TouchableOpacity>
+</View>
+
+</View>
+
+<View style={{ flexDirection: 'column', alignItems: 'center' }}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+      <Text style={styles.toggleText}>Notes </Text>
+      <TouchableOpacity
+        style={[
+          styles.toggleButton,
+          !questionReponseFilter.includes('question') && styles.selectedToggle
+        ]}
+        onPress={() =>
+          setQuestionReponseFilter((prev) =>
+            prev.includes('question')
+              ? prev.replace('question', '')
+              : prev + 'question'
+          )
+        }
+      >
+        <View
+          style={[
+            styles.toggleButtonCircle,
+            questionReponseFilter.includes('question') ? { left: 2 } : { right: 2 }
+          ]}
+        />
+      </TouchableOpacity>
+    </View>
+
+    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+      <Text style={styles.toggleText}>Questions</Text>
+      <TouchableOpacity
+        style={[
+          styles.toggleButton,
+          !questionReponseFilter.includes('réponse') && styles.selectedToggle
+        ]}
+        onPress={() =>
+          setQuestionReponseFilter((prev) =>
+            prev.includes('réponse')
+              ? prev.replace('réponse', '')
+              : prev + 'réponse'
+          )
+        }
+      >
+        <View
+          style={[
+            styles.toggleButtonCircle,
+            questionReponseFilter.includes('réponse') ? { left: 2 } : { right: 2 }
+          ]}
+        />
+      </TouchableOpacity>
+    </View>
+  </View>
+
+
+
+
+
     <View style={{ flexDirection: 'column', alignItems: 'center' }}>
     <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
   <Text style={styles.toggleText}>Relu</Text>
@@ -1339,8 +1320,147 @@ useEffect(() => {
   </TouchableOpacity>
 </View>
 </View>
-<Text></Text>
+
+  <View style={{ flexDirection: 'column', alignItems: 'center', zIndex: 2000 }}>
+
+
+      {Platform.OS === 'web' ? (
+        <DatePicker
+          selected={dateBefore}
+          onChange={(date) => setDateBefore(date)}
+          placeholderText="Filtrer avant la date"
+          className="date-picker"
+          style={[styles.datePicker, { marginVertical:10 } ]}
+        />
+      ) : (
+        <View style={[styles.datePicker, { marginVertical:10}]}>
+          <Button title="Filtrer avant la date" onPress={() => setShowDateBeforePicker(true)} />
+          {showDateBeforePicker && (
+            <DateTimePicker
+              value={dateBefore || new Date()}
+              mode="date"
+              display="default"
+              onChange={(event, selectedDate) => {
+                const currentDate = selectedDate || dateBefore;
+                setShowDateBeforePicker(false);
+                setDateBefore(currentDate);
+              }}
+              style={[styles.datePicker, { marginVertical:10}]}
+            />
+          )}
+        </View>
+      )}
+      {Platform.OS === 'web' ? (
+        <DatePicker
+          selected={dateAfter}
+          onChange={(date) => setDateAfter(date)}
+          placeholderText="Filtrer après la date"
+          className="date-picker"
+          style={[styles.datePicker, { marginVertical:10}]}
+        />
+      ) : (
+        <View style={[styles.datePicker, { marginVertical:10}]}>
+          <Button title="Filtrer après la date" onPress={() => setShowDateAfterPicker(true)} />
+          {showDateAfterPicker && (
+            <DateTimePicker
+              value={dateAfter || new Date()}
+              mode="date"
+              display="default"
+              onChange={(event, selectedDate) => {
+                const currentDate = selectedDate || dateAfter;
+                setShowDateAfterPicker(false);
+                setDateAfter(currentDate);
+              }}
+              style={[styles.datePicker, { marginVertical:10}]}
+            />
+          )}
+        </View>
+      )}
+
+  </View>
+
+
+<TouchableOpacity onPress={() => handleRemoveFilters()} style={styles.filterIcon}>
+  <Image source={EmptyfilterIcon} style={{ width: 50, height: 50, opacity: 0.5, marginVertical : 30 }} />
+  </TouchableOpacity>
+  <Text></Text>
 </View>
+
+
+
+
+     
+
+
+
+    <TextInput
+      style={[styles.input, { backgroundColor: 'white' }]}
+      placeholder="Filtrer par texte"
+      value={textFilter}
+      onChangeText={setTextFilter}
+    />
+    <View style={styles.dropdownContainer}>
+      <Picker
+        selectedValue={selectedUserName}
+        onValueChange={(itemValue, itemIndex) => setSelectedUserName(itemValue)}
+        style={styles.dropdown}
+      >
+        <Picker.Item label="Tous les utilisateurs" value="" />
+        {Object.values(userNames).map((name, index) => (
+          <Picker.Item key={index} label={name} value={name} />
+        ))}
+      </Picker>
+    </View>
+    <View style={styles.dropdownContainer}>
+  <Picker
+    selectedValue={selectedTheme}
+    onValueChange={(itemValue, itemIndex) => setSelectedTheme(itemValue)}
+    style={styles.dropdown}
+  >
+    <Picker.Item label="Tous les thèmes" value="" />
+    {themes
+      .filter(theme => answers.some(answer => answer.id_connection === theme.id)) // Filtrer les thèmes sans réponse
+      .map((theme, index) => (
+        <Picker.Item key={index} label={theme.theme} value={theme.id} />
+      ))}
+  </Picker>
+</View>
+<View style={styles.dropdownContainer}>
+<Picker
+  selectedValue={route.params?.filterSelectedQuestion}
+  onValueChange={(itemValue, itemIndex) => {
+    const itemValueNumber = Number(itemValue); // Convertir itemValue en nombre
+    const selectedQuestion_temp = questions.find(question => question.id === itemValueNumber);
+
+    if (selectedQuestion_temp) {
+      route.params?.setFilterSelectedQuestion(selectedQuestion_temp);
+    } else {
+      route.params?.setFilterSelectedQuestion('');
+    }
+}}
+
+  style={styles.dropdown}
+>
+  <Picker.Item label="Tous les chapitres" value="" />
+  {questions
+    .filter(question => answers.some(answer => answer.id_question === question.id)) // Filtrer les thèmes sans réponse
+    .map((question, index) => (
+      <Picker.Item key={index} label={question.question} value={question.id} />
+    ))}
+</Picker>
+
+</View>
+
+
+
+
+  </View>
+ 
+)}
+
+{showSorting && (
+  <View style={styles.filterContainer}>
+      
   </View>
  
 )}
@@ -1669,19 +1789,15 @@ const styles = StyleSheet.create({
     width: '90%',
     alignSelf: "center",
     padding: 10,
-    zIndex: 3,
+    zIndex: 1,
     marginHorizontal :5,
     marginVertical : 20,
     borderWidth: 1, // Ajoutez cette ligne
     borderColor: '#ccc', // Ajoutez cette ligne pour définir la couleur de la bordure
     backgroundColor:'#b1b3b5',
+    position: 'relative',
   },
 
-  dateFilterContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    zIndex: 3, // Ajoutez cette ligne
-  },
   input: {
     height: 40,
     padding: 10,
@@ -1692,10 +1808,11 @@ const styles = StyleSheet.create({
     zIndex: 3, // Ajoutez cette ligne
   },
   datePicker: {
-    flex: 1,
-    marginHorizontal: 5,
-    zIndex: 3, // Ajoutez cette ligne
-    position: 'absolute', // Ajoutez cette ligne pour le placer au-dessus
+    zIndex: 9999, // Utilisez une valeur plus élevée
+    position: 'absolute', // Assurez-vous que le positionnement est absolu
+    backgroundColor: 'white', // Ajoutez un fond blanc pour le rendre plus visible
+    top: 0, // Ajustez selon vos besoins pour la position
+    left: 0, // Ajustez selon vos besoins pour la position
   },
   answerCard: {
     backgroundColor: 'white',

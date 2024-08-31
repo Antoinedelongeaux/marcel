@@ -876,7 +876,7 @@ function ReadAnswersScreen({ route }) {
           </View>
         )}
 
-{(miscState.isLargeScreen || !miscState.isLeftPanelVisible) && ((miscState.userStatus.notes ==='Contributeur') || (miscState.question && miscState.question.question) )&& (
+{(miscState.isLargeScreen || !miscState.isLeftPanelVisible || miscState.userStatus.notes ==='Contributeur') && ((miscState.userStatus.notes ==='Contributeur') || (miscState.question && miscState.question.question) )&& (
     <View style={[styles.rightPanel, { width: (miscState.userStatus.notes !='Contributeur')? miscState.rightPanelWidth : '100%' }]}>
       <ScrollView>
         <NoteScreen 
