@@ -73,6 +73,8 @@ import captionIcon from '../../assets/icons/caption.png';
 import trash from '../../assets/icons/baseline_delete_outline_black_24dp.png';
 import closeIcon from '../../assets/icons/close.png'; 
 import edit from '../../assets/icons/pen-to-square-regular.svg';
+import repondreIcon from '../../assets/icons/repondre.png';
+
 import eyeIcon from '../../assets/icons/view.png';
 import plusIcon from '../../assets/icons/plus.png';
 import minusIcon from '../../assets/icons/minus.png';
@@ -93,6 +95,7 @@ import {
   AnswerPanel_oral,
   AnswerPanel_AudioFile,
   AnswerPanel_imageFile,
+  AnswerPanel_documentFile,
   ThemePanel
   }  from '../components/save_note';
 
@@ -154,11 +157,17 @@ function NoteScreen({ route }) {
 
 
   const question_reponse = route.params?.miscState?.question_reponse || 'réponse';
-  const [selectedQuestion, setSelectedQuestion] = useState(route.params?.miscState?.question || '');
-  const [selectedChapter, setSelectedChapter] = useState('');
+  const [selectedQuestion, setSelectedQuestion] = useState(route.params?.miscState?.question || null);
+  const [selectedChapter, setSelectedChapter] = useState(null);
   const [showFilters, setShowFilters] = useState(false); 
   const [showSorting, setShowSorting] = useState(false); 
-  const [isModalVisible, setModalVisible] = useState(false); // Ajoutez cette ligne dans les états
+  const [isModalVisible, setModalVisible] = useState(false); 
+  const [isModalAnswer_oral_Visible, setModalAnswer_oral_Visible] = useState(false); 
+  const [isModalAnswer_written_Visible, setModalAnswer_written_Visible] = useState(false); 
+  const [isModalAnswer_audio_Visible, setModalAnswer_audio_Visible] = useState(false); 
+  const [isModalAnswer_image_Visible, setModalAnswer_image_Visible] = useState(false); 
+  const [isModalAnswer_document_Visible, setModalAnswer_document_Visible] = useState(false); 
+  const [isModalQuestion_Visible, setModalQuestion_Visible] = useState(false); 
 const [isRecording, setIsRecording] = useState(false); // Ajoutez cette ligne dans les états
 const [recording, setRecording] = useState(); // Ajoutez cette ligne dans les états
 const [note, setNote] = useState(''); // Ajoutez cette ligne dans les états
@@ -190,6 +199,7 @@ const [answerAndQuestion, setAnswerAndQuestion] = useState(question_reponse);
 const [transcribingId, setTranscribingId] = useState(null);
 const [isAssignModalVisible, setIsAssignModalVisible] = useState(false);
 const [selectedAnswerId, setSelectedAnswerId] = useState(null);
+const [selectedAnswerId_toAttribuate, setSelectedAnswerId_toAttribuate] = useState(null);
 const [selectedUserId, setSelectedUserId] = useState(null);
 const [isShareModalVisible, setIsShareModalVisible] = useState(false);
 const [utiliseFilter, setUtiliseFilter] = useState('tous');
@@ -290,13 +300,13 @@ if(session.user){
   );
   
   const handleAssignOwner = (answerId) => {
-    setSelectedAnswerId(answerId);
+    setSelectedAnswerId_toAttribuate(answerId);
     setIsAssignModalVisible(true);
   };
   
   const handleUpdateOwner = async () => {
-    if (selectedAnswerId && selectedUserId) {
-      await update_answer_owner(selectedAnswerId, selectedUserId);
+    if (selectedAnswerId_toAttribuate && selectedUserId) {
+      await update_answer_owner(selectedAnswerId_toAttribuate, selectedUserId);
       setIsAssignModalVisible(false);
       refreshAnswers();
     } else {
@@ -563,7 +573,95 @@ useEffect(() => {
 ]);
 
 
+const selection = () => {
+return (
+<>
+<Text>Mon message sera enregistré au nom de :</Text>
+<View style={styles.dropdownContainer}>
+        <Picker
+          selectedValue={delegationUserId.user.id}
+          onValueChange={(itemValue) => {
+            setDelegationUserId(itemValue);
+            setDelegationUserId({ user: { id: itemValue } });
+          }}
+          style={styles.dropdown}
+        >
+          {users.map((user) => (
+            <Picker.Item key={user.id_user} label={user.name} value={user.id_user} />
+          ))}
+        </Picker>
+        </View>
 
+{selectedAnswerId ? (
+  <>
+  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'left',marginVertical:30 }}>
+   <Text>Mon message est une réaction à la note suivante : </Text>
+    <CheckBox
+            value={true}
+            onValueChange={() => {
+             setSelectedAnswerId(null) 
+            }}
+          />
+</View>
+    
+    <View style={styles.answerCard}>
+    <Text>{answers.filter(answer => answer.id === selectedAnswerId)[0]?.answer}</Text>
+    </View>
+  </>
+
+):(<>
+        <Text>Mon message sera enregistré dans le thème :</Text>
+  <View style={styles.dropdownContainer}>
+  <Picker
+    selectedValue={selectedTheme}
+    onValueChange={(itemValue, itemIndex) => setSelectedTheme(itemValue)}
+    style={styles.dropdown}
+  >
+    <Picker.Item label="Aucun thème particulier" value="" />
+    {themes
+      .filter(theme => answers.some(answer => answer.id_connection === theme.id)) // Filtrer les thèmes sans réponse
+      .map((theme, index) => (
+        <Picker.Item key={index} label={theme.theme} value={theme.id} />
+      ))}
+  </Picker>
+</View>
+
+<Text>Mon message sera enregistré dans le chapitre :</Text>
+<View style={styles.dropdownContainer}>
+<Picker
+  selectedValue={route.params?.filterSelectedQuestion}
+  onValueChange={(itemValue, itemIndex) => {
+    const itemValueNumber = Number(itemValue); // Convertir itemValue en nombre
+    const selectedQuestion_temp = questions.find(question => question.id === itemValueNumber);
+
+    if (selectedQuestion_temp) {
+      route.params?.setFilterSelectedQuestion(selectedQuestion_temp);
+    } else {
+      route.params?.setFilterSelectedQuestion('');
+    }
+}}
+
+  style={styles.dropdown}
+>
+  <Picker.Item label="Aucun chapitre particulier" value="" />
+  {questions
+    .map((question, index) => (
+      <Picker.Item key={index} label={question.question} value={question.id} />
+    ))}
+</Picker>
+
+</View>
+
+</>
+)}
+
+
+
+</>
+
+
+)
+}
 
 
 
@@ -998,32 +1096,109 @@ useEffect(() => {
     <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.closeButton}>
       <Image source={closeIcon} style={styles.closeIcon} />
     </TouchableOpacity>
+    <Text style={[styles.modalTitle, {marginBottom: 30 }]}>Ajouter une contribution</Text>
+
+    <View style={{ flexDirection: 'column', justifyContent: 'space-between', marginBottom: 10 }}>
+  
+
+    <TouchableOpacity onPress={() => {setModalVisible(false),setModalQuestion_Visible(true)}} style={globalStyles.globalButton_wide}>
+   <Text style={globalStyles.globalButtonText}>Poser une question</Text>
+    </TouchableOpacity>
+
+   <TouchableOpacity onPress={() => {setModalVisible(false),setModalAnswer_oral_Visible(true)}} style={globalStyles.globalButton_wide}>
+   <Text style={globalStyles.globalButtonText}>Enregistrer un message vocal</Text>
+    </TouchableOpacity>
+
+    <TouchableOpacity onPress={() => {setModalVisible(false),setModalAnswer_written_Visible(true)}} style={globalStyles.globalButton_wide}>
+   <Text style={globalStyles.globalButtonText}>Enregistrer un message écrit</Text>
+    </TouchableOpacity>
+
+    <TouchableOpacity onPress={() => {setModalVisible(false),setModalAnswer_audio_Visible(true)}} style={globalStyles.globalButton_wide}>
+   <Text style={globalStyles.globalButtonText}>Envoyer un fichier audio</Text>
+    </TouchableOpacity>
+
+    <TouchableOpacity onPress={() => {setModalVisible(false),setModalAnswer_image_Visible(true)}} style={globalStyles.globalButton_wide}>
+   <Text style={globalStyles.globalButtonText}>Envoyer une photo ou document manuscrit</Text>
+    </TouchableOpacity>
+  
+    <TouchableOpacity onPress={() => {setModalVisible(false),setModalAnswer_document_Visible(true)}} style={globalStyles.globalButton_wide}>
+   <Text style={globalStyles.globalButtonText}>Envoyer un document dactylographié</Text>
+    </TouchableOpacity>
+  
+
+  </View>      
+  </View>
+</View>
+
+
+
+</Modal>
+
+
+<Modal isVisible={isModalAnswer_oral_Visible}>
+    <View style={styles.overlay}>
+  <View style={styles.modalContainer}>
+    <TouchableOpacity onPress={() => setModalAnswer_oral_Visible(false)} style={styles.closeButton}>
+      <Image source={closeIcon} style={styles.closeIcon} />
+    </TouchableOpacity>
     <Text style={styles.modalTitle}>Ajouter une contribution</Text>
 
     <View style={{ flexDirection: 'column', justifyContent: 'space-between', marginBottom: 10 }}>
   
-    <Text>S'exprimer au nom de :</Text>
-        <Picker
-          selectedValue={delegationUserId.user.id}
-          onValueChange={(itemValue) => {
-            setDelegationUserId(itemValue);
-            setDelegationUserId({ user: { id: itemValue } });
-          }}
-        >
-          {users.map((user) => (
-            <Picker.Item key={user.id_user} label={user.name} value={user.id_user} />
-          ))}
-        </Picker>
-
+            {selection()}
 
         <AnswerPanel_oral
-        ID_USER={delegationUserId? delegationUserId:session.user.id}
-        Id_question={selectedChapter}
-        Id_connection={selectedTheme}
+        ID_USER={delegationUserId.user.id? delegationUserId.user.id:session.user.id}
+        Id_question={route.params?.filterSelectedQuestion===''? null:route.params?.filterSelectedQuestion}
+        Id_connection={selectedTheme===''? null:selectedTheme}
         question_reponse={"réponse"}
         refreshAnswers={refreshAnswers}
+        id_answer_source={selectedAnswerId}
  
       />
+  
+  </View>      
+  </View>
+</View>
+
+
+
+</Modal>
+
+<Modal isVisible={isModalAnswer_written_Visible}>
+    <View style={styles.overlay}>
+  <View style={styles.modalContainer}>
+    <TouchableOpacity onPress={() => setModalAnswer_written_Visible(false)} style={styles.closeButton}>
+      <Image source={closeIcon} style={styles.closeIcon} />
+    </TouchableOpacity>
+    <Text style={styles.modalTitle}>Ajouter une contribution</Text>
+
+    <View style={{ flexDirection: 'column', justifyContent: 'space-between', marginBottom: 10 }}>
+  
+   
+
+            {selection()}
+
+
+
+            <View style={{
+    padding: 10,
+    marginBottom: 10,
+    width: '90%',
+    alignSelf: 'center'}}>
+  <AnswerPanel_written
+        ID_USER={delegationUserId.user.id? delegationUserId.user.id:session.user.id}
+        Id_question={route.params?.filterSelectedQuestion===''? null:route.params?.filterSelectedQuestion}
+        Id_connection={selectedTheme===''? null:selectedTheme}
+        question_reponse={"réponse"}
+        refreshAnswers={refreshAnswers}
+        id_answer_source={selectedAnswerId}
+ 
+      />
+</View>
+
+
+    
 
   
   </View>      
@@ -1034,6 +1209,139 @@ useEffect(() => {
 
 </Modal>
 
+<Modal isVisible={isModalQuestion_Visible}>
+    <View style={styles.overlay}>
+  <View style={styles.modalContainer}>
+    <TouchableOpacity onPress={() => setModalQuestion_Visible(false)} style={styles.closeButton}>
+      <Image source={closeIcon} style={styles.closeIcon} />
+    </TouchableOpacity>
+    <Text style={styles.modalTitle}>Ajouter une contribution</Text>
+
+    <View style={{ flexDirection: 'column', justifyContent: 'space-between', marginBottom: 10 }}>
+  
+   
+
+            {selection()}
+
+
+
+            <View style={{
+    padding: 10,
+    marginBottom: 10,
+    width: '90%',
+    alignSelf: 'center'}}>
+  <AnswerPanel_written
+        ID_USER={delegationUserId.user.id? delegationUserId.user.id:session.user.id}
+        Id_question={route.params?.filterSelectedQuestion===''? null:route.params?.filterSelectedQuestion}
+        Id_connection={selectedTheme===''? null:selectedTheme}
+        question_reponse={"question"}
+        refreshAnswers={refreshAnswers}
+        id_answer_source={selectedAnswerId}
+ 
+      />
+</View>
+
+
+    
+
+  
+  </View>      
+  </View>
+</View>
+
+
+
+</Modal>
+
+<Modal isVisible={isModalAnswer_audio_Visible}>
+    <View style={styles.overlay}>
+  <View style={styles.modalContainer}>
+    <TouchableOpacity onPress={() => setModalAnswer_audio_Visible(false)} style={styles.closeButton}>
+      <Image source={closeIcon} style={styles.closeIcon} />
+    </TouchableOpacity>
+    <Text style={styles.modalTitle}>Ajouter une contribution</Text>
+
+    <View style={{ flexDirection: 'column', justifyContent: 'space-between', marginBottom: 10 }}>
+  
+            {selection()}
+
+        <AnswerPanel_AudioFile
+        ID_USER={delegationUserId.user.id? delegationUserId.user.id:session.user.id}
+        Id_question={route.params?.filterSelectedQuestion===''? null:route.params?.filterSelectedQuestion}
+        Id_connection={selectedTheme===''? null:selectedTheme}
+        question_reponse={"réponse"}
+        refreshAnswers={refreshAnswers}
+        id_answer_source={selectedAnswerId}
+ 
+      />
+  
+  </View>      
+  </View>
+</View>
+
+
+
+</Modal>
+
+<Modal isVisible={isModalAnswer_image_Visible}>
+    <View style={styles.overlay}>
+  <View style={styles.modalContainer}>
+    <TouchableOpacity onPress={() => setModalAnswer_image_Visible(false)} style={styles.closeButton}>
+      <Image source={closeIcon} style={styles.closeIcon} />
+    </TouchableOpacity>
+    <Text style={styles.modalTitle}>Ajouter une contribution</Text>
+
+    <View style={{ flexDirection: 'column', justifyContent: 'space-between', marginBottom: 10 }}>
+  
+            {selection()}
+
+        <AnswerPanel_imageFile
+        ID_USER={delegationUserId.user.id? delegationUserId.user.id:session.user.id}
+        Id_question={route.params?.filterSelectedQuestion===''? null:route.params?.filterSelectedQuestion}
+        Id_connection={selectedTheme===''? null:selectedTheme}
+        question_reponse={"réponse"}
+        refreshAnswers={refreshAnswers}
+        id_answer_source={selectedAnswerId}
+ 
+      />
+  
+  </View>      
+  </View>
+</View>
+
+
+
+</Modal>
+
+<Modal isVisible={isModalAnswer_document_Visible}>
+    <View style={styles.overlay}>
+  <View style={styles.modalContainer}>
+    <TouchableOpacity onPress={() => setModalAnswer_document_Visible(false)} style={styles.closeButton}>
+      <Image source={closeIcon} style={styles.closeIcon} />
+    </TouchableOpacity>
+    <Text style={styles.modalTitle}>Ajouter une contribution</Text>
+
+    <View style={{ flexDirection: 'column', justifyContent: 'space-between', marginBottom: 10 }}>
+  
+            {selection()}
+
+        <AnswerPanel_documentFile
+        ID_USER={delegationUserId.user.id? delegationUserId.user.id:session.user.id}
+        Id_question={route.params?.filterSelectedQuestion===''? null:route.params?.filterSelectedQuestion}
+        Id_connection={selectedTheme===''? null:selectedTheme}
+        question_reponse={"réponse"}
+        refreshAnswers={refreshAnswers}
+        id_answer_source={selectedAnswerId}
+ 
+      />
+  
+  </View>      
+  </View>
+</View>
+
+
+
+</Modal>
 
 
 <Modal isVisible={isTranscriptionModalVisible}>
@@ -1435,7 +1743,7 @@ useEffect(() => {
     if (selectedQuestion_temp) {
       route.params?.setFilterSelectedQuestion(selectedQuestion_temp);
     } else {
-      route.params?.setFilterSelectedQuestion('');
+      route.params?.setFilterSelectedQuestion(null);
     }
 }}
 
@@ -1480,14 +1788,20 @@ useEffect(() => {
         key={item.id}
   style={[
     styles.answerCard,
-    selectedAnswerIds.includes(item.id) && styles.selectedAnswerCard,
+    selectedAnswerId===item.id && styles.selectedAnswerCard,
     //isActive && styles.selectedAnswerCard,
-    isConnectedToSelectedAnswer(item) && styles.connectedAnswerCard,
+    selectedAnswerId && selectedAnswerId===item.id_answer_source && styles.connectedAnswerCard,
   ]}
   onLongPress={() => {
+    setSelectedAnswerId(item.id)
     setDraggedAnswer(item);
     drag();
   }}
+  onPress={() => {
+    setSelectedAnswerId(null)
+  
+  }}
+
       >
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         {/*
@@ -1590,10 +1904,23 @@ useEffect(() => {
 
 <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 20 }}>
 
-{showDetails && (
-   
-                
-<>
+{(showDetails || selectedAnswerId===item.id) && (
+  
+  <>
+
+<TouchableOpacity
+   onPress={() => {
+     setSelectedAnswerId(item.id);
+     setModalVisible(true);
+   }}
+ >
+   <Image source={repondreIcon} style={{ width: 28, height: 28, opacity: 0.5 }} />
+   {isLargeScreen && <Text>Répondre</Text>}
+ </TouchableOpacity>
+
+
+
+
 
    {item.answer !== "audio pas encore converti en texte" && item.id !== editingAnswerId && (
      <TouchableOpacity
@@ -1882,7 +2209,7 @@ const styles = StyleSheet.create({
   },
 
   fullscreenContainer: {
-    position: 'absolute',
+    position: 'fixed',
     top: 0,
     left: 0,
     right: 0,
@@ -1898,6 +2225,8 @@ const styles = StyleSheet.create({
     height: '90%',
     resizeMode: 'contain',
   },
+  
+  
   /*
   selectedAnswerCard: {
     backgroundColor: '#93d9e6', // Couleur de fond différente pour les réponses sélectionnées
@@ -1949,21 +2278,17 @@ const styles = StyleSheet.create({
     width: 100,
   },
 
-  modalContainer : {
-    backgroundColor: 'white', //changer la couleur ici
+
+  modalContainer: {
+    backgroundColor: '#E8FFF6',
     width:'100%',
     height:'100%',
     padding: 20,
     borderRadius: 10,
-  },
-
-  modalContainer: {
-    backgroundColor: '#E8FFF6',
-    width: '90%',
-    padding: 20,
-    borderRadius: 10,
     alignSelf: 'center',
     zIndex: 20,
+    padding: 20,
+    borderRadius: 10,
   },
   
   closeButtonText: {

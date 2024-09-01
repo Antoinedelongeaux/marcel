@@ -458,12 +458,32 @@ export async function submitMemories_Answer(answer, question, session, audio, na
 
     const response = audio ? answer : (answer.trim() === '' ? 'Réponse vide' : answer);
 
-    // Obtenez le nombre actuel de réponses pour définir le rank
-    const { count } = await supabase
-      .from('Memoires_answers')
-      .select('id', { count: 'exact' });
+// Obtenez le nombre actuel de réponses pour définir le rank
+let rank = 0
+    
+if (id_answer_source) {
+  const { count } = await supabase
+  .from('Memoires_answers')
+  .select('id', { count: 'exact' })
+  .eq('id',id_answer_source);
+  console.log("count : ",count)
 
-    const rank = count + 1;
+  const { data, error } = await supabase
+  .from('Memoires_answers')
+  .select('*')
+  .eq('id', id_answer_source);
+
+  console.log("rank_origin : ",data)
+  rank = data[0].rank + (count+1)*0.00001
+
+  console.log("rank : ",rank)
+
+}else {
+const { count } = await supabase
+  .from('Memoires_answers')
+  .select('id', { count: 'exact' });
+rank = count + 1;
+}
 
     const { error } = await supabase
       .from('Memoires_answers')
@@ -481,28 +501,54 @@ export async function submitMemories_Answer(answer, question, session, audio, na
   }
 }
 
-export async function submitMemories_Answer_written(answer, ID_USER, Id_question, Id_connection,question_reponse) {
+export async function submitMemories_Answer_written(answer, ID_USER, Id_question, Id_connection,question_reponse,id_answer_source) {
   try {
     const Id_subject = await getActiveSubjectId();
 
     let Id_user =null
+    console.log("answer, ID_USER, Id_question, Id_connection,question_reponse,id_answer_source",answer, ID_USER, Id_question, Id_connection,question_reponse,id_answer_source)
     if(ID_USER) {
       Id_user = ID_USER
     }else{
       Id_user =  session?.user?.id
     }
+    
+
 
     // Obtenez le nombre actuel de réponses pour définir le rank
+    let rank = 0
+    
+    if (id_answer_source) {
+      const { count } = await supabase
+      .from('Memoires_answers')
+      .select('id', { count: 'exact' })
+      .eq('id',id_answer_source);
+      console.log("count : ",count)
+
+      const { data, error } = await supabase
+      .from('Memoires_answers')
+      .select('*')
+      .eq('id', id_answer_source);
+
+      console.log("rank_origin : ",data)
+      rank = data[0].rank + (count+1)*0.00001
+
+      console.log("rank : ",rank)
+
+    }else {
     const { count } = await supabase
       .from('Memoires_answers')
       .select('id', { count: 'exact' });
+    rank = count + 1;
+  }
 
-    const rank = count + 1;
+
+
 
     const { error } = await supabase
       .from('Memoires_answers')
       .insert([
-        { id_question: Id_question, id_user: Id_user, id_subject: Id_subject, answer: answer, audio: false, link_storage: '', image: false, id_connection: Id_connection, rank: rank,question_reponse:question_reponse }
+        { id_question: Id_question, id_user: Id_user, id_subject: Id_subject, answer: answer, audio: false, link_storage: '', image: false, id_connection: Id_connection, rank: rank,question_reponse:question_reponse,id_answer_source:id_answer_source }
       ]);
 
     if (error) throw error;
@@ -515,7 +561,7 @@ export async function submitMemories_Answer_written(answer, ID_USER, Id_question
   }
 }
 
-export async function submitMemories_Answer_oral(answer, ID_USER, Id_question, Id_connection,question_reponse,name,ID_answer) {
+export async function submitMemories_Answer_oral(answer, ID_USER, Id_question, Id_connection,question_reponse,name,ID_answer,id_answer_source) {
   try {
 
 
@@ -528,17 +574,37 @@ export async function submitMemories_Answer_oral(answer, ID_USER, Id_question, I
       Id_user =  session?.user?.id
     }
 
-    // Obtenez le nombre actuel de réponses pour définir le rank
-    const { count } = await supabase
-      .from('Memoires_answers')
-      .select('id', { count: 'exact' });
+// Obtenez le nombre actuel de réponses pour définir le rank
+let rank = 0
+    
+if (id_answer_source) {
+  const { count } = await supabase
+  .from('Memoires_answers')
+  .select('id', { count: 'exact' })
+  .eq('id',id_answer_source);
+  console.log("count : ",count)
 
-    const rank = count + 1;
+  const { data, error } = await supabase
+  .from('Memoires_answers')
+  .select('*')
+  .eq('id', id_answer_source);
+
+  console.log("rank_origin : ",data)
+  rank = data[0].rank + (count+1)*0.00001
+
+  console.log("rank : ",rank)
+
+}else {
+const { count } = await supabase
+  .from('Memoires_answers')
+  .select('id', { count: 'exact' });
+rank = count + 1;
+}
 
     const { error } = await supabase
       .from('Memoires_answers')
       .insert([
-        { id:ID_answer,id_question: Id_question, id_user: Id_user, id_subject: Id_subject, answer: answer, audio: true, link_storage: name, image: false, id_connection: Id_connection, rank: rank,question_reponse:question_reponse }
+        { id:ID_answer,id_question: Id_question, id_user: Id_user, id_subject: Id_subject, answer: answer, audio: true, link_storage: name, image: false, id_connection: Id_connection, rank: rank,question_reponse:question_reponse,id_answer_source:id_answer_source }
       ]);
 
     if (error) throw error;
@@ -552,10 +618,9 @@ export async function submitMemories_Answer_oral(answer, ID_USER, Id_question, I
   }
 }
 
-export async function submitMemories_Answer_image(answer, ID_USER, Id_question, Id_connection,question_reponse,name) {
+export async function submitMemories_Answer_image(answer, ID_USER, Id_question, Id_connection,question_reponse,name,id_answer_source) {
   try {
-    console.log("answer, ID_USER, Id_question, Id_connection,question_reponse,name : ",answer, ID_USER, Id_question, Id_connection,question_reponse,name) 
-
+    
     const Id_subject = await getActiveSubjectId();
 
     let Id_user =null
@@ -565,17 +630,37 @@ export async function submitMemories_Answer_image(answer, ID_USER, Id_question, 
       Id_user =  session?.user?.id
     }
 
-    // Obtenez le nombre actuel de réponses pour définir le rank
-    const { count } = await supabase
-      .from('Memoires_answers')
-      .select('id', { count: 'exact' });
+// Obtenez le nombre actuel de réponses pour définir le rank
+let rank = 0
+    
+if (id_answer_source) {
+  const { count } = await supabase
+  .from('Memoires_answers')
+  .select('id', { count: 'exact' })
+  .eq('id',id_answer_source);
+  console.log("count : ",count)
 
-    const rank = count + 1;
+  const { data, error } = await supabase
+  .from('Memoires_answers')
+  .select('*')
+  .eq('id', id_answer_source);
+
+  console.log("rank_origin : ",data)
+  rank = data[0].rank + (count+1)*0.00001
+
+  console.log("rank : ",rank)
+
+}else {
+const { count } = await supabase
+  .from('Memoires_answers')
+  .select('id', { count: 'exact' });
+rank = count + 1;
+}
 
     const { error } = await supabase
       .from('Memoires_answers')
       .insert([
-        { id_question: Id_question, id_user: Id_user, id_subject: Id_subject, answer: answer, audio: false, link_storage: name, image: true, id_connection: Id_connection, rank: rank,question_reponse:question_reponse }
+        { id_question: Id_question, id_user: Id_user, id_subject: Id_subject, answer: answer, audio: false, link_storage: name, image: true, id_connection: Id_connection, rank: rank,question_reponse:question_reponse,id_answer_source:id_answer_source }
       ]);
 
     if (error) throw error;
@@ -1572,5 +1657,3 @@ export async function getTheme_byUser(id_user,id_subject) {
     console.error("Erreur : ", error);
   }
 }
-
-

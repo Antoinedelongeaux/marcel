@@ -39,6 +39,7 @@ import {
     updateTheme,
     deleteTheme,
     getTheme_byUser,
+    getAnswer,
   } from '../components/data_handling';
   import { v4 as uuidv4 } from 'uuid';
   import MicroIcon from '../../assets/icons/microphone-lines-solid.svg';
@@ -54,15 +55,34 @@ import {
 //export default AnswerPanel_written = ({ answer, id_user, id_question,id_suject,id_connection }) => {
 
     
-  export const AnswerPanel_written = ({ ID_USER, Id_question, Id_connection,question_reponse,refreshAnswers }) => {
+  export const AnswerPanel_written = ({ ID_USER, Id_question, Id_connection,question_reponse,refreshAnswers,id_answer_source }) => {
       const [answer, setAnswer] = useState('');
 
-      const handleAnswerSubmit = async ( answer, ID_USER, Id_question, Id_connection,question_reponse,refreshAnswers) => {
-        await submitMemories_Answer_written(answer, ID_USER, Id_question, Id_connection,question_reponse);
+
+
+
+
+      const handleAnswerSubmit = async ( answer, ID_USER, Id_question, Id_connection,question_reponse,refreshAnswers,id_answer_source) => {
+        
+        let ID_QUESTION = Id_connection;
+        let ID_CONNECTION = Id_connection;
+  
+      if(id_answer_source) {
+      
+        const temp = await getAnswer(id_answer_source);
+        ID_QUESTION = temp.id_question;
+        ID_CONNECTION = temp.id_connection;
+
+      } 
+        await submitMemories_Answer_written(answer, ID_USER, ID_QUESTION, ID_CONNECTION,question_reponse,id_answer_source);
         setAnswer('');
         await refreshAnswers();
       };
     
+
+
+
+
       return (
         <View style={{ flexDirection: 'column', justifyContent: 'space-between', marginBottom: 10 }}>
           <TextInput
@@ -75,7 +95,7 @@ import {
           />
           <TouchableOpacity
             style={[globalStyles.globalButton_wide, { backgroundColor: '#b1b3b5', marginRight: 5 }]}
-            onPress={() => handleAnswerSubmit(answer, ID_USER, Id_question, Id_connection,question_reponse,refreshAnswers)}
+            onPress={() => handleAnswerSubmit(answer, ID_USER, Id_question, Id_connection,question_reponse,refreshAnswers,id_answer_source)}
           >
             <Text style={globalStyles.globalButtonText}>{question_reponse ==='question'? "Poser la question" : "Enregistrer la note"}</Text>
           </TouchableOpacity>
@@ -83,7 +103,7 @@ import {
       );
     };
     
-    export const AnswerPanel_oral = ({ ID_USER, Id_question, Id_connection, question_reponse, refreshAnswers }) => {
+    export const AnswerPanel_oral = ({ ID_USER, Id_question, Id_connection, question_reponse, refreshAnswers,id_answer_source }) => {
       const [isRecording, setIsRecording] = useState(false);
       const [recording, setRecording] = useState(null);
       const [namePrefix, setNamePrefix] = useState('');
@@ -106,9 +126,21 @@ import {
         isRecordingRef.current = isRecording;
     }, [isRecording]);
   
-      const handleAnswerSubmit = async (answer, ID_USER, Id_question, Id_connection, question_reponse, name, refreshAnswers) => {
+      const handleAnswerSubmit = async (answer, ID_USER, Id_question, Id_connection, question_reponse, name, refreshAnswers,id_answer_source) => {
           const ID_answer= customUUIDv4()
-          await submitMemories_Answer_oral(answer, ID_USER, Id_question, Id_connection, question_reponse, name,ID_answer);
+          let ID_QUESTION = Id_connection;
+          let ID_CONNECTION = Id_connection;
+    
+        if(id_answer_source) {
+        
+          const temp = await getAnswer(id_answer_source);
+          ID_QUESTION = temp.id_question;
+          ID_CONNECTION = temp.id_connection;
+  
+        } 
+          
+      
+          await submitMemories_Answer_oral(answer, ID_USER, ID_QUESTION, ID_CONNECTION, question_reponse, name,ID_answer,id_answer_source);
           transcribeAudio_slow(name, ID_answer);
           await refreshAnswers();
       };
@@ -157,7 +189,7 @@ import {
                   console.log(`Created chunk: ${chunkName} with URI: ${chunkUri}`);
                   const cleanedChunkName = chunkName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_\.-]/g, '');
                     await uploadAudioToSupabase(chunkUri, cleanedChunkName)
-                    await handleAnswerSubmit("L'audio est en cours de transcription ...", ID_USER, Id_question, Id_connection, question_reponse, cleanedChunkName, refreshAnswers);
+                    await handleAnswerSubmit("L'audio est en cours de transcription ...", ID_USER, Id_question, Id_connection, question_reponse, cleanedChunkName, refreshAnswers,id_answer_source);
                   }
                catch (error) {
                   console.error('Error during handleRecording:', error);
@@ -190,11 +222,21 @@ import {
   };
 
 
-  export const AnswerPanel_AudioFile = ({ ID_USER, Id_question, Id_connection, question_reponse, refreshAnswers})=> {
+  export const AnswerPanel_AudioFile = ({ ID_USER, Id_question, Id_connection, question_reponse, refreshAnswers,id_answer_source})=> {
   
-    const handleAnswerSubmit = async (answer, ID_USER, Id_question, Id_connection, question_reponse, name, refreshAnswers) => {
+    const handleAnswerSubmit = async (answer, ID_USER, Id_question, Id_connection, question_reponse, name, refreshAnswers,id_answer_source) => {
         const ID_answer= customUUIDv4()
-        await submitMemories_Answer_oral(answer, ID_USER, Id_question, Id_connection, question_reponse, name,ID_answer);
+        let ID_QUESTION = Id_connection;
+        let ID_CONNECTION = Id_connection;
+  
+      if(id_answer_source) {
+      
+        const temp = await getAnswer(id_answer_source);
+        ID_QUESTION = temp.id_question;
+        ID_CONNECTION = temp.id_connection;
+
+      } 
+        await submitMemories_Answer_oral(answer, ID_USER, ID_QUESTION, ID_CONNECTION, question_reponse, name,ID_answer,id_answer_source);
         transcribeAudio_slow(name, ID_answer);
         await refreshAnswers();
     };
@@ -258,7 +300,7 @@ import {
                     console.log(`Uploading chunk: ${chunkName}`);
                     const cleanedChunkName = chunkName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_\.-]/g, '');
                     await uploadAudioToSupabase(chunkUri, cleanedChunkName);
-                    await handleAnswerSubmit("L'audio est en cours de transcription ...", ID_USER, Id_question, Id_connection, question_reponse, cleanedChunkName, refreshAnswers);
+                    await handleAnswerSubmit("L'audio est en cours de transcription ...", ID_USER, Id_question, Id_connection, question_reponse, cleanedChunkName, refreshAnswers,id_answer_source);
                   } else {
                     console.error(`Failed to create chunk: ${chunkName}`);
                   }
@@ -301,13 +343,24 @@ import {
   }
 
 
-  export const AnswerPanel_imageFile = ({ ID_USER, Id_question, Id_connection, question_reponse, refreshAnswers }) => {
+  export const AnswerPanel_imageFile = ({ ID_USER, Id_question, Id_connection, question_reponse, refreshAnswers,id_answer_source }) => {
     const [caption, setCaption] = useState('');
     const [modalVisible, setModalVisible] = useState(false);
     const [selectedFile, setSelectedFile] = useState(null);
   
-    const handleAnswerSubmit = async (answer, ID_USER, Id_question, Id_connection, question_reponse, name, refreshAnswers) => {
-      await submitMemories_Answer_image(answer, ID_USER, Id_question, Id_connection, question_reponse, name);
+    const handleAnswerSubmit = async (answer, ID_USER, Id_question, Id_connection, question_reponse, name, refreshAnswersid_answer_source) => {
+      let ID_QUESTION = Id_connection;
+        let ID_CONNECTION = Id_connection;
+  
+      if(id_answer_source) {
+      
+        const temp = await getAnswer(id_answer_source);
+        ID_QUESTION = temp.id_question;
+        ID_CONNECTION = temp.id_connection;
+
+      } 
+      
+      await submitMemories_Answer_image(answer, ID_USER, ID_QUESTION, ID_CONNECTION, question_reponse, name,id_answer_source);
       await refreshAnswers();
     };
   
@@ -373,7 +426,7 @@ import {
       setModalVisible(false);
       
       await uploadImageToSupabase(selectedFile.uri, selectedFile.name);
-      await handleAnswerSubmit(caption, ID_USER, Id_question, Id_connection, question_reponse, selectedFile.name, refreshAnswers);
+      await handleAnswerSubmit(caption, ID_USER, Id_question, Id_connection, question_reponse, selectedFile.name, refreshAnswers,id_answer_source);
     };
   
     return (
@@ -428,6 +481,145 @@ import {
     );
   };
   
+  export const AnswerPanel_documentFile = ({ ID_USER, Id_question, Id_connection, question_reponse, refreshAnswers,id_answer_source }) => {
+    const [caption, setCaption] = useState('');
+    const [modalVisible, setModalVisible] = useState(false);
+    const [selectedFile, setSelectedFile] = useState(null);
+  
+    const handleAnswerSubmit = async (answer, ID_USER, Id_question, Id_connection, question_reponse, name, refreshAnswersid_answer_source) => {
+      let ID_QUESTION = Id_connection;
+        let ID_CONNECTION = Id_connection;
+  
+      if(id_answer_source) {
+      
+        const temp = await getAnswer(id_answer_source);
+        ID_QUESTION = temp.id_question;
+        ID_CONNECTION = temp.id_connection;
+
+      } 
+      
+      await submitMemories_Answer_image(answer, ID_USER, ID_QUESTION, ID_CONNECTION, question_reponse, name,id_answer_source);
+      await refreshAnswers();
+    };
+  
+    const handleUploadPhoto = async () => {
+      try {
+        const result = await DocumentPicker.getDocumentAsync({
+          type: 'image/*', // Accepter les fichiers image
+          copyToCacheDirectory: false
+        });
+  
+        if (!result.canceled) {
+          let uri, name, mimeType;
+  
+          // Gérer les différences de plateforme
+          if (result.output && result.output.length > 0) {
+            const file = result.output[0];
+            uri = URL.createObjectURL(file);
+            name = file.name;
+            mimeType = file.type;
+          } else if (result.assets && result.assets.length > 0) {
+            const asset = result.assets[0];
+            uri = asset.uri;
+            name = asset.name;
+            mimeType = asset.mimeType;
+          } else {
+            console.error("Invalid file selection result", result);
+            throw new Error("Invalid file selection result");
+          }
+  
+          if (!uri || !name) {
+            console.error("Invalid file selection: URI or name is missing", { uri, name });
+            throw new Error("Invalid file selection: URI or name is missing");
+          }
+  
+          // Vérification du type MIME
+          if (mimeType && mimeType.startsWith('image/')) {
+            console.log("File selected is an image file:", { uri, name, mimeType });
+          } else {
+            console.error("Selected file is not an image file:", { uri, name, mimeType });
+            Alert.alert("Erreur", "Le fichier sélectionné n'est pas un fichier image");
+            return;
+          }
+  
+          console.log("File selected successfully:", { uri, name });
+          setSelectedFile({ uri, name }); // Enregistrer le fichier sélectionné
+          setModalVisible(true); // Afficher la modale pour entrer la légende
+        } else {
+          console.error("File selection was not successful: ", result);
+          Alert.alert("Erreur", "Sélection du fichier échouée");
+        }
+      } catch (error) {
+        console.error("Error handling file upload: ", error);
+        Alert.alert("Erreur", "Une erreur s'est produite lors de la sélection du fichier");
+      }
+    };
+  
+    const handleCaptionSubmit = async () => {
+      if (caption.trim() === '') {
+        Alert.alert("Erreur", "Veuillez entrer une légende pour l'image");
+        return;
+      }
+      
+      setModalVisible(false);
+      
+      await uploadImageToSupabase(selectedFile.uri, selectedFile.name);
+      await handleAnswerSubmit(caption, ID_USER, Id_question, Id_connection, question_reponse, selectedFile.name, refreshAnswers,id_answer_source);
+    };
+  
+    return (
+      <View>
+        <TouchableOpacity
+          style={[globalStyles.globalButton_wide, { backgroundColor: '#b1b3b5', flex: 1, marginLeft: 5 }]}
+          onPress={handleUploadPhoto}
+        >
+          <View style={{ flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+            <Image source={Upload} style={{ width: 60, height: 60, opacity: 0.5 }} />
+            <Text style={globalStyles.globalButtonText}>
+              Envoyer un document ou une photo
+            </Text>
+          </View>
+        </TouchableOpacity>
+  
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => {
+            setModalVisible(!modalVisible);
+          }}
+        >
+          <View style={globalStyles.overlay}>
+          <View style={globalStyles.modalContainer}>
+
+            <Text style={globalStyles.modalTitle}>Entrez la légende de l'image</Text>
+            <TextInput
+              style={globalStyles.input}
+              placeholder="Légende"
+              value={caption}
+              onChangeText={setCaption}
+            />
+                      <TouchableOpacity
+            style={[globalStyles.globalButton_wide ]}
+            onPress={handleCaptionSubmit}
+          >
+            <Text style={globalStyles.globalButtonText}> Soumettre </Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setModalVisible(false)} style={globalStyles.closeButton}>
+      <Image source={closeIcon} style={globalStyles.closeIcon} />
+    </TouchableOpacity>
+        
+            
+          </View>
+          </View>
+        
+        
+        </Modal>
+      </View>
+    );
+  };
+
+
   export const ThemePanel = ({ ID_USER, ID_subject, new_theme, themes,setThemes, themesAllUsers,setThemesAllUsers, theme, setTheme, themeText, setThemeText, closureFunction }) => {
     const [merciModalVisible, setMerciModalVisible] = useState(false);
     const [showThemeInput, setShowThemeInput] = useState(false);
