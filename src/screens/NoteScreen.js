@@ -154,7 +154,7 @@ function NoteScreen({ route }) {
 
   //const ID_question = route.params?.question.id || '';
   const [link,setLink]=useState([]);
-
+  const [sort,setSort]=useState('ok');
 
   const question_reponse = route.params?.miscState?.question_reponse || 'réponse';
   const [selectedQuestion, setSelectedQuestion] = useState(route.params?.miscState?.question || null);
@@ -168,6 +168,7 @@ function NoteScreen({ route }) {
   const [isModalAnswer_image_Visible, setModalAnswer_image_Visible] = useState(false); 
   const [isModalAnswer_document_Visible, setModalAnswer_document_Visible] = useState(false); 
   const [isModalQuestion_Visible, setModalQuestion_Visible] = useState(false); 
+  const [isModalImageVisible, setModalImageVisible] = useState(false); 
 const [isRecording, setIsRecording] = useState(false); // Ajoutez cette ligne dans les états
 const [recording, setRecording] = useState(); // Ajoutez cette ligne dans les états
 const [note, setNote] = useState(''); // Ajoutez cette ligne dans les états
@@ -299,6 +300,17 @@ if(session.user){
     }, [navigation])
   );
   
+  const sortAnswerNormal = () => {
+    const sortedAnswers = answers.sort((a, b) => a.rank - b.rank);
+    setAnswers(sortedAnswers);
+  }
+
+  const sortAnswerByDate = () => {
+    const sortedAnswers = answers.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+    setAnswers(sortedAnswers);
+  };
+  
+
   const handleAssignOwner = (answerId) => {
     setSelectedAnswerId_toAttribuate(answerId);
     setIsAssignModalVisible(true);
@@ -456,8 +468,10 @@ if(session.user){
         newRank = 1; // Default value if there are no answers before or after
       }
 
+      if (newRank != 1){
       await moveAnswer(movedAnswer.id, newRank);
       refreshAnswers();
+    }
     }
 };
 
@@ -569,7 +583,8 @@ useEffect(() => {
   themes,
   imageFilter,
   audioFilter,
-  commentFilter
+  commentFilter,
+  sort
 ]);
 
 
@@ -978,7 +993,7 @@ return (
   return (
     <View style={globalStyles.container}>
       
-
+{/*}
       {fullscreenImage && (
   <View style={styles.fullscreenContainer}>
     <TouchableOpacity style={styles.closeButton} onPress={closeFullscreenImage}>
@@ -987,6 +1002,8 @@ return (
     <Image source={{ uri: fullscreenImage }} style={styles.fullscreenImage} />
   </View>
 )}
+
+*/}
 
 {notesMode === "Lecteur"  && (<Text style={globalStyles.title}>
    Notes
@@ -1361,6 +1378,25 @@ return (
   </View>
 </Modal>
 
+<Modal isVisible={fullscreenImage}>
+    <View style={styles.overlay}>
+  <View style={styles.modalContainer}>
+    <TouchableOpacity onPress={() => setFullscreenImage(null)} style={styles.closeButton}>
+      <Image source={closeIcon} style={styles.closeIcon} />
+    </TouchableOpacity>
+    
+    <Image source={{ uri: fullscreenImage }} style={styles.fullscreenImage} />
+  
+  </View>
+</View>
+
+
+
+</Modal>
+
+
+
+
 
 <View style={{ flexDirection: 'row', justifyContent: 'center', marginBottom: 5 }}>
 
@@ -1412,8 +1448,18 @@ return (
 
 </View>
 
-{showFilters && (
+{showFilters &&  (
+  
   <View style={styles.filterContainer}>
+{route.params?.reference? (
+  <View style={{ flexDirection: isLargeScreen? 'row':'column', alignItems: 'center', marginTop: 20, justifyContent: 'space-between',}}>
+  <Text>Vous avez un filtre sur une question unique</Text>
+  <TouchableOpacity onPress={() => handleRemoveFilters()} style={styles.filterIcon}>
+  <Image source={EmptyfilterIcon} style={{ width: 50, height: 50, opacity: 0.5, marginVertical : 30 }} />
+  </TouchableOpacity>
+
+
+</View> ):( <>
 
 <View style={{ flexDirection: isLargeScreen? 'row':'column', alignItems: 'center', marginTop: 20, justifyContent: 'space-between',}}>
       <Text></Text>
@@ -1626,6 +1672,9 @@ return (
       ]}
     />
   </TouchableOpacity>
+
+
+
 </View>
 </View>
 
@@ -1759,7 +1808,8 @@ return (
 
 </View>
 
-
+</>
+)}
 
 
   </View>
@@ -1768,7 +1818,14 @@ return (
 
 {showSorting && (
   <View style={styles.filterContainer}>
-      
+      <TouchableOpacity onPress={() => {{sortAnswerByDate();setSort('date')}}} style={globalStyles.globalButton_wide}>
+      <Text style={globalStyles.globalButtonText}>Trier par date</Text>
+    </TouchableOpacity>
+    <TouchableOpacity onPress={() => {{sortAnswerNormal();setSort('normal')}}} style={globalStyles.globalButton_wide}>
+      <Text style={globalStyles.globalButtonText}>Trier par ordre </Text>
+    </TouchableOpacity>
+
+
   </View>
  
 )}
@@ -2221,8 +2278,8 @@ const styles = StyleSheet.create({
   },
 
   fullscreenImage: {
-    width: '90%',
-    height: '90%',
+    width: '100%',
+    height: '100%',
     resizeMode: 'contain',
   },
   
