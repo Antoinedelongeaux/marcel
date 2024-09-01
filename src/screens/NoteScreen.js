@@ -1169,7 +1169,10 @@ return (
         Id_question={route.params?.filterSelectedQuestion===''? null:route.params?.filterSelectedQuestion}
         Id_connection={selectedTheme===''? null:selectedTheme}
         question_reponse={"réponse"}
-        refreshAnswers={refreshAnswers}
+        refreshAnswers={() => {
+          refreshAnswers();
+          setModalAnswer_oral_Visible(false);
+        }}
         id_answer_source={selectedAnswerId}
  
       />
@@ -1208,7 +1211,10 @@ return (
         Id_question={route.params?.filterSelectedQuestion===''? null:route.params?.filterSelectedQuestion}
         Id_connection={selectedTheme===''? null:selectedTheme}
         question_reponse={"réponse"}
-        refreshAnswers={refreshAnswers}
+        refreshAnswers={() => {
+          refreshAnswers();
+          setModalAnswer_written_Visible(false);
+        }}
         id_answer_source={selectedAnswerId}
  
       />
@@ -1252,7 +1258,10 @@ return (
         Id_question={route.params?.filterSelectedQuestion===''? null:route.params?.filterSelectedQuestion}
         Id_connection={selectedTheme===''? null:selectedTheme}
         question_reponse={"question"}
-        refreshAnswers={refreshAnswers}
+        refreshAnswers={() => {
+          refreshAnswers();
+          setModalQuestion_Visible(false);
+        }}
         id_answer_source={selectedAnswerId}
  
       />
@@ -1287,7 +1296,10 @@ return (
         Id_question={route.params?.filterSelectedQuestion===''? null:route.params?.filterSelectedQuestion}
         Id_connection={selectedTheme===''? null:selectedTheme}
         question_reponse={"réponse"}
-        refreshAnswers={refreshAnswers}
+        refreshAnswers={() => {
+          refreshAnswers();
+          setModalAnswer_audio_Visible(false);
+        }}
         id_answer_source={selectedAnswerId}
  
       />
@@ -1317,7 +1329,10 @@ return (
         Id_question={route.params?.filterSelectedQuestion===''? null:route.params?.filterSelectedQuestion}
         Id_connection={selectedTheme===''? null:selectedTheme}
         question_reponse={"réponse"}
-        refreshAnswers={refreshAnswers}
+        refreshAnswers={() => {
+          refreshAnswers();
+          setModalAnswer_image_Visible(false);
+        }}
         id_answer_source={selectedAnswerId}
  
       />
@@ -1347,7 +1362,10 @@ return (
         Id_question={route.params?.filterSelectedQuestion===''? null:route.params?.filterSelectedQuestion}
         Id_connection={selectedTheme===''? null:selectedTheme}
         question_reponse={"réponse"}
-        refreshAnswers={refreshAnswers}
+        refreshAnswers={() => {
+          refreshAnswers();
+          setModalAnswer_document_Visible(false);
+        }}
         id_answer_source={selectedAnswerId}
  
       />
