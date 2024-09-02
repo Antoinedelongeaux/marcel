@@ -539,6 +539,63 @@ export const ToggleButton = ({ bool, setBool }) => {
   );
 };
 
+export const CarrousselOrientation = ({ isLargeScreen }) => {
+  const titles = ['Inspirer', 'Raconter', 'Réagir', 'Structurer', 'Rédiger', 'Corriger', 'Publier', 'Lire'];
+  const colors = ['#0c2d48', '#145da0', '#2e8bc0', '#570701', '#fc2e20', '#fd7f20', '#fdb750', '#01693c'];
+
+  const SLIDER_WIDTH = Dimensions.get('window').width;
+  const ITEM_WIDTH = SLIDER_WIDTH * (isLargeScreen ? 1 : 0.7);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [mode, setMode] = useState('');
+
+  // Fonction de rendu des éléments de la grille (pour les grands écrans)
+  const renderGridItem = ({ item, index }) => (
+    <TouchableOpacity
+      key={index}
+      onPress={() => { setMode(item); setCurrentIndex(index); }}
+      style={[
+        styles.gridItem,
+        { 
+          backgroundColor: colors[index % colors.length], 
+          opacity: currentIndex === index ? 1 : 0.5,  // La carte sélectionnée est non opaque
+          transform: currentIndex === index ? [{ scale: 1.1 }] : [{ scale: 1 }], // Agrandit la carte sélectionnée
+        }
+      ]}
+    >
+      <Text style={styles.carouselText}>{item}</Text>
+    </TouchableOpacity>
+  );
+
+  return (
+    <View style={styles.carouselWrapper}>
+      {isLargeScreen ? (
+        // Affichage sous forme de grille pour les grands écrans
+        <View style={styles.gridContainer}>
+          {titles.map((title, index) => renderGridItem({ item: title, index }))}
+        </View>
+      ) : (
+        // Carrousel pour les petits écrans
+        <View style={styles.carouselContainer}>
+          <Carousel
+            ref={carouselRef}
+            data={titles}
+            renderItem={renderItem}
+            sliderWidth={SLIDER_WIDTH}
+            itemWidth={ITEM_WIDTH}
+            inactiveSlideScale={0.9}
+            inactiveSlideOpacity={0.7}
+            loop={true}
+            decelerationRate={0.9}
+            useScrollView={true}
+            onSnapToItem={(index) => setCurrentIndex(index)}
+          />
+        </View>
+      )}
+    </View>
+  );
+};
+
+
 
 
 
@@ -652,6 +709,19 @@ const styles = StyleSheet.create({
   arrowIcon: {
     width: 60,
     height: 60,
+  },
+  gridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-around',
+  },
+  gridItem: {
+    width: '12%', // Ajuste la largeur des cartes
+    margin: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 10,
+    borderRadius: 5,
   },
 
 });

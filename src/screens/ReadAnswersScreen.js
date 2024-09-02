@@ -63,6 +63,10 @@ import viewIcon from '../../assets/icons/view.png';
 import trash from '../../assets/icons/baseline_delete_outline_black_24dp.png';
 import linkIcon from '../../assets/icons/link.png';
 import { decode, encode } from 'he';
+import { } from 'he';
+import {  CarrousselOrientation,
+} from '../components/UI_components';
+
 
 const deepEqual = (obj1, obj2) => {
   return JSON.stringify(obj1) === JSON.stringify(obj2);
@@ -548,13 +552,14 @@ function ReadAnswersScreen({ route }) {
     <View style={globalStyles.container}>
       <View style={[globalStyles.navigationContainer, { position: 'fixed', bottom: '0%', alignSelf: 'center' }]}>
       
+      {/* 
       <TouchableOpacity
           onPress={() => navigateToScreen('Orientation')}
           style={[globalStyles.navButton, miscState.isHoveredOrientation && globalStyles.navButton_over]}
           onMouseEnter={() => setMiscState(prevState => ({ ...prevState, isHoveredOrientation: true }))}
           onMouseLeave={() => setMiscState(prevState => ({ ...prevState, isHoveredOrientation: false }))}
         >
-          <Image source={orientationIcon} style={{ width: 120, height: 120, opacity: 0.5 }} />
+          <Image source={orientationIcon  } style={{ width: 120, height: 120, opacity: 0.5 }} />
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -565,6 +570,10 @@ function ReadAnswersScreen({ route }) {
         >
           <Image source={settingsIcon} style={{ width: 120, height: 120, opacity: 0.5 }} />
         </TouchableOpacity>
+     
+      */}
+
+      <CarrousselOrientation isLargeScreen={miscState.isLargeScreen} />
       </View>
 
       <View style={miscState.isLargeScreen ? styles.largeScreenContainer : styles.smallScreenContainer}>
