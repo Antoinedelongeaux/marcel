@@ -558,7 +558,7 @@ export const CarrousselOrientation = ({ isLargeScreen }) => {
         { 
           backgroundColor: colors[index % colors.length], 
           opacity: currentIndex === index ? 1 : 0.5,  // La carte sélectionnée est non opaque
-          transform: currentIndex === index ? [{ scale: 1.1 }] : [{ scale: 1 }], // Agrandit la carte sélectionnée
+          transform: currentIndex === index ? [{ scale: 1.2 }] : [{ scale: 0.95 }], // Agrandit la carte sélectionnée
         }
       ]}
     >
@@ -570,9 +570,11 @@ export const CarrousselOrientation = ({ isLargeScreen }) => {
     <View style={styles.carouselWrapper}>
       {isLargeScreen ? (
         // Affichage sous forme de grille pour les grands écrans
-        <View style={styles.gridContainer}>
+        //<View style={styles.gridContainer}>
+        <>
           {titles.map((title, index) => renderGridItem({ item: title, index }))}
-        </View>
+          </>
+        //</View>
       ) : (
         // Carrousel pour les petits écrans
         <View style={styles.carouselContainer}>
@@ -669,7 +671,7 @@ const styles = StyleSheet.create({
   carouselContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-    width: '80%',
+    width: '100%',
   },
   carouselItem: {
     justifyContent: 'center',
@@ -711,12 +713,14 @@ const styles = StyleSheet.create({
     height: 60,
   },
   gridContainer: {
+    backgroundColor:'white',
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    //flexWrap: 'wrap',
     justifyContent: 'space-around',
+    width: '100%',
   },
   gridItem: {
-    width: '12%', // Ajuste la largeur des cartes
+    width: '15%', // Ajuste la largeur des cartes
     margin: 5,
     justifyContent: 'center',
     alignItems: 'center',
