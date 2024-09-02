@@ -14,7 +14,9 @@ import questionIcon from '../../assets/icons/question.png';
 import copyIcon from '../../assets/icons/paste.png';
 import trashIcon from '../../assets/icons/baseline_delete_outline_black_24dp.png';
 import refreshIcon from '../../assets/icons/refresh_black_24dp.svg';
-import closeIcon from '../../assets/icons/close.png'; 
+import closeIcon from '../../assets/icons/close.png';
+import exitIcon from '../../assets/icons/exit.png';
+import settingsIcon from '../../assets/icons/settings.svg';
 import { createAudioChunk, 
   startRecording, 
   stopRecording, 
@@ -546,6 +548,8 @@ export const CarrousselOrientation = ({ isLargeScreen }) => {
   const SLIDER_WIDTH = Dimensions.get('window').width;
   const ITEM_WIDTH = SLIDER_WIDTH * (isLargeScreen ? 1 : 0.7);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isHoveredExit, setIsHoveredExit] = useState(false);
+  const [isHoveredSettings, setIsHoveredSettings] = useState(false);
   const [mode, setMode] = useState('');
 
   // Fonction de rendu des éléments de la grille (pour les grands écrans)
@@ -567,13 +571,31 @@ export const CarrousselOrientation = ({ isLargeScreen }) => {
   );
 
   return (
-    <View style={styles.carouselWrapper}>
+    <View style={[styles.carouselWrapper, style={ flexDirection: 'row', justifyContent: 'space-between' }]}>
       {isLargeScreen ? (
         // Affichage sous forme de grille pour les grands écrans
         //<View style={styles.gridContainer}>
         <>
+          <TouchableOpacity
+ 
+          style={[globalStyles.navButton, isHoveredSettings && globalStyles.navButton_over]}
+          onMouseEnter={() => setIsHoveredSettings(true)}
+          onMouseLeave={() => setIsHoveredSettings(false)}
+        >
+          <Image source={settingsIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
+        </TouchableOpacity>
+         
           {titles.map((title, index) => renderGridItem({ item: title, index }))}
-          </>
+          
+          <TouchableOpacity
+          
+          style={[globalStyles.navButton, isHoveredExit && globalStyles.navButton_over]}
+          onMouseEnter={() => setIsHoveredExit(true)}
+          onMouseLeave={() => setIsHoveredExit(false)}
+        >
+          <Image source={exitIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
+        </TouchableOpacity>
+        </>
         //</View>
       ) : (
         // Carrousel pour les petits écrans
@@ -664,6 +686,7 @@ const styles = StyleSheet.create({
 
   carouselWrapper: {
     flexDirection: 'row',
+    backgroundColor:'white',
     alignItems: 'center',
     justifyContent: 'center',  // Pour s'assurer que les flèches sont bien positionnées de chaque côté
     width: '100%',
@@ -720,7 +743,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   gridItem: {
-    width: '15%', // Ajuste la largeur des cartes
+    width: '10%', // Ajuste la largeur des cartes
     margin: 5,
     justifyContent: 'center',
     alignItems: 'center',

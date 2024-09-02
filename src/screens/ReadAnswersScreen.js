@@ -550,6 +550,7 @@ function ReadAnswersScreen({ route }) {
 
   return (
     <View style={globalStyles.container}>
+      
       <View style={[globalStyles.navigationContainer, { position: 'fixed', bottom: '0%', alignSelf: 'center' }]}>
       
       {/* 
@@ -573,7 +574,7 @@ function ReadAnswersScreen({ route }) {
      
       */}
 
-      <CarrousselOrientation isLargeScreen={miscState.isLargeScreen} />
+<CarrousselOrientation isLargeScreen={miscState.isLargeScreen} />
       </View>
 
       <View style={miscState.isLargeScreen ? styles.largeScreenContainer : styles.smallScreenContainer}>

@@ -178,8 +178,9 @@ title_chapter: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: 0,
     zIndex: 10,
+    width:'100%'
     
   },
 
