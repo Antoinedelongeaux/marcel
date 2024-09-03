@@ -3,7 +3,9 @@
 import React, { useState, useEffect,useRef } from 'react';
 import { View, Text, TouchableOpacity, Image, ActivityIndicator, StyleSheet, TextInput, Dimensions,  Picker,   Alert, } from 'react-native';
 import Slider from '@react-native-community/slider';
+import { supabase } from '../lib/supabase'
 import Modal from 'react-native-modal';
+import { useNavigation } from '@react-navigation/native';
 import { globalStyles } from '../../global';
 import playIcon from '../../assets/icons/play.png';
 import pauseIcon from '../../assets/icons/pause.png';
@@ -541,7 +543,7 @@ export const ToggleButton = ({ bool, setBool }) => {
   );
 };
 
-export const CarrousselOrientation = ({ isLargeScreen }) => {
+export const CarrousselOrientation = ({ isLargeScreen, setStatut }) => {
   const titles = ['Inspirer', 'Raconter', 'Réagir', 'Structurer', 'Rédiger', 'Corriger', 'Publier', 'Lire'];
   const colors = ['#0c2d48', '#145da0', '#2e8bc0', '#570701', '#fc2e20', '#fd7f20', '#fdb750', '#01693c'];
 
@@ -550,13 +552,12 @@ export const CarrousselOrientation = ({ isLargeScreen }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHoveredExit, setIsHoveredExit] = useState(false);
   const [isHoveredSettings, setIsHoveredSettings] = useState(false);
-  const [mode, setMode] = useState('');
 
   // Fonction de rendu des éléments de la grille (pour les grands écrans)
   const renderGridItem = ({ item, index }) => (
     <TouchableOpacity
       key={index}
-      onPress={() => { setMode(item); setCurrentIndex(index); }}
+      onPress={() => { setStatut(item); setCurrentIndex(index); }}
       style={[
         styles.gridItem,
         { 
@@ -570,6 +571,15 @@ export const CarrousselOrientation = ({ isLargeScreen }) => {
     </TouchableOpacity>
   );
 
+
+const navigation = useNavigation();
+
+const navigateToScreen = (screenName, params) => {
+  navigation.navigate(screenName, params);
+};
+
+
+
   return (
     <View style={[styles.carouselWrapper, style={ flexDirection: 'row', justifyContent: 'space-between' }]}>
       {isLargeScreen ? (
@@ -577,7 +587,7 @@ export const CarrousselOrientation = ({ isLargeScreen }) => {
         //<View style={styles.gridContainer}>
         <>
           <TouchableOpacity
- 
+          onPress={() => navigateToScreen('Projets')}
           style={[globalStyles.navButton, isHoveredSettings && globalStyles.navButton_over]}
           onMouseEnter={() => setIsHoveredSettings(true)}
           onMouseLeave={() => setIsHoveredSettings(false)}
@@ -588,7 +598,7 @@ export const CarrousselOrientation = ({ isLargeScreen }) => {
           {titles.map((title, index) => renderGridItem({ item: title, index }))}
           
           <TouchableOpacity
-          
+          onPress={() => supabase.auth.signOut()}
           style={[globalStyles.navButton, isHoveredExit && globalStyles.navButton_over]}
           onMouseEnter={() => setIsHoveredExit(true)}
           onMouseLeave={() => setIsHoveredExit(false)}
@@ -618,10 +628,6 @@ export const CarrousselOrientation = ({ isLargeScreen }) => {
     </View>
   );
 };
-
-
-
-
 
 
 const styles = StyleSheet.create({

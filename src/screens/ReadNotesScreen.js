@@ -52,7 +52,9 @@ import {
   }  from '../components/save_note';
 import {AnswerCard,
   CarrousselThemes,
+  CarrousselOrientation,
 } from '../components/UI_components';
+
 
 
 
@@ -556,7 +558,6 @@ function ReadNotesScreen({ route }) {
     style={styles.picker}
     onValueChange={(itemValue, itemIndex) => {
       const selectedSubject = subjects.find(subj => subj.content_subject.id === itemValue).content_subject;
-      console.log("New selectedSubject : ", selectedSubject)
       saveActiveSubjectId(selectedSubject.id)
         .then(() => {
           remember_active_subject(selectedSubject.id, session.user.id);
@@ -579,31 +580,30 @@ function ReadNotesScreen({ route }) {
  
 
 
-      <View style={[
-  globalStyles.navigationContainer,
-  { position: 'fixed' },
-  isLargeScreen ? { top: '0%', alignSelf: 'flex-end' } : { bottom: '0%', alignSelf: 'center' }
-]}>
-
-          <TouchableOpacity
+<View style={[globalStyles.navigationContainer, { position: 'fixed', bottom: '0%', alignSelf: 'center' }]}>
+      
+      {/* 
+      <TouchableOpacity
           onPress={() => navigateToScreen('Orientation')}
-          style={[globalStyles.navButton, isHoveredButton === 'orientation' && globalStyles.navButton_over]}
-          onMouseEnter={() => setIsHoveredButton('orientation')}
-          onMouseLeave={() => setIsHoveredButton('')}
+          style={[globalStyles.navButton, miscState.isHoveredOrientation && globalStyles.navButton_over]}
+          onMouseEnter={() => setMiscState(prevState => ({ ...prevState, isHoveredOrientation: true }))}
+          onMouseLeave={() => setMiscState(prevState => ({ ...prevState, isHoveredOrientation: false }))}
         >
-          <Image source={orientationIcon} style={{ width: 120, height: 120, opacity: 0.5 }} />
+          <Image source={orientationIcon  } style={{ width: 120, height: 120, opacity: 0.5 }} />
         </TouchableOpacity>
-
-
 
         <TouchableOpacity
           onPress={() => navigateToScreen('Projets')}
-          style={[globalStyles.navButton, isHovered && globalStyles.navButton_over]}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
+          style={[globalStyles.navButton, miscState.isHovered && globalStyles.navButton_over]}
+          onMouseEnter={() => setMiscState(prevState => ({ ...prevState, isHovered: true }))}
+          onMouseLeave={() => setMiscState(prevState => ({ ...prevState, isHovered: false }))}
         >
-          <Image source={settings} style={{ width: 120, height: 120, opacity: 0.5 }} />
+          <Image source={settingsIcon} style={{ width: 120, height: 120, opacity: 0.5 }} />
         </TouchableOpacity>
+     
+      */}
+
+<CarrousselOrientation isLargeScreen={isLargeScreen} />
       </View>
 
       <View style={isLargeScreen ? styles.largeScreenContainer : styles.smallScreenContainer}>

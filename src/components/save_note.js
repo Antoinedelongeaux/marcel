@@ -46,7 +46,7 @@ import {
   import * as DocumentPicker from 'expo-document-picker';
   import Upload from '../../assets/icons/upload.png';
   import closeIcon from '../../assets/icons/close.png'; 
-  import { transcribeAudio_slow } from '../components/call_to_whisper';
+  import { transcribeAudio_HQ, transcribeAudio_slow } from '../components/call_to_whisper';
   import ModalComponent from '../components/ModalComponent';
 
 
@@ -64,7 +64,7 @@ import {
 
       const handleAnswerSubmit = async ( answer, ID_USER, Id_question, Id_connection,question_reponse,refreshAnswers,id_answer_source) => {
         
-        let ID_QUESTION = Id_connection;
+        let ID_QUESTION = Id_question;
         let ID_CONNECTION = Id_connection;
   
       if(id_answer_source) {
@@ -128,7 +128,7 @@ import {
   
       const handleAnswerSubmit = async (answer, ID_USER, Id_question, Id_connection, question_reponse, name, refreshAnswers,id_answer_source) => {
           const ID_answer= customUUIDv4()
-          let ID_QUESTION = Id_connection;
+          let ID_QUESTION = Id_question;
           let ID_CONNECTION = Id_connection;
     
         if(id_answer_source) {
@@ -226,9 +226,9 @@ import {
   
     const handleAnswerSubmit = async (answer, ID_USER, Id_question, Id_connection, question_reponse, name, refreshAnswers,id_answer_source) => {
         const ID_answer= customUUIDv4()
-        let ID_QUESTION = Id_connection;
+        let ID_QUESTION = Id_question;
         let ID_CONNECTION = Id_connection;
-  
+
       if(id_answer_source) {
       
         const temp = await getAnswer(id_answer_source);
@@ -236,8 +236,9 @@ import {
         ID_CONNECTION = temp.id_connection;
 
       } 
+        console.log('answer, ID_USER, ID_QUESTION, ID_CONNECTION, question_reponse, name,ID_answer,id_answer_source :',answer, ID_USER, ID_QUESTION, ID_CONNECTION, question_reponse, name,ID_answer,id_answer_source )
         await submitMemories_Answer_oral(answer, ID_USER, ID_QUESTION, ID_CONNECTION, question_reponse, name,ID_answer,id_answer_source);
-        transcribeAudio_slow(name, ID_answer);
+        transcribeAudio_HQ(name, ID_answer);
         await refreshAnswers();
     };
 
@@ -487,7 +488,7 @@ import {
     const [selectedFile, setSelectedFile] = useState(null);
   
     const handleAnswerSubmit = async (answer, ID_USER, Id_question, Id_connection, question_reponse, name, refreshAnswersid_answer_source) => {
-      let ID_QUESTION = Id_connection;
+        let ID_QUESTION = Id_question;
         let ID_CONNECTION = Id_connection;
   
       if(id_answer_source) {

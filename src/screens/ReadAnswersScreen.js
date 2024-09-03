@@ -14,6 +14,7 @@ import {
   StyleSheet,
   ScrollView,
   Dimensions,
+  Picker,
   Pressable,
   TouchableWithoutFeedback,
 } from 'react-native';
@@ -35,6 +36,10 @@ import {
   createTheme,
   updateQuestion,
   getMemories_Questions_Published,
+  remember_active_subject,
+  saveActiveSubjectId,
+  getSubjects,
+
 } from '../components/data_handling';
 import {
   ToggleButton
@@ -93,7 +98,7 @@ const useFetchActiveSubjectId = (setSubjectActive, setSubject, setMiscState, nav
   );
 };
 
-const useFetchData = (userStatus, id_user, subjectActive, setQuestions, tags, personal, setChapters, setMiscState) => {
+const useFetchData = (userStatus, id_user, subjectActive, setQuestions, tags, personal, setChapters, setMiscState,statut) => {
   // Utilisez useRef pour stocker les valeurs précédentes
   const previousValues = useRef({ userStatus, id_user, subjectActive, tags, personal });
 
@@ -109,7 +114,7 @@ const useFetchData = (userStatus, id_user, subjectActive, setQuestions, tags, pe
 
       // Exécute le code de récupération des données
       if (subjectActive && userStatus) {
-        if (userStatus.chapters === "Lecteur" &&userStatus.notes != "Publicateur") { 
+        if (statut==='Lire') { 
           getMemories_Questions_Published(subjectActive, setQuestions, tags, personal);
         } else {
           getMemories_Questions(subjectActive, setQuestions, tags, personal);
@@ -191,14 +196,17 @@ function ReadAnswersScreen({ route }) {
   const [reference, setReference] = useState('');
   const [filterSelectedQuestion, setFilterSelectedQuestion] = useState('');
   const [editVsView,setEditVsView] = useState('edit');
- 
+  const [statut,setStatut] = useState('Inspirer');
+  const [changeSubject, setChangeSubject] = useState(false);
+  const [subjects, setSubjects] = useState([]);
+
 
   const editor = useRef();
 
   useFetchActiveSubjectId(setSubjectActive, setSubject, setMiscState, navigation);
   
 
-  useFetchData(miscState.userStatus,session.user.id, subjectActive, setQuestions, tags, personal, setChapters, setMiscState);
+  useFetchData(miscState.userStatus,session.user.id, subjectActive, setQuestions, tags, personal, setChapters, setMiscState,statut);
 
   
 
@@ -233,17 +241,32 @@ function ReadAnswersScreen({ route }) {
     return unsubscribe;
   }, [navigation, subjectActive]);
 
+
+  useEffect (async () => {
+    await getSubjects(session.user.id).then(setSubjects);
+
+
+  },[])
+
+
+
+
+
   useEffect(() => {
-    if (miscState.userStatus && miscState.userStatus.chapters === "Pas d'accès") {
+    if (statut && statut==='Réagir') {
       setMiscState(prevState => ({ ...prevState, rightPanelWidth: Dimensions.get('window').width - 550 }));
     } else {
       setMiscState(prevState => ({ ...prevState, rightPanelWidth: Dimensions.get('window').width - prevState.middlePanelWidth - 550 }));
-      if (miscState.userStatus && (miscState.userStatus.chapters === "Auditeur"|| miscState.userStatus.chapters === "Lecteur")) {
-        setEditVsView('view')
-      }
+     
+    }
+    if (statut&& statut != "Rédiger" && statut != "Corriger") {
+      setEditVsView('view')
+    }
+    if (statut&& (statut === "Rédiger" || statut === "Corriger")) {
+      setEditVsView('edit')
     }
     
-  }, [miscState.userStatus]);
+  }, [statut]);
 
   useEffect(() => {
     if (miscState.userStatus && miscState.userStatus === "non trouvé") {
@@ -262,6 +285,7 @@ function ReadAnswersScreen({ route }) {
    }
   }, [miscState.contentEdit,miscState.contentRead]);
 */
+
   
   useEffect(() => {
     if (miscState.question && miscState.question.id) {
@@ -334,7 +358,7 @@ function ReadAnswersScreen({ route }) {
         rightPanelWidth: Dimensions.get('window').width - prevState.middlePanelWidth - 550 - 10
       }));
     }
-  }, [miscState.middlePanelWidth, miscState.isLeftPanelVisible, miscState.userStatus]);
+  }, [miscState.middlePanelWidth, miscState.isLeftPanelVisible, statut]);
 
   const toggleLeftPanel = () => {
     setMiscState(prevState => ({ ...prevState, isLeftPanelVisible: !prevState.isLeftPanelVisible }));
@@ -409,7 +433,7 @@ function ReadAnswersScreen({ route }) {
 
   const refreshPage = async () => {
     if (subjectActive) {
-      if(miscState.userStatus.chapters ==='Lecteur') { 
+      if(statut==='Lire') { 
         await getMemories_Questions_published(subjectActive, setQuestions, tags, personal);
       }else {
      
@@ -504,7 +528,7 @@ function ReadAnswersScreen({ route }) {
       };
       loadData();
     }
-  }, [activeQuestionAnswers, miscState.question, miscState.userStatus]);
+  }, [activeQuestionAnswers, miscState.question, statut]);
 
 
 
@@ -550,7 +574,30 @@ function ReadAnswersScreen({ route }) {
 
   return (
     <View style={globalStyles.container}>
-      
+        <View>
+  <Picker
+    selectedValue={subject.id}
+    style={styles.picker}
+    onValueChange={(itemValue, itemIndex) => {
+      const selectedSubject = subjects.find(subj => subj.content_subject.id === itemValue).content_subject;
+      saveActiveSubjectId(selectedSubject.id)
+        .then(() => {
+          remember_active_subject(selectedSubject.id, session.user.id);
+          setSubject(selectedSubject)
+          setSubjectActive(selectedSubject)
+          refreshPage()
+        })
+        .catch((error) => {
+          console.error('Error saving active subject ID:', error);
+        });
+    }}
+  >
+    {subjects.map((subj, index) => (
+      <Picker.Item key={index} label={subj.content_subject.title} value={subj.content_subject.id} />
+    ))}
+  </Picker>
+  
+</View>
       <View style={[globalStyles.navigationContainer, { position: 'fixed', bottom: '0%', alignSelf: 'center' }]}>
       
       {/* 
@@ -574,19 +621,19 @@ function ReadAnswersScreen({ route }) {
      
       */}
 
-<CarrousselOrientation isLargeScreen={miscState.isLargeScreen} />
+<CarrousselOrientation isLargeScreen={miscState.isLargeScreen} setStatut={setStatut} />
       </View>
 
       <View style={miscState.isLargeScreen ? styles.largeScreenContainer : styles.smallScreenContainer}>
          
         
-        {miscState.isLeftPanelVisible && miscState.userStatus.notes!='Contributeur' && (
-          <View style={(miscState.isLargeScreen && miscState.userStatus.notes!='Structurateur'&& miscState.userStatus.notes!='Publicateur') ? styles.leftPanel : styles.fullWidth}>
+        {miscState.isLeftPanelVisible && statut!='Réagir' && (
+          <View style={(miscState.isLargeScreen && statut!='Structurer'&& statut!='Publier') ? styles.leftPanel : styles.fullWidth}>
 
             <View style={globalStyles.container_wide}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Text style={globalStyles.title}>{subject.title}</Text>
-                {miscState.userStatus.chapters !== "Lecteur" && miscState.userStatus.notes !== 'Structurateur' && miscState.userStatus.notes!='Publicateur' && (
+                {statut!='Lire' && statut!='Structurer' && statut!='Publier' && (
                 <TouchableOpacity
                   onPress={() => {
                     setMiscState(prevState => ({
@@ -601,14 +648,14 @@ function ReadAnswersScreen({ route }) {
                   )}
               </View>
               <View style={{ height: 10 }} />
-              {miscState.userStatus.notes === 'Structurateur' && (<>
+              {statut==='Structurer' && (<>
   <p>
     Voici la structure du projet. Les parties apparaissent en <strong style={{ color: 'black' }}>noir</strong> et les chapitres en <strong style={{ color: 'blue' }}>bleu</strong> à l'intérieur de chacune des parties.
   </p>
   </>
 )}
 
-{miscState.userStatus.notes === 'Publicateur' && (<>
+{statut==='Publier' && (<>
   <p>
     Les chapitres doivent être publiés individuellement. Vous pouvez choisir une publication <strong style={{ color: '#008080' }}>privée</strong> ou une publication <strong style={{ color: '#008080' }}>publique</strong>. </p>
     <p>Dans le premier cas, seuls les presonnes ayant accès au projet auront accès à la publication. </p>
@@ -628,7 +675,7 @@ function ReadAnswersScreen({ route }) {
                       <TouchableOpacity onPress={() => toggleChapter(chapter.id)}>
                         <Text style={globalStyles.title_chapter}>{chapter.title}</Text>
                       </TouchableOpacity>
-                      {(miscState.iconsVisible || miscState.userStatus.notes === 'Structurateur') && (
+                      {(miscState.iconsVisible || statut==='Structurer') && (
                         <View style={{ flexDirection: 'row' }}>
                           <TouchableOpacity
                             onPress={() => {
@@ -665,7 +712,7 @@ function ReadAnswersScreen({ route }) {
                             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                               <Text style={styles.questionText}>{question.question}</Text>
                     
-                              {(miscState.iconsVisible || miscState.userStatus.notes === 'Structurateur') ? (
+                              {(miscState.iconsVisible || statut==='Structurer') ? (
                                 <>
                                   {/*
                                   <Text style={styles.answersCount}>{question.answers_count} réponses</Text>
@@ -692,7 +739,7 @@ function ReadAnswersScreen({ route }) {
                                 </>
                               ) : (<Text> </Text>)}
                     
-                              {miscState.userStatus.notes === 'Publicateur' && (
+                              {statut==='Publier' && (
                                 <View style={{ flexDirection: 'row' }}>
                                   <Text> Publication privée : </Text>
                                   <ToggleButton bool={question.published_private} setBool={() => handlePublication_private(question.id, !question.published_private)} />
@@ -717,7 +764,7 @@ function ReadAnswersScreen({ route }) {
 
               <View style={{ flexDirection: 'column', justifyContent: 'space-between', padding: 10 }}>
                 
-              {miscState.userStatus.chapters !== "Lecteur"  && ( 
+              {statut!='Lire' && statut==='Publier' && ( 
                <>
                <TouchableOpacity style={globalStyles.globalButton_wide} onPress={() => setModals(prevState => ({ ...prevState, isModalVisible: true }))}>
                   <Text style={globalStyles.globalButtonText}>Nouvelle partie</Text>
@@ -735,13 +782,13 @@ function ReadAnswersScreen({ route }) {
         )}
           
 
-        { miscState.isLargeScreen && miscState.userStatus &&(miscState.question && miscState.question.question) && (miscState.userStatus.notes!="Structurateur") && (miscState.userStatus.notes!='Publicateur') && (miscState.userStatus.notes!='Contributeur') && (miscState.userStatus.chapters === "Editeur" || miscState.userStatus.chapters === "Lecteur" || miscState.userStatus.chapters === "Auditeur") && (
+        { miscState.isLargeScreen && statut &&(miscState.question && miscState.question.question) && (statut!='Structurer') && (statut!='Publier') && (statut!='Réagir') && (statut==='Rédiger' || statut==='Lire' || statut === 'Corriger') && (
           <View style={[styles.resizer, { right: miscState.rightPanelWidth - 30 }]} onMouseDown={handleMouseDown}>
             <Image source={doubleArrowIcon} style={{ width: 120, height: 120, opacity: 0.5 }} />
           </View>
         )}
  
-        {(miscState.userStatus.notes !='Contributeur')&&(
+        {(statut != 'Réagir')&&(
         <TouchableOpacity
           onPress={toggleLeftPanel}
           style={[
@@ -755,7 +802,7 @@ function ReadAnswersScreen({ route }) {
             }
           ]}
         > 
-          {miscState.userStatus.notes!='Structurateur'&& (miscState.userStatus.notes!='Publicateur')  && (<>
+          {statut!='Structurer'&& (statut!='Publier')  && (<>
           {miscState.isLeftPanelVisible ? (
             <Image
               source={leftArrowIcon}
@@ -790,7 +837,7 @@ function ReadAnswersScreen({ route }) {
         </TouchableOpacity>
         )}
 
-        {(miscState.isLargeScreen || !miscState.isLeftPanelVisible)&&(miscState.userStatus.notes !='Contributeur') && (
+        {(miscState.isLargeScreen || !miscState.isLeftPanelVisible)&&(statut !='Réagir') && (
           <View style={miscState.isLargeScreen ? styles.middlePanelContainer : styles.fullWidth}>
             
          
@@ -805,13 +852,13 @@ function ReadAnswersScreen({ route }) {
                     <Image source={saveIcon} style={{ width: 20, height: 20, opacity: 0.5 }} />
                   </TouchableOpacity>
                 )}
-                {!miscState.isContentModified && miscState.userStatus.chapters && (miscState.userStatus.chapters === 'Editeur' || miscState.userStatus.chapters === 'Auditeur') && editVsView ==='edit' && (
+                {!miscState.isContentModified && statut && (statut==='Rédiger' || statut === 'Corriger') && editVsView ==='edit' && (
                   <TouchableOpacity style={{ marginLeft: 10 }} onPress={() => (setEditVsView('view'))}>
                     <Image source={viewIcon} style={{ width: 20, height: 20, opacity: 0.5 }} />
                   </TouchableOpacity>
                 )}
 
-                { miscState.userStatus.chapters && (miscState.userStatus.chapters === 'Editeur' || miscState.userStatus.chapters === 'Auditeur') && editVsView ==='view' && (
+                { statut && (statut==='Rédiger' || statut==='Corriger') && editVsView ==='view' && (
                   <TouchableOpacity style={{ marginLeft: 10 }} onPress={() => (setEditVsView('edit'))}>
                     <Image source={editIcon} style={{ width: 20, height: 20, opacity: 0.5 }} />
                   </TouchableOpacity>
@@ -823,7 +870,7 @@ function ReadAnswersScreen({ route }) {
               
               <View style={styles.container}>
                 
-                {miscState.userStatus && editVsView==='edit' ? (
+                {statut && editVsView==='edit' ? (
                   <>
                     {Platform.OS === 'web' ? (
                       <>
@@ -886,8 +933,8 @@ function ReadAnswersScreen({ route }) {
           </View>
         )}
 
-{(miscState.isLargeScreen || !miscState.isLeftPanelVisible || miscState.userStatus.notes ==='Contributeur') && ((miscState.userStatus.notes ==='Contributeur') || (miscState.question && miscState.question.question) )&& (
-    <View style={[styles.rightPanel, { width: (miscState.userStatus.notes !='Contributeur')? miscState.rightPanelWidth : '100%' }]}>
+{(miscState.isLargeScreen || !miscState.isLeftPanelVisible || statut==='Réagir') && ((statut==='Réagir') || (miscState.question && miscState.question.question) )&& (
+    <View style={[styles.rightPanel, { width: (statut!='Réagir')? miscState.rightPanelWidth : '100%' }]}>
       <ScrollView>
         <NoteScreen 
           route={{ 
