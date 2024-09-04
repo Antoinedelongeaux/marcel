@@ -37,8 +37,8 @@ import {
   updateQuestion,
   getMemories_Questions_Published,
   remember_active_subject,
-  saveActiveSubjectId,
   getSubjects,
+  validate_project_contributors,
 
 } from '../components/data_handling';
 import {
@@ -46,7 +46,7 @@ import {
 } from '../components/UI_components';
 
 import { useFocusEffect } from '@react-navigation/native';
-import { getActiveSubjectId } from '../components/local_storage';
+import { getActiveSubjectId,saveActiveSubjectId } from '../components/local_storage';
 import { globalStyles } from '../../global';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
@@ -196,7 +196,7 @@ function ReadAnswersScreen({ route }) {
   const [reference, setReference] = useState('');
   const [filterSelectedQuestion, setFilterSelectedQuestion] = useState('');
   const [editVsView,setEditVsView] = useState('edit');
-  const [statut,setStatut] = useState('Inspirer');
+  const [statut,setStatut] = useState(route.params?.initialStatut || 'Lire');
   const [changeSubject, setChangeSubject] = useState(false);
   const [subjects, setSubjects] = useState([]);
 
@@ -222,10 +222,12 @@ function ReadAnswersScreen({ route }) {
       if (!status.access) {
         navigateToScreen('Projets');
       }
+      /*
       if (status.chapters === "Pas d'accès" && navigation.isFocused()) {
         navigateToScreen('Incipit');
         setMiscState(prevState => ({ ...prevState, middlePanelWidth: 0 }));
       }
+        */
     };
     if (subjectActive) {
       fetchUserStatus();
@@ -242,9 +244,12 @@ function ReadAnswersScreen({ route }) {
   }, [navigation, subjectActive]);
 
 
-  useEffect (async () => {
-    await getSubjects(session.user.id).then(setSubjects);
+  useEffect (() => {
 
+    async function fetchSubjects() {
+    await getSubjects(session.user.id).then(setSubjects);
+    }
+    fetchSubjects();
 
   },[])
 
@@ -265,6 +270,31 @@ function ReadAnswersScreen({ route }) {
     if (statut&& (statut === "Rédiger" || statut === "Corriger")) {
       setEditVsView('edit')
     }
+
+    
+
+    if(statut && statut ==='Inspirer') {
+      async function getToInspirer() {
+      await validate_project_contributors(subjectActive,session.user.id,true,"Contributeur","Pas d'accès")   
+      navigateToScreen('Incipit',{'Etape': 1});
+      }
+
+      getToInspirer()
+
+    }
+
+    if(statut && statut ==='Raconter') {
+      async function getToRaconter() {
+      await validate_project_contributors(subjectActive,session.user.id,true,"Contributeur","Pas d'accès")   
+      navigateToScreen('Incipit',{'Etape': 2});
+    }
+
+    getToRaconter()
+    
+    
+    
+    }
+
     
   }, [statut]);
 
@@ -584,8 +614,7 @@ function ReadAnswersScreen({ route }) {
         .then(() => {
           remember_active_subject(selectedSubject.id, session.user.id);
           setSubject(selectedSubject)
-          setSubjectActive(selectedSubject)
-          refreshPage()
+          setSubjectActive(selectedSubject.id)
         })
         .catch((error) => {
           console.error('Error saving active subject ID:', error);

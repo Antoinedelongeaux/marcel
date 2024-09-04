@@ -172,34 +172,34 @@ const OrientationScreen = ({ route }) => {
 
   const handleReagir = async () => {
     await validate_project_contributors(subject.id,session.user.id,true,"Contributeur","Editeur")   
-    navigateToScreen('Marcel');
+    navigateToScreen('Marcel',{'session':session , 'initialStatut':'Réagir'});
   };
 
   const handleStructurer = async () => {
     await validate_project_contributors(subject.id,session.user.id,true,"Structurateur","Editeur")   
-    navigateToScreen('Marcel');
+    navigateToScreen('Marcel',{'session':session , 'initialStatut':'Structurer'});
   };
 
 
   const handleRediger = async () => {
     await validate_project_contributors(subject.id,session.user.id,true,"Exploitant","Editeur")   
-    navigateToScreen('Marcel');
+    navigateToScreen('Marcel',{'session':session , 'initialStatut':'Contribuer'});
   };
 
   const handleCorriger = async () => {
     await validate_project_contributors(subject.id,session.user.id,true,"Exploitant","Auditeur")   
-    navigateToScreen('Marcel');
+    navigateToScreen('Marcel',{'session':session , 'initialStatut':'Corriger'});
   };
 
 
   const handlePublier = async () => {
     await validate_project_contributors(subject.id,session.user.id,true,"Publicateur","Lecteur")   
-    navigateToScreen('Marcel');
+    navigateToScreen('Marcel',{'session':session , 'initialStatut':'Publier'});
   }; 
 
   const handleLire = async () => {
     await validate_project_contributors(subject.id,session.user.id,true,"Exploitant","Lecteur")   
-    navigateToScreen('Marcel');
+    navigateToScreen('Marcel',{'session':session , 'initialStatut':'Lire'});
   };
 
   // Associe chaque fonction à la carte correspondante

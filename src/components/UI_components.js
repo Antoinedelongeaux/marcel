@@ -552,6 +552,13 @@ export const CarrousselOrientation = ({ isLargeScreen, setStatut }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHoveredExit, setIsHoveredExit] = useState(false);
   const [isHoveredSettings, setIsHoveredSettings] = useState(false);
+  const carouselRef = useRef(null);
+
+  const navigation = useNavigation();
+
+  const navigateToScreen = (screenName, params) => {
+    navigation.navigate(screenName, params);
+  };
 
   // Fonction de rendu des éléments de la grille (pour les grands écrans)
   const renderGridItem = ({ item, index }) => (
@@ -562,8 +569,8 @@ export const CarrousselOrientation = ({ isLargeScreen, setStatut }) => {
         styles.gridItem,
         { 
           backgroundColor: colors[index % colors.length], 
-          opacity: currentIndex === index ? 1 : 0.5,  // La carte sélectionnée est non opaque
-          transform: currentIndex === index ? [{ scale: 1.2 }] : [{ scale: 0.95 }], // Agrandit la carte sélectionnée
+          opacity: currentIndex === index ? 1 : 0.5,
+          transform: currentIndex === index ? [{ scale: 1.2 }] : [{ scale: 0.95 }],
         }
       ]}
     >
@@ -571,48 +578,52 @@ export const CarrousselOrientation = ({ isLargeScreen, setStatut }) => {
     </TouchableOpacity>
   );
 
-
-const navigation = useNavigation();
-
-const navigateToScreen = (screenName, params) => {
-  navigation.navigate(screenName, params);
-};
-
-
+  // Fonction de rendu des éléments du carrousel pour petits écrans
+  const renderItem = ({ item, index }) => (
+    <TouchableOpacity 
+      key={index}
+      onPress={() => { setStatut(item); setCurrentIndex(index); }}
+      style={[
+        styles.carouselItem,
+        { 
+          backgroundColor: colors[index % colors.length] // Appliquer la bonne couleur
+        }
+      ]}
+    >
+      <Text style={styles.carouselText}>{item}</Text>
+    </TouchableOpacity>
+  );
 
   return (
-    <View style={[styles.carouselWrapper, style={ flexDirection: 'row', justifyContent: 'space-between' }]}>
+    <View style={styles.carouselWrapper}>
       {isLargeScreen ? (
-        // Affichage sous forme de grille pour les grands écrans
-        //<View style={styles.gridContainer}>
         <>
           <TouchableOpacity
-          onPress={() => navigateToScreen('Projets')}
-          style={[globalStyles.navButton, isHoveredSettings && globalStyles.navButton_over]}
-          onMouseEnter={() => setIsHoveredSettings(true)}
-          onMouseLeave={() => setIsHoveredSettings(false)}
-        >
-          <Image source={settingsIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
-        </TouchableOpacity>
+            onPress={() => navigateToScreen('Projets')}
+            style={[globalStyles.navButton, isHoveredSettings && globalStyles.navButton_over]}
+            onMouseEnter={() => setIsHoveredSettings(true)}
+            onMouseLeave={() => setIsHoveredSettings(false)}
+          >
+            <Image source={settingsIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
+          </TouchableOpacity>
          
           {titles.map((title, index) => renderGridItem({ item: title, index }))}
           
           <TouchableOpacity
-          onPress={() => supabase.auth.signOut()}
-          style={[globalStyles.navButton, isHoveredExit && globalStyles.navButton_over]}
-          onMouseEnter={() => setIsHoveredExit(true)}
-          onMouseLeave={() => setIsHoveredExit(false)}
-        >
-          <Image source={exitIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
-        </TouchableOpacity>
+            onPress={() => supabase.auth.signOut()}
+            style={[globalStyles.navButton, isHoveredExit && globalStyles.navButton_over]}
+            onMouseEnter={() => setIsHoveredExit(true)}
+            onMouseLeave={() => setIsHoveredExit(false)}
+          >
+            <Image source={exitIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
+          </TouchableOpacity>
         </>
-        //</View>
       ) : (
         // Carrousel pour les petits écrans
         <View style={styles.carouselContainer}>
           <Carousel
             ref={carouselRef}
-            data={titles}
+            data={titles} // Passez simplement les titres comme un tableau
             renderItem={renderItem}
             sliderWidth={SLIDER_WIDTH}
             itemWidth={ITEM_WIDTH}
@@ -628,7 +639,6 @@ const navigateToScreen = (screenName, params) => {
     </View>
   );
 };
-
 
 const styles = StyleSheet.create({
   answerCard: {
@@ -724,6 +734,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight:'bold',
     color: '#fff',
+    color: '#fff', // Texte en blanc gras
   },
   arrowButtonLeft: {
     padding: 20,  // Augmente la surface cliquable

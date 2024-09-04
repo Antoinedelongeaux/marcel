@@ -107,7 +107,7 @@ const displayProgressiveText = (message, setMessage) => {
 function ReadNotesScreen({ route }) {
   const navigation = useNavigation();
   const session = route.params?.session;
-  const etape = route.params?.Etape;
+  const [etape,setEtape] = useState(route.params?.Etape||'');
   const [questions, setQuestions] = useState([]);
   //const [subjectActive, setSubjectActive] = useState(null);
   const [subjects, setSubjects] = useState();
@@ -201,6 +201,7 @@ function ReadNotesScreen({ route }) {
   const [answer, setAnswer] = useState('');
   const [showDetails, setShowDetails] = useState(false);
   const [changeSubject, setChangeSubject] = useState(false);
+  const [statut,setStatut] = useState(route.params?.initialStatut || '');
 
 
   const [fullscreenImage, setFullscreenImage] = useState(null);
@@ -249,6 +250,29 @@ function ReadNotesScreen({ route }) {
   
     refreshData();
   }, [changeSubject]);
+
+  useEffect(() => {
+
+    if(statut==='Inspirer'){
+    setEtape(1)
+
+    };
+    if(statut==='Raconter'){
+      setEtape(2)
+      };
+
+    if(statut && statut !='Inspirer'&& statut !='Raconter'&& statut !='') {
+        async function getToNext() { 
+          navigateToScreen('Marcel',{'session':session , 'initialStatut':statut});
+        }
+
+        getToNext()
+  
+      }  
+  
+  }, [statut]);
+
+
   
   useEffect(() => {
 
@@ -603,7 +627,7 @@ function ReadNotesScreen({ route }) {
      
       */}
 
-<CarrousselOrientation isLargeScreen={isLargeScreen} />
+<CarrousselOrientation isLargeScreen={isLargeScreen} setStatut={setStatut} />
       </View>
 
       <View style={isLargeScreen ? styles.largeScreenContainer : styles.smallScreenContainer}>
