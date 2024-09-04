@@ -579,20 +579,56 @@ export const CarrousselOrientation = ({ isLargeScreen, setStatut }) => {
   );
 
   // Fonction de rendu des éléments du carrousel pour petits écrans
-  const renderItem = ({ item, index }) => (
-    <TouchableOpacity 
-      key={index}
-      onPress={() => { setStatut(item); setCurrentIndex(index); }}
-      style={[
-        styles.carouselItem,
-        { 
-          backgroundColor: colors[index % colors.length] // Appliquer la bonne couleur
-        }
-      ]}
-    >
-      <Text style={styles.carouselText}>{item}</Text>
-    </TouchableOpacity>
-  );
+  const renderItem = ({ item, index }) => {
+    if (item.type === 'settings') {
+      // Rendu du bouton Settings
+      return (
+        <TouchableOpacity
+          key={index}
+          onPress={() => navigateToScreen('Projets')}
+          style={[globalStyles.navButton, isHoveredSettings && globalStyles.navButton_over]}
+          onMouseEnter={() => setIsHoveredSettings(true)}
+          onMouseLeave={() => setIsHoveredSettings(false)}
+        >
+          <Image source={settingsIcon} style={{ width: isLargeScreen? 60:140, height: isLargeScreen? 60:140, opacity: 0.5 }} />
+        </TouchableOpacity>
+      );
+    } else if (item.type === 'logout') {
+      // Rendu du bouton Logout
+      return (
+        <TouchableOpacity
+          key={index}
+          onPress={() => supabase.auth.signOut()}
+          style={[globalStyles.navButton, isHoveredExit && globalStyles.navButton_over]}
+          onMouseEnter={() => setIsHoveredExit(true)}
+          onMouseLeave={() => setIsHoveredExit(false)}
+        >
+          <Image source={exitIcon} style={{ width: isLargeScreen? 60:140, height: isLargeScreen? 60:140, opacity: 0.5 }} />
+        </TouchableOpacity>
+      );
+    } else {
+      // Rendu des titres
+      return (
+        <TouchableOpacity
+          key={index}
+          onPress={() => { setStatut(item.title); setCurrentIndex(index); }}
+          style={[
+            styles.carouselItem,
+            { backgroundColor: colors[index % colors.length] } // Appliquer la bonne couleur
+          ]}
+        >
+          <Text style={styles.carouselText}>{item.title}</Text>
+        </TouchableOpacity>
+      );
+    }
+  };
+
+  // Préparez les données pour le carrousel en smallScreen
+  const carouselData = [
+    { type: 'settings' }, // Premier élément : bouton Settings
+    ...titles.map((title, index) => ({ type: 'title', title, color: colors[index % colors.length] })), // Les titres
+    { type: 'logout' }, // Dernier élément : bouton Logout
+  ];
 
   return (
     <View style={styles.carouselWrapper}>
@@ -606,16 +642,16 @@ export const CarrousselOrientation = ({ isLargeScreen, setStatut }) => {
           >
             <Image source={settingsIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
           </TouchableOpacity>
-         
+
           {titles.map((title, index) => renderGridItem({ item: title, index }))}
-          
+
           <TouchableOpacity
             onPress={() => supabase.auth.signOut()}
             style={[globalStyles.navButton, isHoveredExit && globalStyles.navButton_over]}
             onMouseEnter={() => setIsHoveredExit(true)}
             onMouseLeave={() => setIsHoveredExit(false)}
           >
-            <Image source={exitIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
+            <Image source={exitIcon} style={{ width: isLargeScreen? 60:120, height: isLargeScreen? 60:120, opacity: 0.5 }} />
           </TouchableOpacity>
         </>
       ) : (
@@ -623,13 +659,13 @@ export const CarrousselOrientation = ({ isLargeScreen, setStatut }) => {
         <View style={styles.carouselContainer}>
           <Carousel
             ref={carouselRef}
-            data={titles} // Passez simplement les titres comme un tableau
+            data={carouselData} // Utilisez le tableau formaté pour le carrousel
             renderItem={renderItem}
             sliderWidth={SLIDER_WIDTH}
             itemWidth={ITEM_WIDTH}
             inactiveSlideScale={0.9}
-            inactiveSlideOpacity={0.7}
-            loop={true}
+            inactiveSlideOpacity={0.6}
+            loop={false} // Désactiver le loop pour n'afficher les éléments qu'une seule fois
             decelerationRate={0.9}
             useScrollView={true}
             onSnapToItem={(index) => setCurrentIndex(index)}

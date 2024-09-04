@@ -817,7 +817,7 @@ function ReadAnswersScreen({ route }) {
           </View>
         )}
  
-        {(statut != 'Réagir')&&(
+        {(statut != 'Réagir'&&statut !='Structurer'&&statut !='Publier')&&(
         <TouchableOpacity
           onPress={toggleLeftPanel}
           style={[
@@ -866,7 +866,7 @@ function ReadAnswersScreen({ route }) {
         </TouchableOpacity>
         )}
 
-        {(miscState.isLargeScreen || !miscState.isLeftPanelVisible)&&(statut !='Réagir') && (
+        {(miscState.isLargeScreen || !miscState.isLeftPanelVisible)&&(statut !='Réagir'&&statut !='Structurer'&&statut !='Publier') && (
           <View style={miscState.isLargeScreen ? styles.middlePanelContainer : styles.fullWidth}>
             
          
