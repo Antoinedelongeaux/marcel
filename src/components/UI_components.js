@@ -543,17 +543,19 @@ export const ToggleButton = ({ bool, setBool }) => {
   );
 };
 
-export const CarrousselOrientation = ({ isLargeScreen, setStatut }) => {
+export const CarrousselOrientation = ({ isLargeScreen, setStatut, statut }) => {
   const titles = ['Inspirer', 'Raconter', 'Réagir', 'Structurer', 'Rédiger', 'Corriger', 'Publier', 'Lire'];
   const colors = ['#0c2d48', '#145da0', '#2e8bc0', '#570701', '#fc2e20', '#fd7f20', '#fdb750', '#01693c'];
 
   const SLIDER_WIDTH = Dimensions.get('window').width;
+  const SLIDER_HEIGHT = Dimensions.get('window').height*0.05;
   const ITEM_WIDTH = SLIDER_WIDTH * (isLargeScreen ? 1 : 0.7);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const ITEM_HEIGHT = SLIDER_HEIGHT * (isLargeScreen ? 1 : 1);
+  
+  const [currentIndex, setCurrentIndex] = useState(titles.indexOf(statut));
   const [isHoveredExit, setIsHoveredExit] = useState(false);
   const [isHoveredSettings, setIsHoveredSettings] = useState(false);
   const carouselRef = useRef(null);
-
   const navigation = useNavigation();
 
   const navigateToScreen = (screenName, params) => {
@@ -571,8 +573,12 @@ export const CarrousselOrientation = ({ isLargeScreen, setStatut }) => {
           backgroundColor: colors[index % colors.length], 
           opacity: currentIndex === index ? 1 : 0.5,
           transform: currentIndex === index ? [{ scale: 1.2 }] : [{ scale: 0.95 }],
+          height: ITEM_HEIGHT // Ajoutez cette ligne
         }
       ]}
+      
+    
+      
     >
       <Text style={styles.carouselText}>{item}</Text>
     </TouchableOpacity>
@@ -590,7 +596,7 @@ export const CarrousselOrientation = ({ isLargeScreen, setStatut }) => {
           onMouseEnter={() => setIsHoveredSettings(true)}
           onMouseLeave={() => setIsHoveredSettings(false)}
         >
-          <Image source={settingsIcon} style={{ width: isLargeScreen? 60:140, height: isLargeScreen? 60:140, opacity: 0.5 }} />
+          <Image source={settingsIcon} style={{ width: SLIDER_HEIGHT, height: SLIDER_HEIGHT, opacity: 0.5 }} />
         </TouchableOpacity>
       );
     } else if (item.type === 'logout') {
@@ -602,8 +608,9 @@ export const CarrousselOrientation = ({ isLargeScreen, setStatut }) => {
           style={[globalStyles.navButton, isHoveredExit && globalStyles.navButton_over]}
           onMouseEnter={() => setIsHoveredExit(true)}
           onMouseLeave={() => setIsHoveredExit(false)}
+            // Dans renderItem, ajoutez également la hauteur dans les styles de `TouchableOpacity` :
         >
-          <Image source={exitIcon} style={{ width: isLargeScreen? 60:140, height: isLargeScreen? 60:140, opacity: 0.5 }} />
+          <Image source={exitIcon} style={{ width: SLIDER_HEIGHT, height: SLIDER_HEIGHT, opacity: 0.5 }} />
         </TouchableOpacity>
       );
     } else {
@@ -614,7 +621,10 @@ export const CarrousselOrientation = ({ isLargeScreen, setStatut }) => {
           onPress={() => { setStatut(item.title); setCurrentIndex(index); }}
           style={[
             styles.carouselItem,
-            { backgroundColor: colors[index % colors.length] } // Appliquer la bonne couleur
+            { 
+              backgroundColor: colors[index % colors.length],
+              height: ITEM_HEIGHT // Ajoutez cette ligne
+            }
           ]}
         >
           <Text style={styles.carouselText}>{item.title}</Text>
@@ -640,7 +650,7 @@ export const CarrousselOrientation = ({ isLargeScreen, setStatut }) => {
             onMouseEnter={() => setIsHoveredSettings(true)}
             onMouseLeave={() => setIsHoveredSettings(false)}
           >
-            <Image source={settingsIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
+            <Image source={settingsIcon} style={{ width: SLIDER_HEIGHT, height: SLIDER_HEIGHT, opacity: 0.5 }} />
           </TouchableOpacity>
 
           {titles.map((title, index) => renderGridItem({ item: title, index }))}
@@ -651,25 +661,28 @@ export const CarrousselOrientation = ({ isLargeScreen, setStatut }) => {
             onMouseEnter={() => setIsHoveredExit(true)}
             onMouseLeave={() => setIsHoveredExit(false)}
           >
-            <Image source={exitIcon} style={{ width: isLargeScreen? 60:120, height: isLargeScreen? 60:120, opacity: 0.5 }} />
+            <Image source={exitIcon} style={{ width: SLIDER_HEIGHT, height: SLIDER_HEIGHT, opacity: 0.5 }} />
           </TouchableOpacity>
         </>
       ) : (
         // Carrousel pour les petits écrans
         <View style={styles.carouselContainer}>
           <Carousel
-            ref={carouselRef}
-            data={carouselData} // Utilisez le tableau formaté pour le carrousel
-            renderItem={renderItem}
-            sliderWidth={SLIDER_WIDTH}
-            itemWidth={ITEM_WIDTH}
-            inactiveSlideScale={0.9}
-            inactiveSlideOpacity={0.6}
-            loop={false} // Désactiver le loop pour n'afficher les éléments qu'une seule fois
-            decelerationRate={0.9}
-            useScrollView={true}
-            onSnapToItem={(index) => setCurrentIndex(index)}
-          />
+  ref={carouselRef}
+  data={carouselData}
+  renderItem={renderItem}
+  sliderWidth={SLIDER_WIDTH}
+  sliderHeight={SLIDER_HEIGHT} // Ajoutez cette ligne pour définir la hauteur du carrousel
+  itemWidth={ITEM_WIDTH}
+  itemHeight={ITEM_HEIGHT} // Cette ligne est déjà correcte
+  inactiveSlideScale={0.9}
+  inactiveSlideOpacity={0.6}
+  loop={false}
+  decelerationRate={0.9}
+  useScrollView={true}
+  onSnapToItem={(index) => setCurrentIndex(index)}
+/>
+
         </View>
       )}
     </View>

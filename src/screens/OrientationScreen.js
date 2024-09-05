@@ -148,7 +148,7 @@ const OrientationScreen = ({ route }) => {
       setMessage1Displayed(true); // Empêche le message de s'afficher plusieurs fois
     }
 
-    setTimeout(() => setShowChoices_1(true), 1000);
+    setTimeout(() => setShowChoices_1(true), 10);
   };
 
   const handleChoice_2 = async () => {
@@ -162,12 +162,12 @@ const OrientationScreen = ({ route }) => {
   // Handlers pour chaque carte
   const handleInspirer = async () => {
     await validate_project_contributors(subject.id,session.user.id,true,"Contributeur","Pas d'accès")   
-    navigateToScreen('Incipit',{'Etape': 1});
+    navigateToScreen('Incipit',{'initialStatut':'Inspirer'});
   };
 
   const handleRaconter = async () => {
     await validate_project_contributors(subject.id,session.user.id,true,"Contributeur","Pas d'accès")   
-    navigateToScreen('Incipit',{'Etape': 2});
+    navigateToScreen('Incipit',{'initialStatut':'Raconter'});
   };
 
   const handleReagir = async () => {
@@ -183,7 +183,7 @@ const OrientationScreen = ({ route }) => {
 
   const handleRediger = async () => {
     await validate_project_contributors(subject.id,session.user.id,true,"Exploitant","Editeur")   
-    navigateToScreen('Marcel',{'session':session , 'initialStatut':'Contribuer'});
+    navigateToScreen('Marcel',{'session':session , 'initialStatut':'Rédiger'});
   };
 
   const handleCorriger = async () => {

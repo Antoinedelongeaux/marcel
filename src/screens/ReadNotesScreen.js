@@ -627,7 +627,7 @@ function ReadNotesScreen({ route }) {
      
       */}
 
-<CarrousselOrientation isLargeScreen={isLargeScreen} setStatut={setStatut} />
+<CarrousselOrientation isLargeScreen={isLargeScreen} setStatut={setStatut} statut={statut} />
       </View>
 
       <View style={isLargeScreen ? styles.largeScreenContainer : styles.smallScreenContainer}>
@@ -1094,7 +1094,7 @@ function ReadNotesScreen({ route }) {
               </>)}
 
             {selectedChoice_1 === 'Voir les notes déjà produites' && showChoices_2 && (
-              <NoteScreen route={{ params: { session, question, question_reponse, mode: "full" } }} />
+              <NoteScreen route={{ params: { session, question, question_reponse, mode: "full",statut:statut } }} />
             )}
             
             {selectedChoice_1 === 'Proposer un thème'  && showChoices_2 &&  ( 

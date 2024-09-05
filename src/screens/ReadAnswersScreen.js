@@ -197,6 +197,8 @@ function ReadAnswersScreen({ route }) {
   const [filterSelectedQuestion, setFilterSelectedQuestion] = useState('');
   const [editVsView,setEditVsView] = useState('edit');
   const [statut,setStatut] = useState(route.params?.initialStatut || 'Lire');
+  console.log("route.params :",route.params)
+  console.log("route.params?.initialStatut :",route.params?.initialStatut)
   const [changeSubject, setChangeSubject] = useState(false);
   const [subjects, setSubjects] = useState([]);
 
@@ -276,7 +278,7 @@ function ReadAnswersScreen({ route }) {
     if(statut && statut ==='Inspirer') {
       async function getToInspirer() {
       await validate_project_contributors(subjectActive,session.user.id,true,"Contributeur","Pas d'accès")   
-      navigateToScreen('Incipit',{'Etape': 1});
+      navigateToScreen('Incipit',{'initialStatut': statut});
       }
 
       getToInspirer()
@@ -286,7 +288,7 @@ function ReadAnswersScreen({ route }) {
     if(statut && statut ==='Raconter') {
       async function getToRaconter() {
       await validate_project_contributors(subjectActive,session.user.id,true,"Contributeur","Pas d'accès")   
-      navigateToScreen('Incipit',{'Etape': 2});
+      navigateToScreen('Incipit',{'initialStatut': statut});
     }
 
     getToRaconter()
@@ -650,7 +652,7 @@ function ReadAnswersScreen({ route }) {
      
       */}
 
-<CarrousselOrientation isLargeScreen={miscState.isLargeScreen} setStatut={setStatut} />
+<CarrousselOrientation isLargeScreen={miscState.isLargeScreen} setStatut={setStatut} statut={statut}/>
       </View>
 
       <View style={miscState.isLargeScreen ? styles.largeScreenContainer : styles.smallScreenContainer}>
@@ -978,6 +980,7 @@ function ReadAnswersScreen({ route }) {
 //              mode: (miscState.userStatus?.notes === 'Contributeur'?  'full':miscState.userStatus?.chapters), 
               reference: reference, 
               setReference: setReference, 
+              statut:statut,
             } 
           }} 
           key={reference} 

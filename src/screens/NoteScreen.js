@@ -128,6 +128,7 @@ function NoteScreen({ route }) {
   const navigation = useNavigation();
   const session = route.params?.session;
   const notesMode = route.params?.mode;
+  const statut = route.params?.statut;
 
   const [subjectActive, setSubjectActive] = useState(null);
   const [answers, setAnswers] = useState([]);
@@ -216,10 +217,10 @@ const [filteredAnswers, setFilteredAnswers] = useState([]);
 const [oldSelectedQuestion, setOldSelectedQuestion] = useState('');
 
 useEffect(() => {
-  if (notesMode === 'full') {
+  if (statut === 'Réagir') {
     setVoirTout(true);
   }
-}, [notesMode]);
+}, [statut]);
 
 
 
@@ -1005,12 +1006,12 @@ return (
 
 */}
 
-{notesMode === "Lecteur"  && (<Text style={globalStyles.title}>
+{statut === "Lire"  && (<Text style={globalStyles.title}>
    Notes
   </Text> )}
 
 
-{(notesMode === "Editeur" || notesMode === "Auditeur") && (<>
+{(statut === "Rédiger" || statut === "Corriger") && (<>
 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
  
 
@@ -1021,7 +1022,7 @@ return (
     {!questionReponseFilter.includes('réponse') && ("Questions")}
   </Text> 
 
-  {notesMode  != 'Editeur' &&(
+  {statut  != 'Rédiger' &&(
   <View style={[styles.toggleTextContainer, { flexDirection: 'column', justifyContent: 'center' }]}>
     <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
       <Text style={styles.toggleText}>Notes </Text>
@@ -1083,7 +1084,7 @@ return (
 
         <View style={{ flexDirection: 'row', justifyContent: 'center', marginBottom: 5 }}>
         
-        {(notesMode === "Editeur" || notesMode === "Auditeur") && (<>
+        {(statut === "Rédiger" || statut === "Corriger") && (<>
           <TouchableOpacity onPress={() => {setModalVisible(true)}} style={globalStyles.globalButton_wide}>
       <Text style={globalStyles.globalButtonText}>Réagir</Text>
     </TouchableOpacity>
@@ -1418,7 +1419,7 @@ return (
 
 <View style={{ flexDirection: 'row', justifyContent: 'center', marginBottom: 5 }}>
 
-{(notesMode === "Editeur" || notesMode === "Auditeur"|| notesMode === "full") && (<>
+{(statut === "Rédiger" || statut === "Corriger"|| statut === "Réagir") && (<>
 <TouchableOpacity onPress={() => setShowDetails(!showDetails)} style={styles.filterIcon}>
   <Image 
     source={showDetails ? minusIcon : plusIcon} 
