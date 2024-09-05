@@ -596,7 +596,7 @@ export const CarrousselOrientation = ({ isLargeScreen, setStatut, statut }) => {
           onMouseEnter={() => setIsHoveredSettings(true)}
           onMouseLeave={() => setIsHoveredSettings(false)}
         >
-          <Image source={settingsIcon} style={{ width: SLIDER_HEIGHT, height: SLIDER_HEIGHT, opacity: 0.5 }} />
+          <Image source={settingsIcon} style={{  alignSelf:'flex-end', width: SLIDER_HEIGHT*1.5, height: SLIDER_HEIGHT*1.5, opacity: 0.5 }} />
         </TouchableOpacity>
       );
     } else if (item.type === 'logout') {
@@ -610,7 +610,7 @@ export const CarrousselOrientation = ({ isLargeScreen, setStatut, statut }) => {
           onMouseLeave={() => setIsHoveredExit(false)}
             // Dans renderItem, ajoutez également la hauteur dans les styles de `TouchableOpacity` :
         >
-          <Image source={exitIcon} style={{ width: SLIDER_HEIGHT, height: SLIDER_HEIGHT, opacity: 0.5 }} />
+          <Image source={exitIcon} style={{  alignSelf: 'flex-start', width: SLIDER_HEIGHT*1.5, height: SLIDER_HEIGHT*1.5, opacity: 0.5 }} />
         </TouchableOpacity>
       );
     } else {
@@ -650,7 +650,7 @@ export const CarrousselOrientation = ({ isLargeScreen, setStatut, statut }) => {
             onMouseEnter={() => setIsHoveredSettings(true)}
             onMouseLeave={() => setIsHoveredSettings(false)}
           >
-            <Image source={settingsIcon} style={{ width: SLIDER_HEIGHT, height: SLIDER_HEIGHT, opacity: 0.5 }} />
+            <Image source={settingsIcon} style={{ alignSelf:right, width: SLIDER_HEIGHT, height: SLIDER_HEIGHT, opacity: 0.5 }} />
           </TouchableOpacity>
 
           {titles.map((title, index) => renderGridItem({ item: title, index }))}
@@ -661,7 +661,7 @@ export const CarrousselOrientation = ({ isLargeScreen, setStatut, statut }) => {
             onMouseEnter={() => setIsHoveredExit(true)}
             onMouseLeave={() => setIsHoveredExit(false)}
           >
-            <Image source={exitIcon} style={{ width: SLIDER_HEIGHT, height: SLIDER_HEIGHT, opacity: 0.5 }} />
+            <Image source={exitIcon} style={{ alignSelf:left, width: SLIDER_HEIGHT, height: SLIDER_HEIGHT, opacity: 0.5 }} />
           </TouchableOpacity>
         </>
       ) : (
@@ -674,7 +674,7 @@ export const CarrousselOrientation = ({ isLargeScreen, setStatut, statut }) => {
   sliderWidth={SLIDER_WIDTH}
   sliderHeight={SLIDER_HEIGHT} // Ajoutez cette ligne pour définir la hauteur du carrousel
   itemWidth={ITEM_WIDTH}
-  itemHeight={ITEM_HEIGHT} // Cette ligne est déjà correcte
+  itemHeight={SLIDER_HEIGHT*1.5} // Cette ligne est déjà correcte
   inactiveSlideScale={0.9}
   inactiveSlideOpacity={0.6}
   loop={false}
