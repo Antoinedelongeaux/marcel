@@ -1084,7 +1084,7 @@ return (
 
         <View style={{ flexDirection: 'row', justifyContent: 'center', marginBottom: 5 }}>
         
-        {(statut === "Rédiger" || statut === "Corriger") && (<>
+        {(statut === "Corriger"|| statut === "Réagir" ) && (<>
           <TouchableOpacity onPress={() => {setModalVisible(true)}} style={globalStyles.globalButton_wide}>
       <Text style={globalStyles.globalButtonText}>Réagir</Text>
     </TouchableOpacity>

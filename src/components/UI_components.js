@@ -548,9 +548,9 @@ export const CarrousselOrientation = ({ isLargeScreen, setStatut, statut }) => {
   const colors = ['#0c2d48', '#145da0', '#2e8bc0', '#570701', '#fc2e20', '#fd7f20', '#fdb750', '#01693c'];
 
   const SLIDER_WIDTH = Dimensions.get('window').width;
-  const SLIDER_HEIGHT = Dimensions.get('window').height*0.05;
+  const SLIDER_HEIGHT = Dimensions.get('window').height*0.03;
   const ITEM_WIDTH = SLIDER_WIDTH * (isLargeScreen ? 1 : 0.7);
-  const ITEM_HEIGHT = SLIDER_HEIGHT * (isLargeScreen ? 1 : 1);
+  const ITEM_HEIGHT = SLIDER_HEIGHT*2;
   
   const [currentIndex, setCurrentIndex] = useState(titles.indexOf(statut));
   const [isHoveredExit, setIsHoveredExit] = useState(false);
@@ -572,7 +572,7 @@ export const CarrousselOrientation = ({ isLargeScreen, setStatut, statut }) => {
         { 
           backgroundColor: colors[index % colors.length], 
           opacity: currentIndex === index ? 1 : 0.5,
-          transform: currentIndex === index ? [{ scale: 1.2 }] : [{ scale: 0.95 }],
+          transform: currentIndex === index ? [{ scale: 1.13 }] : [{ scale: 0.95 }],
           height: ITEM_HEIGHT // Ajoutez cette ligne
         }
       ]}
@@ -622,7 +622,7 @@ export const CarrousselOrientation = ({ isLargeScreen, setStatut, statut }) => {
           style={[
             styles.carouselItem,
             { 
-              backgroundColor: colors[index % colors.length],
+              backgroundColor: colors[index-1 % colors.length],
               height: ITEM_HEIGHT // Ajoutez cette ligne
             }
           ]}
@@ -636,7 +636,7 @@ export const CarrousselOrientation = ({ isLargeScreen, setStatut, statut }) => {
   // Préparez les données pour le carrousel en smallScreen
   const carouselData = [
     { type: 'settings' }, // Premier élément : bouton Settings
-    ...titles.map((title, index) => ({ type: 'title', title, color: colors[index % colors.length] })), // Les titres
+    ...titles.map((title, index) => ({ type: 'title', title, color: colors[index-1 % colors.length] })), // Les titres
     { type: 'logout' }, // Dernier élément : bouton Logout
   ];
 
@@ -650,7 +650,7 @@ export const CarrousselOrientation = ({ isLargeScreen, setStatut, statut }) => {
             onMouseEnter={() => setIsHoveredSettings(true)}
             onMouseLeave={() => setIsHoveredSettings(false)}
           >
-            <Image source={settingsIcon} style={{ alignSelf:right, width: SLIDER_HEIGHT, height: SLIDER_HEIGHT, opacity: 0.5 }} />
+            <Image source={settingsIcon} style={{ alignSelf:'flex-end', width: ITEM_HEIGHT, height: ITEM_HEIGHT, opacity: 0.5 }} />
           </TouchableOpacity>
 
           {titles.map((title, index) => renderGridItem({ item: title, index }))}
@@ -661,7 +661,7 @@ export const CarrousselOrientation = ({ isLargeScreen, setStatut, statut }) => {
             onMouseEnter={() => setIsHoveredExit(true)}
             onMouseLeave={() => setIsHoveredExit(false)}
           >
-            <Image source={exitIcon} style={{ alignSelf:left, width: SLIDER_HEIGHT, height: SLIDER_HEIGHT, opacity: 0.5 }} />
+            <Image source={exitIcon} style={{ alignSelf:'flex-start', width: ITEM_HEIGHT, height: ITEM_HEIGHT, opacity: 0.5 }} />
           </TouchableOpacity>
         </>
       ) : (
@@ -674,7 +674,6 @@ export const CarrousselOrientation = ({ isLargeScreen, setStatut, statut }) => {
   sliderWidth={SLIDER_WIDTH}
   sliderHeight={SLIDER_HEIGHT} // Ajoutez cette ligne pour définir la hauteur du carrousel
   itemWidth={ITEM_WIDTH}
-  itemHeight={SLIDER_HEIGHT*1.5} // Cette ligne est déjà correcte
   inactiveSlideScale={0.9}
   inactiveSlideOpacity={0.6}
   loop={false}
@@ -688,6 +687,42 @@ export const CarrousselOrientation = ({ isLargeScreen, setStatut, statut }) => {
     </View>
   );
 };
+
+export const NavigationPanel = ({  setVision, vision, statut }) => { 
+
+
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', }}>
+        {statut!='Structurer'&& statut!='Publier'&& statut!='Inspirer'&& statut!='Raconter'&& statut!='Réagir'&& (<>
+        <TouchableOpacity
+          onPress={() => setVision('table')}
+          style={[globalStyles.navigationButton, vision ==='table' && globalStyles.navigationButton_over]}
+        >
+          <Text style={[globalStyles.navigationButtonText, vision ==='table' && globalStyles.navigationButtonText_over]}> Table</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          onPress={() => setVision('chapitre')}
+          style={[globalStyles.navigationButton, vision ==='chapitre' && globalStyles.navigationButton_over]}
+        >
+          <Text style={[globalStyles.navigationButtonText, vision ==='chapitre' && globalStyles.navigationButtonText_over]}>Chapitre</Text>
+        </TouchableOpacity>
+        {statut!='Corriger'&& statut!='Lire' && (<>
+        <TouchableOpacity
+        onPress={() => setVision('notes')}
+        style={[globalStyles.navigationButton, vision ==='notes' && globalStyles.navigationButton_over]}
+      >
+        <Text style={[globalStyles.navigationButtonText, vision ==='notes' && globalStyles.navigationButtonText_over]}> Notes</Text>
+      </TouchableOpacity>
+      </>)}
+      </>)}
+      </View>
+
+  )
+
+
+}
+
 
 const styles = StyleSheet.create({
   answerCard: {
@@ -751,7 +786,7 @@ const styles = StyleSheet.create({
 
   carouselWrapper: {
     flexDirection: 'row',
-    backgroundColor:'white',
+    backgroundColor:'transparent',
     alignItems: 'center',
     justifyContent: 'center',  // Pour s'assurer que les flèches sont bien positionnées de chaque côté
     width: '100%',

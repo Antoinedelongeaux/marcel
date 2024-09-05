@@ -633,7 +633,8 @@ function ReadNotesScreen({ route }) {
       <View style={isLargeScreen ? styles.largeScreenContainer : styles.smallScreenContainer}>
         <View style={[styles.rightPanel, { width: rightPanelWidth }]}>
         <ScrollView>
-
+          
+{/*
              <Card style={globalStyles.QuestionBubble}> 
   
               <Card.Content>
@@ -643,7 +644,7 @@ function ReadNotesScreen({ route }) {
             {showChoices_1 && (
               <>
                 <View style={{ flexDirection: isLargeScreen ? 'row' : 'column', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                {/*
+                
                 <Card style={[globalStyles.ResponseBubble, selectedChoice_1 === 'Voir les notes déjà produites'&& (globalStyles.ResponseBubble_selected), {marginHorizontal: 20}]}>
                     <Card.Content>
                       <TouchableOpacity
@@ -656,7 +657,9 @@ function ReadNotesScreen({ route }) {
                       </TouchableOpacity>
                     </Card.Content>
                   </Card>
-                */}
+               
+
+
                   <Card style={[globalStyles.ResponseBubble,selectedChoice_1 === 'Ajouter une note'&& (globalStyles.ResponseBubble_selected), {marginHorizontal: 20}]}>
                     <Card.Content>
                       <TouchableOpacity
@@ -685,9 +688,13 @@ function ReadNotesScreen({ route }) {
                       </TouchableOpacity>
                     </Card.Content>
                   </Card>
+                  </>
                 </View>
               </>
             )}
+
+*/}
+
             {selectedChoice_1 !== '' && (
               <>
                 <Card style={globalStyles.QuestionBubble}>

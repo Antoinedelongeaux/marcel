@@ -50,7 +50,7 @@ export const globalStyles = StyleSheet.create({
     width: '90%', // Adaptation de la largeur
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#b1b3b5', // Couleur du fond
+    backgroundColor: '#b1b3b5', // Couleur du fond 
     margin: 10,
     borderRadius: 10,
     padding: 10,
@@ -376,6 +376,38 @@ toggleText: {
 },
 
 
+navigationButton: {
+  width: '30%', // Adaptation de la largeur
+  justifyContent: 'center',
+  alignItems: 'center',
+  backgroundColor: '#b1b3b5', // Couleur du fond
+  margin: 10,
+  borderRadius: 10,
+  padding: 10,
+  elevation: 5, // Ombre pour Android
+  shadowColor: '#000', // Ombre pour iOS
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.25,
+  shadowRadius: 3.84,
+  marginHorizontal: 0.5,
+},
+
+navigationButton_over: {
+
+  backgroundColor: '#0b2d52', // Couleur du fond
+ 
+},
+
+navigationButtonText: {
+  textAlign: 'center',
+  fontSize: 15,
+  fontWeight: 'bold',
+},
+
+
+navigationButtonText_over: {
+  color: '#ffffff', // Texte blanc pour un meilleur contraste
+},
 
 
 })

@@ -69,7 +69,7 @@ import trash from '../../assets/icons/baseline_delete_outline_black_24dp.png';
 import linkIcon from '../../assets/icons/link.png';
 import { decode, encode } from 'he';
 import { } from 'he';
-import {  CarrousselOrientation,
+import {  CarrousselOrientation, NavigationPanel
 } from '../components/UI_components';
 
 
@@ -137,6 +137,7 @@ function ReadAnswersScreen({ route }) {
   const { suffix } = useParams();
   const [questions, setQuestions] = useState([]);
   const [subjectActive, setSubjectActive] = useState(null);
+  const [vision, setVision] = useState('table');
   const [tags, setTags] = useState([
     'Famille', 'Vie professionnelle', 'Vie personnelle', 'Hobbies & passions', 'Valeurs', 'Voyages', 'Autre', ''
   ]);
@@ -179,8 +180,8 @@ function ReadAnswersScreen({ route }) {
     userName: '',
     toggleIcon: plusIcon,
     question_reponse: 'réponse',
-    middlePanelWidth: 0.5 * Dimensions.get('window').width,
-    rightPanelWidth: Dimensions.get('window').width - (0.5 * Dimensions.get('window').width) - 550,
+    middlePanelWidth: Dimensions.get('window').width,
+    rightPanelWidth: Dimensions.get('window').width ,
     isDragging: false,
     expandedAnswers: {},
     isLargeScreen: Dimensions.get('window').width > 768,
@@ -234,15 +235,7 @@ function ReadAnswersScreen({ route }) {
     if (subjectActive) {
       fetchUserStatus();
     }
-    const unsubscribe = navigation.addListener('focus', () => {
-      const windowWidth = Dimensions.get('window').width;
-      setMiscState(prevState => ({
-        ...prevState,
-        middlePanelWidth: prevState.isLargeScreen ? 0.5 * windowWidth : windowWidth,
-        rightPanelWidth: prevState.userStatus.chapters === "Pas d'accès" ? windowWidth - 550 : windowWidth - prevState.middlePanelWidth - 550
-      }));
-    });
-    return unsubscribe;
+
   }, [navigation, subjectActive]);
 
 
@@ -260,12 +253,31 @@ function ReadAnswersScreen({ route }) {
 
 
   useEffect(() => {
+    if (statut && statut==='Inspirer') {
+      setVision('notes')
+    } 
+    if (statut && statut==='Raconter') {
+      setVision('notes')
+    } 
     if (statut && statut==='Réagir') {
-      setMiscState(prevState => ({ ...prevState, rightPanelWidth: Dimensions.get('window').width - 550 }));
-    } else {
-      setMiscState(prevState => ({ ...prevState, rightPanelWidth: Dimensions.get('window').width - prevState.middlePanelWidth - 550 }));
-     
-    }
+      setVision('notes')
+    } 
+    if (statut && statut==='Structurer') {
+      setVision('table')
+    } 
+    if (statut && statut==='Rédiger') {
+      setVision('table')
+    } 
+    if (statut && statut==='Corriger') {
+      setVision('table')
+    } 
+    if (statut && statut==='Publier') {
+      setVision('table')
+    } 
+    if (statut && statut==='Lire') {
+      setVision('table')
+    } 
+
     if (statut&& statut != "Rédiger" && statut != "Corriger") {
       setEditVsView('view')
     }
@@ -321,6 +333,12 @@ function ReadAnswersScreen({ route }) {
   
   useEffect(() => {
     if (miscState.question && miscState.question.id) {
+      
+      if(statut!='Structurer'&&statut!='Publier'&&statut!='Inspirer'&&statut!='Raconter'&&statut!='Réagir'){
+      setVision('chapitre')
+    }
+      
+      
       toggleAnswersDisplay(miscState.question.id);
       setFilterSelectedQuestion(miscState.question);
     }
@@ -379,7 +397,7 @@ function ReadAnswersScreen({ route }) {
   }, [editor]);
 
   useEffect(() => {
-    if (!miscState.isLeftPanelVisible) {
+    if (vision!='table') {
       setMiscState(prevState => ({
         ...prevState,
         rightPanelWidth: prevState.isLargeScreen ? Dimensions.get('window').width - prevState.middlePanelWidth - 10 : Dimensions.get('window').width
@@ -390,16 +408,8 @@ function ReadAnswersScreen({ route }) {
         rightPanelWidth: Dimensions.get('window').width - prevState.middlePanelWidth - 550 - 10
       }));
     }
-  }, [miscState.middlePanelWidth, miscState.isLeftPanelVisible, statut]);
+  }, [miscState.middlePanelWidth, vision, statut]);
 
-  const toggleLeftPanel = () => {
-    setMiscState(prevState => ({ ...prevState, isLeftPanelVisible: !prevState.isLeftPanelVisible }));
-  };
-
-  const copyToClipboard = (text) => {
-    Clipboard.setString(text);
-    Alert.alert('Copié dans le presse-papier', text);
-  };
 
   const quillModules = {
     toolbar: {
@@ -627,7 +637,10 @@ function ReadAnswersScreen({ route }) {
       <Picker.Item key={index} label={subj.content_subject.title} value={subj.content_subject.id} />
     ))}
   </Picker>
-  
+
+ <NavigationPanel setVision={setVision} vision={vision} statut={statut}/>
+
+
 </View>
       <View style={[globalStyles.navigationContainer, { position: 'fixed', bottom: '0%', alignSelf: 'center' }]}>
       
@@ -658,8 +671,8 @@ function ReadAnswersScreen({ route }) {
       <View style={miscState.isLargeScreen ? styles.largeScreenContainer : styles.smallScreenContainer}>
          
         
-        {miscState.isLeftPanelVisible && statut!='Réagir' && (
-          <View style={(miscState.isLargeScreen && statut!='Structurer'&& statut!='Publier') ? styles.leftPanel : styles.fullWidth}>
+        {vision==='table' && statut!='Réagir' && (
+          <View style={styles.fullWidth}>
 
             <View style={globalStyles.container_wide}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -795,7 +808,7 @@ function ReadAnswersScreen({ route }) {
 
               <View style={{ flexDirection: 'column', justifyContent: 'space-between', padding: 10 }}>
                 
-              {statut!='Lire' && statut==='Publier' && ( 
+              {statut==='Structurer' && ( 
                <>
                <TouchableOpacity style={globalStyles.globalButton_wide} onPress={() => setModals(prevState => ({ ...prevState, isModalVisible: true }))}>
                   <Text style={globalStyles.globalButtonText}>Nouvelle partie</Text>
@@ -812,13 +825,13 @@ function ReadAnswersScreen({ route }) {
           </View>
         )}
           
-
+{/*
         { miscState.isLargeScreen && statut &&(miscState.question && miscState.question.question) && (statut!='Structurer') && (statut!='Publier') && (statut!='Réagir') && (statut==='Rédiger' || statut==='Lire' || statut === 'Corriger') && (
           <View style={[styles.resizer, { right: miscState.rightPanelWidth - 30 }]} onMouseDown={handleMouseDown}>
             <Image source={doubleArrowIcon} style={{ width: 120, height: 120, opacity: 0.5 }} />
           </View>
         )}
- 
+
         {(statut != 'Réagir'&&statut !='Structurer'&&statut !='Publier')&&(
         <TouchableOpacity
           onPress={toggleLeftPanel}
@@ -833,6 +846,9 @@ function ReadAnswersScreen({ route }) {
             }
           ]}
         > 
+
+
+
           {statut!='Structurer'&& (statut!='Publier')  && (<>
           {miscState.isLeftPanelVisible ? (
             <Image
@@ -867,13 +883,14 @@ function ReadAnswersScreen({ route }) {
         )}
         </TouchableOpacity>
         )}
-
-        {(miscState.isLargeScreen || !miscState.isLeftPanelVisible)&&(statut !='Réagir'&&statut !='Structurer'&&statut !='Publier') && (
-          <View style={miscState.isLargeScreen ? styles.middlePanelContainer : styles.fullWidth}>
+  */}
+  
+        {vision==='chapitre' && (
+          <View style={ styles.fullWidth}>
             
          
-            
-            <View style={{ ...styles.MiddlePanel, width: miscState.middlePanelWidth }}>
+            <View style={globalStyles.container_wide}>
+      
               
              
               <Text style={globalStyles.title}>
@@ -964,8 +981,8 @@ function ReadAnswersScreen({ route }) {
           </View>
         )}
 
-{(miscState.isLargeScreen || !miscState.isLeftPanelVisible || statut==='Réagir') && ((statut==='Réagir') || (miscState.question && miscState.question.question) )&& (
-    <View style={[styles.rightPanel, { width: (statut!='Réagir')? miscState.rightPanelWidth : '100%' }]}>
+{vision==='notes'&& (
+    <View style={[styles.rightPanel, { width:  '100%' }]}>
       <ScrollView>
         <NoteScreen 
           route={{ 
@@ -1117,7 +1134,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   leftPanel: {
-    width: 550,
+    width: '100%',
     padding: 10,
     borderRightWidth: 1,
     borderColor: '#ccc',
