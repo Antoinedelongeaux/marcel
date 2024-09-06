@@ -78,7 +78,7 @@ import {
   AnswerPanel_imageFile,
   ThemePanel
   }  from '../components/save_note';
-import {  CarrousselOrientation, NavigationPanel,CarrousselThemes
+import {  CarrousselOrientation, NavigationPanel,CarrousselThemes,Blocage
 } from '../components/UI_components';
 
 
@@ -212,6 +212,9 @@ function ReadAnswersScreen({ route }) {
   const [themesAllUsers, setThemesAllUsers] = useState([]);
   const [themeText, setThemeText] = useState('');
   const [theme, setTheme] = useState(null);
+  const [isBlocage, setIsBlocage] = useState(false);
+  const [textBlockage, setTextBlockage] = useState('');
+  
 
   const editor = useRef();
 
@@ -222,9 +225,13 @@ function ReadAnswersScreen({ route }) {
 
   const fetchThemesAllUsers = async () => {
     if (subjectActive) {
-      await getTheme_byProject(subjectActive).then(setThemesAllUsers);
+      console.log("on a fetch !");
+      const themes = await getTheme_byProject(subjectActive); // Attendre que la fonction asynchrone soit terminée
+      setThemesAllUsers(themes); // Mettre à jour l'état avec les thèmes récupérés
+      return themes; // Retourner les thèmes pour l'utiliser après
     }
-}
+    return []; // Retourner un tableau vide si subjectActive n'est pas défini
+  };
 
 useEffect(() => {
   const fetchData = async () => {
@@ -280,41 +287,85 @@ useEffect(() => {
   },[])
 
 
-
-
-
-  useEffect(() => {
+  const actOnStatut = async () => {
     if (statut && statut==='Inspirer') {
+      setIsBlocage(false)
       setVision('themes')
     } 
-    if (statut && statut==='Raconter') {
-      setVision('contribution')
-    } 
+    if (statut && statut === 'Raconter') {
+      const themes = await fetchThemesAllUsers(); // Attendre que fetchThemesAllUsers soit terminé
+      console.log('themesAllUsers : ', themes);
+      if (themes.length === 0) {
+        setTextBlockage("Vous devez définir au moins un thème (via l'onglet 'Inspirer') avant de nous en parler.");
+        setIsBlocage(true);
+      } else {
+        setIsBlocage(false);
+      }
+  
+      setVision('contribution');
+    }
     if (statut && statut==='Réagir') {
+      if(themesAllUsers.length===0) {
+        setTextBlockage("Il n'y a pour l'instant aucun contenu (ajouté via les onglets 'Inspirer' et 'Raconter') sur lequel réagir.")
+        setIsBlocage(true)
+      }else {
+        setIsBlocage(false)
+      }
+
       setVision('notes')
     } 
     if (statut && statut==='Structurer') {
+      setIsBlocage(false)
       setVision('table')
     } 
     if (statut && statut==='Rédiger') {
+      if(questions.length===0) {
+        setTextBlockage("Vous devez définir au moins un chapitre (via l'onglet 'Structurer') avant de moi le rédiger.")
+        setIsBlocage(true)
+      }else {
+        setIsBlocage(false)
+      }
       setVision('table')
     } 
     if (statut && statut==='Corriger') {
+      if(questions.length===0) {
+        setTextBlockage("Il n'y a pas encore de chapitre à corriger dans ce projet. Ils seront définis via 'Structurer' et rédigés via 'Rédiger'.")
+        setIsBlocage(true)
+      }else {
+        setIsBlocage(false)
+      }
       setVision('table')
     } 
     if (statut && statut==='Publier') {
+      if(questions.length===0) {
+        setTextBlockage("Il n'y a pas encore de chapitre à publier dans ce projet.")
+        setIsBlocage(true)
+      }else {
+        setIsBlocage(false)
+      }
       setVision('table')
     } 
-    if (statut && statut==='Lire') {
-      setVision('table')
-    } 
-
+    if (statut && statut === 'Lire') {
+      const hasPrivatePublishedQuestion = questions.some(question => question.published_private=== true);
+    
+      if (questions.length === 0 || !hasPrivatePublishedQuestion) {
+        setTextBlockage("Aucun chapitre n'a encore été publié.");
+        setIsBlocage(true);
+      } else {
+        setIsBlocage(false);
+      }
+      setVision('table');
+    }
+    
     if (statut&& statut != "Rédiger" && statut != "Corriger") {
       setEditVsView('view')
     }
     if (statut&& (statut === "Rédiger" || statut === "Corriger")) {
       setEditVsView('edit')
     }
+
+
+
 
     {/*
 
@@ -342,7 +393,15 @@ useEffect(() => {
     }
 
     */}
-  }, [statut]);
+
+
+
+}
+
+
+  useEffect(() => {
+    actOnStatut()
+  }, [statut,subjectActive]);
 
   useEffect(() => {
     if (miscState.userStatus && miscState.userStatus === "non trouvé") {
@@ -642,6 +701,7 @@ useEffect(() => {
   return (
     <View style={[globalStyles.container, { width:'100%', paddingHorizontal: miscState.isLargeScreen ? '10' : '0'  }]}>
         <View>
+            {subjects.length!=1 && (
   <Picker
     selectedValue={subject.id}
     style={styles.picker}
@@ -662,11 +722,14 @@ useEffect(() => {
       <Picker.Item key={index} label={subj.content_subject.title} value={subj.content_subject.id} />
     ))}
   </Picker>
+)}
 
- <NavigationPanel setVision={setVision} vision={vision} statut={statut}/>
+{!isBlocage && (  <NavigationPanel setVision={setVision} vision={vision} statut={statut}/>)}
 
 
 </View>
+
+
       <View style={[globalStyles.navigationContainer, { position: 'fixed', bottom: '0%', alignSelf: 'center' }]}>
       
       {/* 
@@ -694,6 +757,14 @@ useEffect(() => {
       
       </View>
 
+
+      {isBlocage ? ( <>
+      
+      <Blocage textBlocage={textBlockage}/>
+      
+      </>
+      ):(   <> 
+
       <View style={miscState.isLargeScreen ? styles.largeScreenContainer : styles.smallScreenContainer}>
 
 
@@ -718,6 +789,7 @@ useEffect(() => {
       setThemeText={setThemeText}
       setTheme={setTheme}
       themesAllUsers={themesAllUsers}  
+      setThemesAllUsers={setThemesAllUsers}
       closureFunction={handleThemeValidation}
       />
 
@@ -732,6 +804,11 @@ useEffect(() => {
 
 {vision==='contribution' && (
      <View style={styles.fullWidth}>
+
+{themesAllUsers.length===0? (
+  <Blocage textBlocage="Vous devez définir au moins un thème (via l'onglet 'Inspirer') avant de nous en parler" />
+):(
+
    <View style={[globalStyles.container_wide, { width: miscState.isLargeScreen ? '90%' : '100%', paddingHorizontal: miscState.isLargeScreen ? '10' : '0'  }]}>
 
 
@@ -777,6 +854,9 @@ useEffect(() => {
 
 
      </View>    
+ 
+    )}
+ 
  </View>
 
 
@@ -899,11 +979,14 @@ useEffect(() => {
                     
                               {statut==='Publier' && (
                                 <View style={{ flexDirection: 'row' }}>
-                                  <Text> Publication privée : </Text>
+                                  <Text> Publication : </Text>
                                   <ToggleButton bool={question.published_private} setBool={() => handlePublication_private(question.id, !question.published_private)} />
+                                  {/* 
                                   <Text> </Text>
                                   <Text> Publication publique : </Text>
                                   <ToggleButton bool={question.published_public} setBool={() => handlePublication_public(question.id, !question.published_public)} />
+                                */}
+                                
                                 </View>
                               )}
                             </View>
@@ -1238,7 +1321,8 @@ useEffect(() => {
   }}
 />
 
-
+</>
+)}
 
     </View>
   );

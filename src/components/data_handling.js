@@ -171,7 +171,7 @@ export async function getMemories_Question_by_id(id_question,setQuestion, setAns
       .eq('id_question', id_question);
 
     if (errorAnswersForSelectedQuestion) throw errorAnswersForSelectedQuestion;
-    console.log("id_question : ",id_question)
+    
     // Mettre à jour l'état avec la question sélectionnée et ses réponses
     const ownerName = await get_user_name(question.id_owner);
     setOwner(ownerName);
@@ -251,8 +251,7 @@ export async function getMemories_Questions(subject_active, setQuestions, tags, 
 export async function getMemories_Questions_Published(subject_active, setQuestions, tags, personal) {
   try {
 
-    console.log("Hello world !")
-    console.log("Subject_active : ",subject_active)
+
     setQuestions([])
     
     // Préparer la requête de base pour récupérer les questions
@@ -266,7 +265,7 @@ export async function getMemories_Questions_Published(subject_active, setQuestio
     // Exécuter la requête pour récupérer les questions
     const { data: questions, error: errorQuestions } = await query;
 
-    console.log("questions : ", questions)
+
 
     if (errorQuestions) throw errorQuestions;
 
@@ -329,7 +328,7 @@ export async function getMemories_Answers_to_Question(questionId) {
 export async function getMemories_Answers_to_theme(id_connection) {
   try {
 
-    console.log('getMemories_Answers_to_theme : ', id_connection)
+
     if (id_connection == null) {
       console.log("id_connection is null or undefined.");
       return []; // Retourner un tableau vide si l'ID de la question est null
@@ -345,7 +344,7 @@ export async function getMemories_Answers_to_theme(id_connection) {
       throw error;
     }
 
-    console.log("answers : ",answers)
+
     return answers || []; // Retourner les réponses ou un tableau vide si aucune réponse n'est trouvée
   } catch (error) {
     console.error("Error fetching answers:", error.message);
@@ -400,7 +399,7 @@ export const delete_audio = async (name) => {
 }
 
 export async function deleteMemories_Answer(answerToDelete) {
-  console.log("deleteMemories_Answer")
+
   try {
     // Effectuer la requête de suppression sur la table 'Memoires_answers'
     if (answerToDelete.audio) {
@@ -414,7 +413,7 @@ export async function deleteMemories_Answer(answerToDelete) {
 
     if (answerToDelete.image) {
       try {
-        console.log("Hello world !")
+ 
         await delete_Image(answerToDelete.link_storage);
       } catch (error) {
         alert("Error deleting document: " + error.message);
@@ -464,17 +463,17 @@ if (id_answer_source) {
   .from('Memoires_answers')
   .select('id', { count: 'exact' })
   .eq('id',id_answer_source);
-  console.log("count : ",count)
+
 
   const { data, error } = await supabase
   .from('Memoires_answers')
   .select('*')
   .eq('id', id_answer_source);
 
-  console.log("rank_origin : ",data)
+
   rank = data[0].rank + (count+1)*0.00001
 
-  console.log("rank : ",rank)
+
 
 }else {
 const { count } = await supabase
@@ -504,7 +503,6 @@ export async function submitMemories_Answer_written(answer, ID_USER, Id_question
     const Id_subject = await getActiveSubjectId();
 
     let Id_user =null
-    console.log("answer, ID_USER, Id_question, Id_connection,question_reponse,id_answer_source",answer, ID_USER, Id_question, Id_connection,question_reponse,id_answer_source)
     if(ID_USER) {
       Id_user = ID_USER
     }else{
@@ -521,17 +519,16 @@ export async function submitMemories_Answer_written(answer, ID_USER, Id_question
       .from('Memoires_answers')
       .select('id', { count: 'exact' })
       .eq('id',id_answer_source);
-      console.log("count : ",count)
+  
 
       const { data, error } = await supabase
       .from('Memoires_answers')
       .select('*')
       .eq('id', id_answer_source);
 
-      console.log("rank_origin : ",data)
       rank = data[0].rank + (count+1)*0.00001
 
-      console.log("rank : ",rank)
+
 
     }else {
     const { count } = await supabase
@@ -580,17 +577,17 @@ if (id_answer_source) {
   .from('Memoires_answers')
   .select('id', { count: 'exact' })
   .eq('id',id_answer_source);
-  console.log("count : ",count)
+
 
   const { data, error } = await supabase
   .from('Memoires_answers')
   .select('*')
   .eq('id', id_answer_source);
 
-  console.log("rank_origin : ",data)
+
   rank = data[0].rank + (count+1)*0.00001
 
-  console.log("rank : ",rank)
+
 
 }else {
 const { count } = await supabase
@@ -636,17 +633,16 @@ if (id_answer_source) {
   .from('Memoires_answers')
   .select('id', { count: 'exact' })
   .eq('id',id_answer_source);
-  console.log("count : ",count)
+
 
   const { data, error } = await supabase
   .from('Memoires_answers')
   .select('*')
   .eq('id', id_answer_source);
 
-  console.log("rank_origin : ",data)
   rank = data[0].rank + (count+1)*0.00001
 
-  console.log("rank : ",rank)
+
 
 }else {
 const { count } = await supabase
@@ -792,7 +788,15 @@ export async function listSubjects(id_user) {
   }
 }
 
+export async function countSubjects(id_user) {
+  
+    // Récupère d'abord les sujets associés à l'utilisateur
+    const associatedSubjects = await getSubjects(id_user);
 
+
+    return associatedSubjects.length;
+  
+}
 
 
 export async function joinSubject(id_subject, id_user,access) {
@@ -996,7 +1000,7 @@ export async function create_project(name,id_user) {
         { id: id , title: name}
       ]);
 
-    joinSubject(id,id_user,"Editeur")
+    joinSubject(id,id_user,true)
     
     
     if (error) throw error;
@@ -1107,7 +1111,7 @@ export async function get_project_contributors(id_subject) {
 export async function validate_project_contributors(id_subject,id_user,access,notes,chapters) {
   // Exemple de pseudo code, à adapter selon votre logique d'application
   try {
- console.log("access : ",access)
+
     const { data, error } = await supabase
       .from('Memoires_contributors') 
       .update({ access: access,notes:notes,chapters:chapters})
@@ -1116,7 +1120,6 @@ export async function validate_project_contributors(id_subject,id_user,access,no
 
     if (error) throw error;
 
-    console.log("data : ",data)
     return data
     
   } catch (error) {
@@ -1369,7 +1372,6 @@ export async function linkAnalysis(suffix) {
   try {
     // Vérification pour les questions
 
-    console.log("suffix : ",suffix)
 
     if(!suffix){
       return { nature: '' }
@@ -1431,13 +1433,13 @@ export async function getExistingLink(id_target,id_question_id_subject) {
 export async function updateExistingLink(id_link,expired) { 
   try {
     // Vérification pour les questions
-    console.log("id_link,expired : ",id_link,expired)
+
     const { data, error: errorUpdate } = await supabase
       .from('Memoires_magic_link')
       .update({ expired: expired }) 
       .eq('id', id_link);
 
-    console.log("Updated link : ",data)
+
 
       return data;
     

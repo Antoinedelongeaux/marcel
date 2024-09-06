@@ -9,7 +9,7 @@ import { useNavigation } from '@react-navigation/native';
 import PersonIcon from '../../assets/icons/person.svg';
 import BookIcon from '../../assets/icons/book.svg';
 import HelpIcon from '../../assets/icons/help-circle.svg';
-import SettingsIcon from '../../assets/icons/accueil.png';
+import SettingsIcon from '../../assets/icons/settings.svg';
 import note from '../../assets/icons/notes.png';
 
 
@@ -125,7 +125,7 @@ export default function ProfileScreen({ route }) {
     return (
         <View style={globalStyles.container}>
             <View style={[globalStyles.navigationContainer, { position: 'fixed', bottom: '0%', width: '100%' }]}>
-                <TouchableOpacity onPress={() => navigateToScreen('Marcel')} 
+                <TouchableOpacity onPress={() => navigateToScreen('Orientation')} 
                     style={[globalStyles.navButton, isHovered1 && globalStyles.navButton_over]}
                     onMouseEnter={() => setIsHovered1(true)}
                     onMouseLeave={() => setIsHovered1(false)}>

@@ -21,7 +21,8 @@ import {
   joinSubject,
   remember_active_subject,
   get_Profile,
-  getUserStatus
+  getUserStatus,
+  countSubjects,
 
 } from './src/components/data_handling';
 import {
@@ -36,6 +37,7 @@ function AppNavigator({ session }) {
   const navigation = useNavigation();
   const [check, setCheck] = useState({nature : 'en cours'});
   const [activeSubjectId, setActiveSubjectId] = useState(null); 
+  const [subjectCount, setSubjectCount] = useState(-1); 
   const { suffix } = useParams(); // Utiliser useParams pour extraire le suffixe
   const [loading, setLoading] = useState(true);
 
@@ -67,11 +69,6 @@ function AppNavigator({ session }) {
           console.log("Etape 2 :  désactiver le lien d'association")
           // Si joinSubject a réussi, procéder avec les autres opérations
           await updateExistingLink(suffix, true);
-          console.log("Etape 3 :  mettre à jour le projet actif du user")
-          await remember_active_subject(check.id_subject, session.user.id);
-          console.log("Etape 4 :  enregister le projet actif dans le navigateur...",check.id_subject)
-          await saveActiveSubjectId(check.id_subject);
-
           const temp = await getUserStatus(session.user.id,check.id_subject)
           await saveActiveSubjectUserStatus(temp)
           setLoading(false)
@@ -86,26 +83,12 @@ function AppNavigator({ session }) {
     }
     if (session && session.user && check.nature!== 'subject') {
       const reachActiveSubject = async () => {
-        try {
+             
           // Rejoindre le projet et attendre la réussite
-          const profile = await get_Profile( session.user.id);
-           if (profile.active_biography){ 
-            setActiveSubjectId(profile.active_biography)
-            const temp = await getUserStatus(session.user.id,profile.active_biography)
-            await saveActiveSubjectId(profile.active_biography);
-            await saveActiveSubjectUserStatus(temp)
-            setLoading(false)
-
-        }else{
-          setActiveSubjectId('blue')
+          
+          const count = await countSubjects(session.user.id); 
+          setSubjectCount(count)
           setLoading(false)
-    
-        }
-        
-        } catch (error) {
-          // Gérer les erreurs ici
-          console.error('Erreur lors de l\'exécution des actions :', error.message);
-        }
       };
   
       reachActiveSubject();
@@ -118,7 +101,7 @@ function AppNavigator({ session }) {
 
   
  
-  if (loading && session && session.user ){
+  if (loading && session && (session.user || countSubjects===-1) ){
 
     return (
       <View >
@@ -143,7 +126,7 @@ function AppNavigator({ session }) {
 <>
       {session && session.user ? (
         <>
-        {activeSubjectId==='blue'?  (<> 
+        {countSubjects===0?  (<> 
           
           <Stack.Screen name="Projets" component={ManageBiographyScreen} initialParams={{ session }} />
           <Stack.Screen name="ProfileScreen" component={ProfileScreen} initialParams={{ session }} />

@@ -835,8 +835,12 @@ import {
                 </View>
               ))}
             </View>
-            <Text style={{ marginBottom: 10, marginTop: 30 }}>
-              Voici par ailleurs de nouvelles idées de thèmes :
+            
+          </View>
+        )}
+        {new_theme && (<>
+        <Text style={{ marginBottom: 10, marginTop: 30 }}>
+              Voici quelques idées de thèmes :
             </Text>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
               {themesInspiration.map((theme, index) => (
@@ -854,8 +858,9 @@ import {
                 </TouchableOpacity>
               ))}
             </View>
-          </View>
+            </>
         )}
+
         <Modal
           animationType="slide"
           transparent={true}

@@ -100,9 +100,7 @@ function ReadAnswersScreen({ route }) {
         }
       } catch (error) {
         console.error('Error during handleRecording:', error);
-      } finally {
-        console.log("Voilà c'est fait")
-      }
+      } 
     } else {
       const temp = await startRecording();
       setRecording(temp);
@@ -183,16 +181,16 @@ function ReadAnswersScreen({ route }) {
   
         // Gérer les différences de plateforme
         if (result.output && result.output.length > 0) {
-          console.log("Using result.output");
+          
           const file = result.output[0];
-          console.log("Selected file: ", file);
+    
           uri = URL.createObjectURL(file);
           name = file.name;
           mimeType = file.type;
         } else if (result.assets && result.assets.length > 0) {
-          console.log("Using result.assets");
+        
           const asset = result.assets[0];
-          console.log("Selected asset: ", asset);
+      
           uri = asset.uri;
           name = asset.name;
           mimeType = asset.mimeType;
@@ -249,16 +247,16 @@ function ReadAnswersScreen({ route }) {
   
         // Gérer les différences de plateforme
         if (result.output && result.output.length > 0) {
-          console.log("Using result.output");
+   
           const file = result.output[0];
-          console.log("Selected file: ", file);
+       
           uri = URL.createObjectURL(file);
           name = file.name;
           mimeType = file.type;
         } else if (result.assets && result.assets.length > 0) {
-          console.log("Using result.assets");
+   
           const asset = result.assets[0];
-          console.log("Selected asset: ", asset);
+    
           uri = asset.uri;
           name = asset.name;
           mimeType = asset.mimeType;

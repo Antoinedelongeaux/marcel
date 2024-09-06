@@ -57,11 +57,11 @@ export default function Auth() {
   useEffect(() => {
     const hash = window.location.hash; // Capturer le fragment de l'URL
     if (hash) {
-      console.log("Hash : ", hash);
+     
       // Vérifie si le fragment commence par '#access_token=' et met à jour l'état isTokenPage
       if (hash.startsWith('#access_token=')) {
         setTokenPage(true);
-        console.log("access_token : ", hash.slice(14)); // Log du token, si besoin
+
       } else {
         setTokenPage(false);
       }

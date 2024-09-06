@@ -41,7 +41,6 @@ export default function ProfileScreen({ route }) {
     const navigation = useNavigation();
 
     const [subjects, setSubjects] = useState([]);
-    console.log("test 1")
     const [subjects_active, setSubjects_active] = useState([]);
 
 
@@ -64,6 +63,8 @@ export default function ProfileScreen({ route }) {
     const [joinMessage, setJoinMessage] = useState("");
     const [selectedSubject, setSelectedSubject] = useState(null);
     const [isHovered, setIsHovered] = useState(false);
+    const [isHoveredPerson, setIsHoveredPerson] = useState(false);
+    
 
     const [isLargeScreen, setIsLargeScreen] = useState(false);
     const [links, setLinks] = useState(false);
@@ -104,9 +105,7 @@ const copyLinkToClipboard = (text) => {
     setLinks(updatedLinks);
   };
   
-  useEffect(() => {
-console.log("subjects_active : ",subjects_active)
-  },[subjects_active]);
+
 
   useEffect(() => {
 
@@ -115,12 +114,12 @@ console.log("subjects_active : ",subjects_active)
     const fetchUserStatus = async () => {
       if (!subject_active?.id) return;
       const status = await getUserStatus(session.user.id, subject_active.id);
-      console.log("UserStatus :",status)
+   
       setUserStatus(status);
       
     };
     if(subject_active && subject_active.id){
-        console.log("subject_active.id : ",subject_active.id)
+
       fetchUserStatus();
     }
     
@@ -141,7 +140,7 @@ console.log("subjects_active : ",subjects_active)
             try {
 
                 const temp = await getSubjects(session.user.id);
-                console.log("temp : ",temp)
+   
                 const temp_bis = await getSubjects_pending(session.user.id);
                 setSubjects_active(temp);
                 setSubjects_pending(temp_bis);
@@ -192,15 +191,10 @@ console.log("subjects_active : ",subjects_active)
         });
 
 
-        
-    
 
 
         try {
-            await remember_active_subject(id,session?.user.id)
-            
-            // Après une mise à jour réussie, rafraîchissez les données
-
+          
             await fetchSubjects(); // Cette fonction va récupérer à nouveau les sujets actifs et disponibles
         } catch (error) {
             console.error('Erreur lors de la mise à jour du profil', error.message);
@@ -299,10 +293,7 @@ console.log("subjects_active : ",subjects_active)
             if (data) {
                 setUsername(data.username)
                 setFull_name(data.full_name)
-                if (data.active_biography != null) {
-                    const temp = await get_project_by_id(data.active_biography)
-                    setSubject_active(temp)
-                }
+   
             }
         } catch (error) {
             if (error instanceof Error) {
@@ -332,7 +323,7 @@ console.log("subjects_active : ",subjects_active)
   onMouseEnter={() => setIsHovered(true)}
   onMouseLeave={() => setIsHovered(false)}
 >
-  <Image source={orientationIcon} style={{ width: 120, height: 120, opacity: 0.5 }} />
+  <Image source={BookIcon} style={{ width: 120, height: 120, opacity: 0.5 }} />
 </TouchableOpacity>
                 {/* 
                 <TouchableOpacity onPress={() => navigateToScreen('NoteScreen')} style={styles.navButton}>
@@ -341,10 +332,18 @@ console.log("subjects_active : ",subjects_active)
                 <TouchableOpacity onPress={() => navigateToScreen('ManageBiographyScreen')} style={styles.navButton}>
                     <Image source={settings} style={{ width: 60, height: 60, opacity: 1 }} />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => navigateToScreen('ProfileScreen')} style={styles.navButton}>
-                    <Image source={PersonIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
+                */}
+
+
+                <TouchableOpacity 
+                    onPress={() => navigateToScreen('ProfileScreen')} 
+                    style={[globalStyles.navButton, isHoveredPerson && globalStyles.navButton_over]}
+                    onMouseEnter={() => setIsHoveredPerson(true)}
+                    onMouseLeave={() => setIsHoveredPerson(false)}
+                    >
+                    <Image source={PersonIcon} style={{ width: 120, height: 120, opacity: 0.5 }} />
                 </TouchableOpacity>
-            */}
+            
                 </View>
     
             <Modal
@@ -370,10 +369,7 @@ console.log("subjects_active : ",subjects_active)
                     </View>
                 </View>
             </Modal>
-    
-            <Text style={globalStyles.title}>
-                {subject_active && subject_active.title ? `Vous travaillez actuellement sur le projet : ${subject_active.title}` : "Veuillez sélectionner un projet afin de pouvoir y contribuer activement."}
-            </Text>
+
     
             {/* Première partie */}
             {subject_active && subject_active.title && (
@@ -638,9 +634,7 @@ console.log("subjects_active : ",subjects_active)
                     </View>
                     </View>
                 )}
-<TouchableOpacity style={globalStyles.globalButton_wide} onPress={() => {navigateToScreen('ProfileScreen')}}>
-                        <Text style={globalStyles.globalButtonText}>Informations utilisateur</Text>
-                    </TouchableOpacity>
+
 
 
 

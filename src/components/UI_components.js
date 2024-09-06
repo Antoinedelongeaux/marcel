@@ -742,6 +742,20 @@ export const NavigationPanel = ({  setVision, vision, statut }) => {
 
 }
 
+export const Blocage = ({  textBlocage }) => {
+
+    return (
+      <View style={{ alignItems: 'center', justifyContent: 'center', }}> 
+      <Text> </Text>
+      <Text>{textBlocage }</Text>
+      
+      </View>
+
+
+    )
+
+
+}
 
 const styles = StyleSheet.create({
   answerCard: {
