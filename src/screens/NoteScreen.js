@@ -186,7 +186,7 @@ const [selectedAnswerIds, setSelectedAnswerIds] = useState([]);
 const [userIdFilter, setUserIdFilter] = useState('');
 const [userNameFilter, setUserNameFilter] = useState('');
 const [selectedUserName, setSelectedUserName] = useState('');
-const [selectedTheme, setSelectedTheme] = useState('');
+const [selectedTheme, setSelectedTheme] = useState(route.params?.theme?.id? route.params?.theme.id:'');
 const [showAttachement, setShowAttachement] = useState(false);
 const [answer, setAnswer] = useState('');
 const [PleaseWait, setPleaseWait] = useState(false);
@@ -215,6 +215,8 @@ const [isTranscriptionModalVisible, setIsTranscriptionModalVisible] = useState(f
 const [answerIdToTranscribe, setAnswerIdToTranscribe] = useState(null);
 const [filteredAnswers, setFilteredAnswers] = useState([]);
 const [oldSelectedQuestion, setOldSelectedQuestion] = useState('');
+const [showExistingNotes, setShowExistingNotes] = useState(false);
+
 
 useEffect(() => {
   if (statut === 'Réagir') {
@@ -231,7 +233,7 @@ useEffect(() => {
 
 useFetchActiveSubjectId(setSubjectActive, setSubject, navigation);
 
-useEffect(() => {
+
 
   const fetchUsers = async () => {
     try {
@@ -245,14 +247,6 @@ useEffect(() => {
       console.error("Error fetching users: ", error);
     }
   };
-
-  if (subjectActive) {
-    fetchUsers();
-  }
-}, [subjectActive]);
-
-useEffect(() => {
-
   const fetchThemes = async () => {
     try {
       const data = await getTheme_byProject(subjectActive);
@@ -266,18 +260,26 @@ useEffect(() => {
     }
   };
 
-  if (subjectActive) {
-    fetchThemes();
-  }
-}, [subjectActive]);
 
+  const fetchUsersAndThemes = async () => {
+    if (subjectActive && !isLoading) {
+      await fetchUsers();
+      await fetchThemes();
+    }
+  };
 
-const copyLinkToClipboard = (text) => {
-  Clipboard.setString(text);
-  Alert.alert('Lien copié dans le presse-papier', text);
-};
+  const fetchQuestionsAndChapters = async () => {
 
+    if (subjectActive != null) {
+      await getMemories_Questions(subjectActive, setQuestions, tags, personal);
+      await get_chapters(subjectActive, setChapters);
+    }
+  };
 
+  useEffect(() => {
+    fetchUsersAndThemes();
+    fetchQuestionsAndChapters();
+  }, [subjectActive, isLoading]);
 
 
 
@@ -301,14 +303,28 @@ if(session.user){
     }, [navigation])
   );
   
-  const sortAnswerNormal = () => {
-    const sortedAnswers = answers.sort((a, b) => a.rank - b.rank);
+  const sortAnswerNormal = (direction) => {
+    let sortedAnswers;
+    if(direction ==='normal'){
+    sortedAnswers = answers.sort((a, b) => a.rank - b.rank);
+    }
+    if(direction ==='inverse'){
+    sortedAnswers = answers.sort((a, b) => b.rank - a.rank);
+      }
     setAnswers(sortedAnswers);
+
   }
 
-  const sortAnswerByDate = () => {
-    const sortedAnswers = answers.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+  const sortAnswerByDate = (direction) => {
+    let sortedAnswers;
+    if(direction ==='normal'){
+    sortedAnswers = answers.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+    }
+    if(direction ==='inverse'){
+      sortedAnswers = answers.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    }
     setAnswers(sortedAnswers);
+  
   };
   
 
@@ -336,6 +352,7 @@ if(session.user){
       Alert.alert('Réponse sélectionnée', 'Vous avez sélectionné une réponse spécifique.');
     }
   };
+
   useEffect(() => {
     if (Platform.OS === 'web') {
       window.selectAnswer = selectAnswer;
@@ -408,17 +425,7 @@ if(session.user){
   }, [answers]);
 
 
-  useEffect(() => {
-    const fetchQuestionsAndChapters = async () => {
 
-      if (subjectActive != null) {
-        await getMemories_Questions(subjectActive, setQuestions, tags, personal);
-        await get_chapters(subjectActive, setChapters);
-      }
-    };
-
-    fetchQuestionsAndChapters();
-  }, [subjectActive]);
 
   const navigateToScreen = (screenName, params) => {
     navigation.navigate(screenName, params);
@@ -523,6 +530,29 @@ useEffect(() => {
   }
 }, [selectedChapter, questions]);
 
+/*
+useEffect(() => {
+
+  if(selectedTheme!=route.params?.theme &&route.params?.setTheme ) {
+
+      route.params?.setTheme(selectedTheme)
+
+  }
+
+}, [selectedTheme]);
+
+*/
+
+
+useEffect(() => {
+
+  if(route.params?.theme?.id && selectedTheme!=route.params?.theme?.id && route.params?.setTheme  ) {
+
+      setSelectedTheme(route.params?.theme.id)
+
+  }
+
+}, [route.params?.theme]);
 
 
 useEffect(() => {
@@ -538,7 +568,6 @@ useEffect(() => {
       const userName = userNames[answer.id_user];
       const theme = answer.id_connection;
 
-      console.log("imageFilter : ",imageFilter)
   
       return (
         
@@ -992,7 +1021,7 @@ return (
 
 
   return (
-    <View style={globalStyles.container}>
+    <View style={[globalStyles.container, { width:'100%', paddingHorizontal: isLargeScreen ? '10' : '0'  }]}>
       
 {/*}
       {fullscreenImage && (
@@ -1086,7 +1115,7 @@ return (
         
         {(statut === "Corriger"|| statut === "Réagir" ) && (<>
           <TouchableOpacity onPress={() => {setModalVisible(true)}} style={globalStyles.globalButton_wide}>
-      <Text style={globalStyles.globalButtonText}>Réagir</Text>
+      <Text style={globalStyles.globalButtonText}>{statut==='Corriger'? 'Commenter':statut}</Text>
     </TouchableOpacity>
 
 {/*
@@ -1104,6 +1133,80 @@ return (
 
     </>
   )}
+
+{(statut === "Raconter"  ) && (<>
+
+ 
+    <View style={{ flexDirection: isLargeScreen? 'row':'column', justifyContent: 'space-between', margin: 0, flexWrap: 'wrap',zIndex:100}}>
+  
+   <TouchableOpacity onPress={() => {setModalVisible(false),setModalAnswer_oral_Visible(true)}}                   
+            style={{
+              backgroundColor: '#0b2d52',
+              padding: 10,
+              margin: 10,
+              borderRadius: 10,
+              maxWidth: isLargeScreen? windowWidth * 0.17 :windowWidth * 0.8, 
+                  }}
+                  >
+   <Text style={[globalStyles.globalButtonText, {fontSize: 22}]}>Enregistrer un message vocal</Text>
+    </TouchableOpacity>
+
+    <TouchableOpacity onPress={() => {setModalVisible(false),setModalAnswer_written_Visible(true)}}
+                style={{
+                  backgroundColor: '#0b2d52',
+                  padding: 10,
+                  margin: 10,
+                  borderRadius: 10,
+                  maxWidth: isLargeScreen? windowWidth * 0.17 :windowWidth * 0.8, 
+                }}
+                  >
+   <Text style={[globalStyles.globalButtonText, {fontSize: 22}]}>Enregistrer un message écrit</Text>
+    </TouchableOpacity>
+
+    <TouchableOpacity onPress={() => {setModalVisible(false),setModalAnswer_audio_Visible(true)}}           
+            style={{
+                    backgroundColor: '#0b2d52',
+                    padding: 10,
+                    margin: 10,
+                    borderRadius: 10,
+                    maxWidth: isLargeScreen? windowWidth * 0.17 :windowWidth * 0.8, 
+                  }}
+                  >
+   <Text style={[globalStyles.globalButtonText, {fontSize: 22}]}>Envoyer un fichier audio</Text>
+    </TouchableOpacity>
+
+    <TouchableOpacity onPress={() => {setModalVisible(false),setModalAnswer_image_Visible(true)}}           
+            style={{
+              backgroundColor: '#0b2d52',
+              padding: 10,
+              margin: 10,
+              borderRadius: 10,
+              maxWidth: isLargeScreen? windowWidth * 0.17 :windowWidth * 0.8, 
+            }}
+                  >
+   <Text style={[globalStyles.globalButtonText, {fontSize: 22}]}>Envoyer une photo ou document manuscrit</Text>
+    </TouchableOpacity>
+  
+    <TouchableOpacity onPress={() => {setModalVisible(false),setModalAnswer_document_Visible(true)}}           
+            style={{
+              backgroundColor: '#0b2d52',
+              padding: 10,
+              margin: 10,
+              borderRadius: 10,
+              maxWidth: isLargeScreen? windowWidth * 0.17 :windowWidth * 0.8, 
+            }}
+                  >
+   <Text style={[globalStyles.globalButtonText, {fontSize: 22}]}>Envoyer un document dactylographié</Text>
+    </TouchableOpacity>
+  
+
+  </View>      
+ 
+
+
+
+</>)}
+
 
 
 </View>
@@ -1397,10 +1500,10 @@ return (
   </View>
 </Modal>
 
-<Modal isVisible={fullscreenImage}>
+<Modal isVisible={isModalImageVisible}>
     <View style={styles.overlay}>
   <View style={styles.modalContainer}>
-    <TouchableOpacity onPress={() => setFullscreenImage(null)} style={styles.closeButton}>
+    <TouchableOpacity onPress={() => setModalImageVisible(null)} style={styles.closeButton}>
       <Image source={closeIcon} style={styles.closeIcon} />
     </TouchableOpacity>
     
@@ -1414,12 +1517,34 @@ return (
 </Modal>
 
 
+{!showExistingNotes && statut=='Raconter' && (
+  <View style={{ flexDirection: 'row', justifyContent: 'center', marginBottom: 5 }}> 
+<TouchableOpacity onPress={() => setShowExistingNotes(true)} style={styles.filterIcon}>
+  <Image 
+    source= {plusIcon} 
+    style={{ width: 50, height: 50, opacity: 0.5, marginVertical: 30 }} 
+  />
+</TouchableOpacity>
+</View>
+)} 
 
 
-
+{(showExistingNotes || statut!='Raconter') && (
+<>
 <View style={{ flexDirection: 'row', justifyContent: 'center', marginBottom: 5 }}>
 
-{(statut === "Rédiger" || statut === "Corriger"|| statut === "Réagir") && (<>
+
+{(statut === "Raconter" ) && (<>
+<TouchableOpacity onPress={() => setShowExistingNotes(false)} style={styles.filterIcon}>
+  <Image 
+    source= {minusIcon} 
+    style={{ width: 50, height: 50, opacity: 0.5, marginVertical: 30 }} 
+  />
+</TouchableOpacity>
+</>)}
+
+
+{(statut === "Rédiger" ) && (<>
 <TouchableOpacity onPress={() => setShowDetails(!showDetails)} style={styles.filterIcon}>
   <Image 
     source={showDetails ? minusIcon : plusIcon} 
@@ -1427,7 +1552,9 @@ return (
   />
 </TouchableOpacity>
 
-
+</>
+)} 
+{(statut === "Rédiger" || statut === "Corriger"|| statut === "Réagir"|| statut === "Raconter") && (<>
   <TouchableOpacity onPress={() => setShowFilters(!showFilters)} style={styles.filterIcon}>
     <Image source={filterIcon} style={{ width: 50, height: 50, opacity: 0.5, marginVertical : 30 }} />
   </TouchableOpacity>
@@ -1435,8 +1562,9 @@ return (
   <TouchableOpacity onPress={() => setShowSorting(!showSorting)} style={styles.filterIcon}>
     <Image source={sortIcon} style={{ width: 50, height: 50, opacity: 0.5, marginVertical : 30 }} />
   </TouchableOpacity>
-
-
+  </>
+)}
+{(statut === "Rédiger" ) && (<>
 
   <TouchableOpacity onPress={() => { copyAllToClipboard() }}>
      <Image source={copyIcon} style={{ width: 50, height: 50, opacity: 0.5, marginVertical : 30 }} />
@@ -1837,11 +1965,17 @@ return (
 
 {showSorting && (
   <View style={styles.filterContainer}>
-      <TouchableOpacity onPress={() => {{sortAnswerByDate();setSort('date')}}} style={globalStyles.globalButton_wide}>
-      <Text style={globalStyles.globalButtonText}>Trier par date</Text>
+      <TouchableOpacity onPress={() => {{sortAnswerByDate('normal');setSort('date_normal')}}} style={globalStyles.globalButton_wide}>
+      <Text style={globalStyles.globalButtonText}>Trier par date du plus récent au plus ancien</Text>
     </TouchableOpacity>
-    <TouchableOpacity onPress={() => {{sortAnswerNormal();setSort('normal')}}} style={globalStyles.globalButton_wide}>
-      <Text style={globalStyles.globalButtonText}>Trier par ordre </Text>
+    <TouchableOpacity onPress={() => {{sortAnswerByDate('inverse');setSort('date_inverse')}}} style={globalStyles.globalButton_wide}>
+      <Text style={globalStyles.globalButtonText}>Trier par date du plus ancien au plus récent</Text>
+    </TouchableOpacity>
+    <TouchableOpacity onPress={() => {{sortAnswerNormal('normal');setSort('ordre_normal')}}} style={globalStyles.globalButton_wide}>
+      <Text style={globalStyles.globalButtonText}>Trier par ordre défini par les utilisateurs </Text>
+    </TouchableOpacity>
+    <TouchableOpacity onPress={() => {{sortAnswerNormal('inverse');setSort('ordre_inverse')}}} style={globalStyles.globalButton_wide}>
+      <Text style={globalStyles.globalButtonText}>Trier par ordre inverse défini par les utilisateurs </Text>
     </TouchableOpacity>
 
 
@@ -1953,7 +2087,7 @@ return (
                   <>
                   {item.image && (
                     <>
-                    <TouchableOpacity onPress={() => setFullscreenImage(`https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/photos/${item.link_storage}`)}>
+                    <TouchableOpacity onPress={() => {setFullscreenImage(`https://zaqqkwecwflyviqgmzzj.supabase.co/storage/v1/object/public/photos/${item.link_storage}`);setModalImageVisible(true)}}>
             
             
                     <Image 
@@ -2135,7 +2269,7 @@ return (
 />
 
 
-
+</>)}
 
 
 

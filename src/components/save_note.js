@@ -58,7 +58,7 @@ import {
   export const AnswerPanel_written = ({ ID_USER, Id_question, Id_connection,question_reponse,refreshAnswers,id_answer_source }) => {
       const [answer, setAnswer] = useState('');
 
-
+ 
 
 
 
@@ -94,7 +94,7 @@ import {
             rows={4}
           />
           <TouchableOpacity
-            style={[globalStyles.globalButton_wide, { backgroundColor: '#b1b3b5', marginRight: 5 }]}
+            style={[globalStyles.globalButton_wide, {  marginRight: 5 }]}
             onPress={() => handleAnswerSubmit(answer, ID_USER, Id_question, Id_connection,question_reponse,refreshAnswers,id_answer_source)}
           >
             <Text style={globalStyles.globalButtonText}>{question_reponse ==='question'? "Poser la question" : "Enregistrer la note"}</Text>
@@ -626,6 +626,13 @@ import {
     const [showThemeInput, setShowThemeInput] = useState(false);
     const [showModalThemeEdit, setShowModalThemeEdit] = useState(false);
     const [showModalThemeDelete, setShowModalThemeDelete] = useState(false);
+    const themesInspiration = [
+      'Les différents lieux de vie',
+      'Une journée type à 15 ans',
+      'Les meilleurs amis',
+      "Hobbys, passions, et centres d'intérêts",
+      "Histoire d'un lieu ou d'une maison de famille",
+    ];
     const windowWidth = Dimensions.get('window').width;
     const isLargeScreen = windowWidth > 768;
     const [modals, setModals] = useState({
@@ -634,7 +641,6 @@ import {
       isDeleteModalVisible: false,
     });
   
-  
     const handleSaveTheme = async (text) => {
       const temp = await createTheme(text, ID_subject);
       setTheme(temp);
@@ -642,131 +648,214 @@ import {
       if (new_theme) {
         setMerciModalVisible(true);
       } else {
-        closureFunction("Thème ok");
+        closureFunction('Thème ok');
       }
     };
-
-
+  
     useEffect(() => {
       if (theme) {
-        closureFunction("Thème ok");
+        closureFunction('Thème ok');
       } else {
-        closureFunction("Thème not ok");
+        closureFunction('Thème not ok');
       }
-      
-  }, [theme]);
-
+    }, [theme]);
   
     return (
-      <View style={{ flexDirection: 'column', justifyContent: 'space-between', marginBottom: 10 }}>
-        {themes.length > 0 && !new_theme && (
-          <View>
-            <Picker
-              selectedValue={theme?.id || ""}
-              onValueChange={(itemValue) => {
-                const selected = themes.find(theme => theme.id === itemValue);
-                setShowThemeInput(false);
-                setTheme(selected);
-                setThemeText(selected ? selected.theme : "");
+      <View
+        style={{
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          marginBottom: 10,
+        }}
+      >
+        <View
+          style={{
+            padding: 10,
+            marginBottom: 10,
+            width: '90%',
+            alignSelf: 'center',
+          }}
+        >
+          {themes.length > 0 && !new_theme && (
+            <View>
+              <Picker
+                selectedValue={theme?.id || ''}
+                onValueChange={(itemValue) => {
+                  const selected = themes.find((theme) => theme.id === itemValue);
+                  setShowThemeInput(false);
+                  setTheme(selected);
+                  setThemeText(selected ? selected.theme : '');
+                }}
+              >
+                <Picker.Item label="Choisir parmi mes thèmes existants" value="" />
+                {themes.map((theme) => (
+                  <Picker.Item
+                    key={theme.id}
+                    label={theme.theme}
+                    value={theme.id}
+                  />
+                ))}
+              </Picker>
+            </View>
+          )}
+          {themesAllUsers.length > 0 && !new_theme && (
+            <View style={{ marginTop: 10 }}>
+              <Picker
+                selectedValue={theme?.id || ''}
+                onValueChange={(itemValue) => {
+                  const selected = themesAllUsers.find(
+                    (theme) => theme.id === itemValue
+                  );
+                  setShowThemeInput(false);
+                  setTheme(selected);
+                  setThemeText(selected ? selected.theme : '');
+                }}
+              >
+                <Picker.Item
+                  label="Choisir parmi tous les thèmes existants"
+                  value=""
+                />
+                {themesAllUsers.map((theme) => (
+                  <Picker.Item
+                    key={theme.id}
+                    label={theme.theme}
+                    value={theme.id}
+                  />
+                ))}
+              </Picker>
+            </View>
+          )}
+  
+          {!new_theme && (
+            <TouchableOpacity
+              style={{
+                backgroundColor: '#D3D3D3',
+                padding: 10,
+                borderRadius: 5,
+                marginTop: 10,
               }}
+              onPress={() => setShowThemeInput(!showThemeInput)}
             >
-              <Picker.Item label="Choisir parmi mes thèmes existants" value="" />
-              {themes.map((theme) => (
-                <Picker.Item key={theme.id} label={theme.theme} value={theme.id} />
-              ))}
-            </Picker>
-          </View>
-        )}
-        {themesAllUsers.length > 0 && !new_theme && (
-          <View style={{ marginTop: 10 }}>
-            <Picker
-              selectedValue={theme?.id || ""}
-              onValueChange={(itemValue) => {
-                const selected = themesAllUsers.find(theme => theme.id === itemValue);
-                setShowThemeInput(false);
-                setTheme(selected);
-                setThemeText(selected ? selected.theme : "");
-                
-              }}
-            >
-              <Picker.Item label="Choisir parmi tous les thèmes existants" value="" />
-              {themesAllUsers.map((theme) => (
-                <Picker.Item key={theme.id} label={theme.theme} value={theme.id} />
-              ))}
-            </Picker>
-          </View>
-        )}
+              <Text style={{ color: '#000' }}>Définir un nouveau thème</Text>
+            </TouchableOpacity>
+          )}
+  
+          {(showThemeInput || new_theme) && (
+            <View style={{ marginTop: 10 }}>
+              <TextInput
+                style={globalStyles.input}
+                placeholder="Renseigner un nouveau thème"
+                onChangeText={(text) => {
+                  setThemeText(text);
+                  setTheme(null);
+                }}
+                value={themeText}
+                multiline={true}
+                rows={4}
+              />
+            </View>
+          )}
+  
+          {theme ? (
+            !new_theme && (
+              <View style={{ flexDirection: isLargeScreen ? 'row' : 'column' }}>
+                <TouchableOpacity
+                  style={
+                    isLargeScreen
+                      ? globalStyles.globalButton_narrow
+                      : globalStyles.globalButton_wide
+                  }
+                  onPress={() =>
+                    setModals((prevState) => ({
+                      ...prevState,
+                      isDeleteModalVisible: true,
+                    }))
+                  }
+                >
+                  <Text style={globalStyles.globalButtonText}>
+                    Supprimer ce thème
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={
+                    isLargeScreen
+                      ? globalStyles.globalButton_narrow
+                      : globalStyles.globalButton_wide
+                  }
+                  onPress={() => {
+                    setModals((prevState) => ({
+                      ...prevState,
+                      newThemeTitle: theme.theme,
+                    }));
+                    setModals((prevState) => ({
+                      ...prevState,
+                      isEditModalVisible: true,
+                    }));
+                  }}
+                >
+                  <Text style={globalStyles.globalButtonText}>
+                    Modifier le titre de ce thème
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )
+          ) : (
+            themeText && (
+              <TouchableOpacity
+                style={globalStyles.globalButton_wide}
+                onPress={() => handleSaveTheme(themeText)}
+              >
+                <Text style={globalStyles.globalButtonText}>
+                  {!new_theme
+                    ? 'Démarrer ce nouveau thème'
+                    : 'Envoyer votre proposition'}
+                </Text>
+              </TouchableOpacity>
+            )
+          )}
+        </View>
+  
         {themesAllUsers.length > 0 && new_theme && (
           <View style={{ marginTop: 10 }}>
-            <Picker
-              selectedValue={theme?.id || ""}
-            >
-              <Picker.Item label="Pour information, voici tous les thèmes existants" value="" />
+            <Text style={{ marginBottom: 10 }}>
+              Pour information, voici tous les thèmes existants :
+            </Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
               {themesAllUsers.map((theme) => (
-                <Picker.Item key={theme.id} label={theme.theme} value={theme.id} />
+                <View
+                  key={theme.id}
+                  style={{
+                    backgroundColor: `hsl(${Math.random() * 360}, 70%, 90%)`,
+                    padding: 5,
+                    margin: 5,
+                    borderRadius: 10,
+                  }}
+                >
+                  <Text>{theme.theme}</Text>
+                </View>
               ))}
-            </Picker>
-          </View>
-        )}
-  
-        {!new_theme &&  (
-          <TouchableOpacity
-            style={{ backgroundColor: '#D3D3D3', padding: 10, borderRadius: 5, marginTop: 10 }}
-            onPress={() => setShowThemeInput(!showThemeInput)}
-          >
-            <Text style={{ color: '#000' }}>Définir un nouveau thème</Text>
-          </TouchableOpacity>
-        )}
-  
-        {(showThemeInput || new_theme) && (
-          <View style={{ marginTop: 10 }}>
-            <TextInput
-              style={globalStyles.input}
-              placeholder="Renseigner le thème"
-              onChangeText={(text) => {
-                setThemeText(text);
-                setTheme(null);
-              }}
-              value={themeText}
-              multiline={true}
-              rows={4}
-            />
-          </View>
-        )}
-  
-        {theme ? ( 
-          !new_theme && (
-            <View style={{ flexDirection: isLargeScreen ? 'row' : 'column' }}>
-            <TouchableOpacity
-              style={isLargeScreen ?  globalStyles.globalButton_narrow : globalStyles.globalButton_wide}
-              onPress=
-                {() => setModals(prevState => ({ ...prevState, isDeleteModalVisible: true }))}
-              
-            >
-              <Text style={globalStyles.globalButtonText}>Supprimer ce thème</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={isLargeScreen ?  globalStyles.globalButton_narrow : globalStyles.globalButton_wide}
-              onPress={
-                () => {setModals(prevState => ({ ...prevState, newThemeTitle: theme.theme })) ,setModals(prevState => ({ ...prevState, isEditModalVisible: true }))}
-              }
-            >
-              <Text style={globalStyles.globalButtonText}>Modifier le titre de ce thème</Text>
-            </TouchableOpacity>
-
             </View>
-          )
-        ) : (
-          themeText && (
-            <TouchableOpacity
-              style={globalStyles.globalButton_wide}
-              onPress={() => handleSaveTheme(themeText)}
-            >
-              <Text style={globalStyles.globalButtonText}>{!new_theme ? "Démarrer ce nouveau thème" : "Envoyer votre proposition"}</Text>
-            </TouchableOpacity>
-          )
+            <Text style={{ marginBottom: 10, marginTop: 30 }}>
+              Voici par ailleurs de nouvelles idées de thèmes :
+            </Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+              {themesInspiration.map((theme, index) => (
+                <TouchableOpacity
+                  key={index}
+                  onPress={() => setThemeText(theme)}
+                  style={{
+                    backgroundColor: `hsl(${Math.random() * 360}, 70%, 90%)`,
+                    padding: 5,
+                    margin: 5,
+                    borderRadius: 10,
+                  }}
+                >
+                  <Text>{theme}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
         )}
-  
         <Modal
           animationType="slide"
           transparent={true}

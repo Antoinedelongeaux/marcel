@@ -5,11 +5,12 @@ export const globalStyles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'flex-start',
-    //paddingTop: 20,
+    paddingHorizontal: 10,
     backgroundColor: "#E8FFF6",
     alignItems:"stretch",
     //paddingHorizontal: 25,
     //paddingBottom: 10, 
+
   },
 
   container_center: {

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, memo, useMemo } from '
 import { supabase } from '../lib/supabase';
 import { useNavigation } from '@react-navigation/native';
 import { useParams } from 'react-router-dom';
+import { Card, Paragraph } from 'react-native-paper';
 import {
   Image,
   Modal,
@@ -39,6 +40,7 @@ import {
   remember_active_subject,
   getSubjects,
   validate_project_contributors,
+  getTheme_byProject,
 
 } from '../components/data_handling';
 import {
@@ -69,7 +71,14 @@ import trash from '../../assets/icons/baseline_delete_outline_black_24dp.png';
 import linkIcon from '../../assets/icons/link.png';
 import { decode, encode } from 'he';
 import { } from 'he';
-import {  CarrousselOrientation, NavigationPanel
+import {
+  AnswerPanel_written, 
+  AnswerPanel_oral,
+  AnswerPanel_AudioFile,
+  AnswerPanel_imageFile,
+  ThemePanel
+  }  from '../components/save_note';
+import {  CarrousselOrientation, NavigationPanel,CarrousselThemes
 } from '../components/UI_components';
 
 
@@ -198,11 +207,11 @@ function ReadAnswersScreen({ route }) {
   const [filterSelectedQuestion, setFilterSelectedQuestion] = useState('');
   const [editVsView,setEditVsView] = useState('edit');
   const [statut,setStatut] = useState(route.params?.initialStatut || 'Lire');
-  console.log("route.params :",route.params)
-  console.log("route.params?.initialStatut :",route.params?.initialStatut)
   const [changeSubject, setChangeSubject] = useState(false);
   const [subjects, setSubjects] = useState([]);
-
+  const [themesAllUsers, setThemesAllUsers] = useState([]);
+  const [themeText, setThemeText] = useState('');
+  const [theme, setTheme] = useState(null);
 
   const editor = useRef();
 
@@ -211,7 +220,29 @@ function ReadAnswersScreen({ route }) {
 
   useFetchData(miscState.userStatus,session.user.id, subjectActive, setQuestions, tags, personal, setChapters, setMiscState,statut);
 
-  
+  const fetchThemesAllUsers = async () => {
+    if (subjectActive) {
+      await getTheme_byProject(subjectActive).then(setThemesAllUsers);
+    }
+}
+
+useEffect(() => {
+  const fetchData = async () => {
+    await fetchThemesAllUsers();
+  };
+
+  fetchData();
+}, [session.user.id, subjectActive, navigateToScreen]);
+
+useEffect(() => {
+  const fetchData = async () => {
+    await fetchThemesAllUsers();
+  };
+
+  fetchData();
+}, [session.user.id, subjectActive, navigateToScreen]);
+
+
 
   useEffect(() => {
     const fetchUserStatus = async () => {
@@ -254,10 +285,10 @@ function ReadAnswersScreen({ route }) {
 
   useEffect(() => {
     if (statut && statut==='Inspirer') {
-      setVision('notes')
+      setVision('themes')
     } 
     if (statut && statut==='Raconter') {
-      setVision('notes')
+      setVision('contribution')
     } 
     if (statut && statut==='Réagir') {
       setVision('notes')
@@ -285,7 +316,7 @@ function ReadAnswersScreen({ route }) {
       setEditVsView('edit')
     }
 
-    
+    {/*
 
     if(statut && statut ==='Inspirer') {
       async function getToInspirer() {
@@ -296,6 +327,7 @@ function ReadAnswersScreen({ route }) {
       getToInspirer()
 
     }
+    
 
     if(statut && statut ==='Raconter') {
       async function getToRaconter() {
@@ -309,7 +341,7 @@ function ReadAnswersScreen({ route }) {
     
     }
 
-    
+    */}
   }, [statut]);
 
   useEffect(() => {
@@ -396,19 +428,7 @@ function ReadAnswersScreen({ route }) {
     }
   }, [editor]);
 
-  useEffect(() => {
-    if (vision!='table') {
-      setMiscState(prevState => ({
-        ...prevState,
-        rightPanelWidth: prevState.isLargeScreen ? Dimensions.get('window').width - prevState.middlePanelWidth - 10 : Dimensions.get('window').width
-      }));
-    } else {
-      setMiscState(prevState => ({
-        ...prevState,
-        rightPanelWidth: Dimensions.get('window').width - prevState.middlePanelWidth - 550 - 10
-      }));
-    }
-  }, [miscState.middlePanelWidth, vision, statut]);
+  
 
 
   const quillModules = {
@@ -572,6 +592,11 @@ function ReadAnswersScreen({ route }) {
     }
   }, [activeQuestionAnswers, miscState.question, statut]);
 
+  const handleThemeValidation = () => {
+        console.log("A coder !")
+
+
+  }
 
 
 
@@ -615,7 +640,7 @@ function ReadAnswersScreen({ route }) {
 
 
   return (
-    <View style={globalStyles.container}>
+    <View style={[globalStyles.container, { width:'100%', paddingHorizontal: miscState.isLargeScreen ? '10' : '0'  }]}>
         <View>
   <Picker
     selectedValue={subject.id}
@@ -666,10 +691,99 @@ function ReadAnswersScreen({ route }) {
       */}
 
 <CarrousselOrientation isLargeScreen={miscState.isLargeScreen} setStatut={setStatut} statut={statut}/>
+      
       </View>
 
       <View style={miscState.isLargeScreen ? styles.largeScreenContainer : styles.smallScreenContainer}>
-         
+
+
+
+      {vision==='themes' && (
+
+        <View style={styles.fullWidth}>
+            <View style={globalStyles.container_wide}>
+            <Card style={globalStyles.QuestionBubble}>
+              <Card.Content>
+                <Paragraph style={globalStyles.globalButtonText_tag}>Vous pouvez proposer ici des thèmes qui vous intéressent et qui inspireront les contributeurs...</Paragraph>
+              </Card.Content>
+            </Card>
+   
+< ThemePanel  
+      ID_USER={session.user.id}
+      ID_subject={subject.id} 
+      new_theme={true} 
+      themes={themesAllUsers}
+      theme={theme}
+      themeText={themeText}
+      setThemeText={setThemeText}
+      setTheme={setTheme}
+      themesAllUsers={themesAllUsers}  
+      closureFunction={handleThemeValidation}
+      />
+
+
+
+
+            </View>    
+        </View>
+
+
+      )}
+
+{vision==='contribution' && (
+     <View style={styles.fullWidth}>
+   <View style={[globalStyles.container_wide, { width: miscState.isLargeScreen ? '90%' : '100%', paddingHorizontal: miscState.isLargeScreen ? '10' : '0'  }]}>
+
+
+
+     <CarrousselThemes
+        themes={themesAllUsers}
+        isLargeScreen={miscState.isLargeScreen}
+        theme={theme}
+        setTheme={(selectedTheme) => {
+          
+          setTheme(selectedTheme)
+        }}
+      />
+
+        {theme && (
+
+<ScrollView>
+<NoteScreen 
+  route={{ 
+    params: { 
+      session, 
+      miscState:miscState,
+      setMiscState: setMiscState, 
+      filterSelectedQuestion: filterSelectedQuestion, 
+      setFilterSelectedQuestion: setFilterSelectedQuestion, 
+      question_reponse: miscState.question_reponse, 
+      mode: miscState.userStatus?.chapters,
+//              mode: (miscState.userStatus?.notes === 'Contributeur'?  'full':miscState.userStatus?.chapters), 
+      reference: reference, 
+      setReference: setReference, 
+      statut:statut,
+      theme:theme,
+      setTheme:setTheme,
+    } 
+  }} 
+  key={reference} 
+/>
+</ScrollView>
+
+        )}
+
+
+
+
+     </View>    
+ </View>
+
+
+)}
+
+
+
         
         {vision==='table' && statut!='Réagir' && (
           <View style={styles.fullWidth}>
@@ -889,7 +1003,7 @@ function ReadAnswersScreen({ route }) {
           <View style={ styles.fullWidth}>
             
          
-            <View style={globalStyles.container_wide}>
+            <View style={globalStyles.container_wide }>
       
               
              
@@ -981,9 +1095,11 @@ function ReadAnswersScreen({ route }) {
           </View>
         )}
 
-{vision==='notes'&& (
+{vision==='notes' && (
     <View style={[styles.rightPanel, { width:  '100%' }]}>
       <ScrollView>
+
+
         <NoteScreen 
           route={{ 
             params: { 
@@ -998,10 +1114,13 @@ function ReadAnswersScreen({ route }) {
               reference: reference, 
               setReference: setReference, 
               statut:statut,
+              theme:theme,
+              setTheme:setTheme,
             } 
           }} 
           key={reference} 
         />
+     
       </ScrollView>
     </View>
     

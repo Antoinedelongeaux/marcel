@@ -28,7 +28,7 @@ const useFetchData = (id_user, setUserName, subjects, setSubjects, navigateToScr
 };
 
 const OrientationScreen = ({ route }) => {
-  console.log("Orientation")
+
   const windowWidth = Dimensions.get('window').width;
   const isLargeScreen = windowWidth > 768;
   const [animationValues] = useState([...Array(8)].map(() => new Animated.Value(0)));
@@ -161,44 +161,40 @@ const OrientationScreen = ({ route }) => {
 
   // Handlers pour chaque carte
   const handleInspirer = async () => {
-    await validate_project_contributors(subject.id,session.user.id,true,"Contributeur","Pas d'accès")   
-    navigateToScreen('Incipit',{'initialStatut':'Inspirer'});
+    navigateToScreen('Marcel',{'session':session , 'initialStatut':'Inspirer'});
   };
 
   const handleRaconter = async () => {
-    await validate_project_contributors(subject.id,session.user.id,true,"Contributeur","Pas d'accès")   
-    navigateToScreen('Incipit',{'initialStatut':'Raconter'});
+    navigateToScreen('Marcel',{'session':session , 'initialStatut':'Raconter'});
   };
 
   const handleReagir = async () => {
-    await validate_project_contributors(subject.id,session.user.id,true,"Contributeur","Editeur")   
     navigateToScreen('Marcel',{'session':session , 'initialStatut':'Réagir'});
   };
 
   const handleStructurer = async () => {
-    await validate_project_contributors(subject.id,session.user.id,true,"Structurateur","Editeur")   
+
     navigateToScreen('Marcel',{'session':session , 'initialStatut':'Structurer'});
   };
 
 
   const handleRediger = async () => {
-    await validate_project_contributors(subject.id,session.user.id,true,"Exploitant","Editeur")   
+
     navigateToScreen('Marcel',{'session':session , 'initialStatut':'Rédiger'});
   };
 
   const handleCorriger = async () => {
-    await validate_project_contributors(subject.id,session.user.id,true,"Exploitant","Auditeur")   
+
     navigateToScreen('Marcel',{'session':session , 'initialStatut':'Corriger'});
   };
 
 
   const handlePublier = async () => {
-    await validate_project_contributors(subject.id,session.user.id,true,"Publicateur","Lecteur")   
     navigateToScreen('Marcel',{'session':session , 'initialStatut':'Publier'});
   }; 
 
   const handleLire = async () => {
-    await validate_project_contributors(subject.id,session.user.id,true,"Exploitant","Lecteur")   
+
     navigateToScreen('Marcel',{'session':session , 'initialStatut':'Lire'});
   };
 
@@ -301,6 +297,9 @@ const OrientationScreen = ({ route }) => {
 
   return (
     <View style={globalStyles.container} ref={containerRef}>
+
+
+
       {((progressiveMessage_2=="" && !isLargeScreen) || isLargeScreen)&&(
        <Card style={globalStyles.QuestionBubble}>
     <Card.Content>
@@ -317,29 +316,41 @@ const OrientationScreen = ({ route }) => {
       )}
     
       {showChoices_1  && progressiveMessage_2==""&& (
-        <Picker
-        selectedValue={subject?.id || "Sélectionner un projet"}
-        style={styles.picker}
-        onValueChange={(itemValue, itemIndex) => {
-          if (itemValue !== "Sélectionner un projet") {
-            const selectedSubject = subjects.find(subj => subj.content_subject.id === itemValue).content_subject;
-            setSubject(selectedSubject);
-            saveActiveSubjectId(selectedSubject.id)
-              .then(() => {
-                remember_active_subject(selectedSubject.id, session.user.id);
-                handleChoice_2(true);
-              })
-              .catch((error) => {
-                console.error('Error saving active subject ID:', error);
-              });
-          }
-        }}
-      >
-        <Picker.Item label="Choisissez un projet" value="default" />
-        {subjects.map((subj, index) => (
-          <Picker.Item key={index} label={subj.content_subject.title} value={subj.content_subject.id} />
-        ))}
-      </Picker>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginVertical: 10 }}>
+        {subjects.map((subj, index) => {
+          // Génère une couleur pastel aléatoire pour chaque tag
+          const pastelColor = `hsl(${Math.random() * 360}, 70%, 90%)`;
+      
+          return (
+            <TouchableOpacity
+              key={index}
+              onPress={() => {
+                const selectedSubject = subj.content_subject;
+                setSubject(selectedSubject);
+                saveActiveSubjectId(selectedSubject.id)
+                  .then(() => {
+                    remember_active_subject(selectedSubject.id, session.user.id);
+                    handleChoice_2(true);
+                  })
+                  .catch((error) => {
+                    console.error('Error saving active subject ID:', error);
+                  });
+              }}
+              style={{
+                backgroundColor: pastelColor,
+                padding: 10,
+                margin: 5,
+                borderRadius: 20,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Text style={{ color: '#333', fontSize: 20 }}>{subj.content_subject.title}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+      
       
       
       )}
@@ -389,7 +400,9 @@ const OrientationScreen = ({ route }) => {
     </>
     )}
 
+
 </View>
+
   );
 };
 

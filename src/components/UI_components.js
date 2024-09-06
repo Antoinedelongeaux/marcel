@@ -457,11 +457,23 @@ export const CarrousselThemes = ({ themes,theme, isLargeScreen, setTheme }) => {
 
   const renderItem = ({ item }) => (
     <TouchableOpacity 
-      onPress={() => { console.log("Theme : ", item); setTheme(item); }} 
-      style={styles.carouselItem}>
-      <Text style={styles.carouselText}>{item.theme}</Text>
+      onPress={() => { setTheme(item); }} 
+      style={[
+        styles.carouselItem,
+        { backgroundColor: generatePastelColor() }, // Applique une couleur de fond pastel aléatoire
+      ]}
+      
+      
+      >
+      <Text style={styles.carouselThemeText}>{item.theme}</Text>
     </TouchableOpacity>
   );
+
+    // Fonction pour générer une couleur pastel aléatoire
+    const generatePastelColor = () => {
+      const hue = Math.floor(Math.random() * 360); // Génère une teinte aléatoire
+      return `hsl(${hue}, 70%, 90%)`; // Utilise la teinte pour créer une couleur pastel
+    };
 
   // Fonction pour faire défiler vers la gauche
   const scrollLeft = () => {
@@ -571,8 +583,8 @@ export const CarrousselOrientation = ({ isLargeScreen, setStatut, statut }) => {
         styles.gridItem,
         { 
           backgroundColor: colors[index % colors.length], 
-          opacity: currentIndex === index ? 1 : 0.5,
-          transform: currentIndex === index ? [{ scale: 1.13 }] : [{ scale: 0.95 }],
+          opacity: currentIndex === index ? 1 : 1,
+          transform: currentIndex === index ? [{ scaleX: 1.1 }, { scaleY: 1.25 }] : [{ scaleX: 0.95 }, { scaleY: 0.95 }],
           height: ITEM_HEIGHT // Ajoutez cette ligne
         }
       ]}
@@ -596,7 +608,7 @@ export const CarrousselOrientation = ({ isLargeScreen, setStatut, statut }) => {
           onMouseEnter={() => setIsHoveredSettings(true)}
           onMouseLeave={() => setIsHoveredSettings(false)}
         >
-          <Image source={settingsIcon} style={{  alignSelf:'flex-end', width: SLIDER_HEIGHT*1.5, height: SLIDER_HEIGHT*1.5, opacity: 0.5 }} />
+          <Image source={settingsIcon} style={{  alignSelf:'flex-end', width: SLIDER_HEIGHT*1.5, height: SLIDER_HEIGHT*1.5, opacity: 0.8 }} />
         </TouchableOpacity>
       );
     } else if (item.type === 'logout') {
@@ -610,7 +622,7 @@ export const CarrousselOrientation = ({ isLargeScreen, setStatut, statut }) => {
           onMouseLeave={() => setIsHoveredExit(false)}
             // Dans renderItem, ajoutez également la hauteur dans les styles de `TouchableOpacity` :
         >
-          <Image source={exitIcon} style={{  alignSelf: 'flex-start', width: SLIDER_HEIGHT*1.5, height: SLIDER_HEIGHT*1.5, opacity: 0.5 }} />
+          <Image source={exitIcon} style={{  alignSelf: 'flex-start', width: SLIDER_HEIGHT*1.5, height: SLIDER_HEIGHT*1.5, opacity: 0.8 }} />
         </TouchableOpacity>
       );
     } else {
@@ -650,7 +662,7 @@ export const CarrousselOrientation = ({ isLargeScreen, setStatut, statut }) => {
             onMouseEnter={() => setIsHoveredSettings(true)}
             onMouseLeave={() => setIsHoveredSettings(false)}
           >
-            <Image source={settingsIcon} style={{ alignSelf:'flex-end', width: ITEM_HEIGHT, height: ITEM_HEIGHT, opacity: 0.5 }} />
+            <Image source={settingsIcon} style={{ alignSelf:'flex-end', width: ITEM_HEIGHT, height: ITEM_HEIGHT, opacity: 0.8 }} />
           </TouchableOpacity>
 
           {titles.map((title, index) => renderGridItem({ item: title, index }))}
@@ -661,7 +673,7 @@ export const CarrousselOrientation = ({ isLargeScreen, setStatut, statut }) => {
             onMouseEnter={() => setIsHoveredExit(true)}
             onMouseLeave={() => setIsHoveredExit(false)}
           >
-            <Image source={exitIcon} style={{ alignSelf:'flex-start', width: ITEM_HEIGHT, height: ITEM_HEIGHT, opacity: 0.5 }} />
+            <Image source={exitIcon} style={{ alignSelf:'flex-start', width: ITEM_HEIGHT, height: ITEM_HEIGHT, opacity: 0.8 }} />
           </TouchableOpacity>
         </>
       ) : (
@@ -679,7 +691,14 @@ export const CarrousselOrientation = ({ isLargeScreen, setStatut, statut }) => {
   loop={false}
   decelerationRate={0.9}
   useScrollView={true}
-  onSnapToItem={(index) => setCurrentIndex(index)}
+  onSnapToItem={(index) => {
+  if (currentIndex !== index) {
+    setCurrentIndex(index);
+  }
+}}
+firstItem={Math.min(currentIndex, carouselData.length - 1)}
+
+
 />
 
         </View>
@@ -817,8 +836,12 @@ const styles = StyleSheet.create({
   carouselText: {
     fontSize: 18,
     fontWeight:'bold',
-    color: '#fff',
     color: '#fff', // Texte en blanc gras
+  },
+  carouselThemeText: {
+    fontSize: 24,
+    fontWeight:'bold',
+    color: 'black', // Texte en blanc gras
   },
   arrowButtonLeft: {
     padding: 20,  // Augmente la surface cliquable

@@ -188,7 +188,6 @@ export async function getMemories_Question_by_id(id_question,setQuestion, setAns
 export async function getMemories_Questions(subject_active, setQuestions, tags, personal) {
   try {
 
-    console.log("Gloups !")
     setQuestions([])
     const orCondition = tags.length > 0 ? tags.map(tag => `tags.cs.{"${tag}"}`).join(',') : 'true';
     
@@ -240,7 +239,6 @@ export async function getMemories_Questions(subject_active, setQuestions, tags, 
       };
     }));
 
-    console.log("Question bis : ",questionsWithDetails)
     setQuestions(questionsWithDetails);
   } catch (error) {
     Alert.alert("Error", error.message);
@@ -840,7 +838,7 @@ export async function getSubjects(id_user) {
 
   try {
 
-    console.log("id_user : ",id_user)
+
     const { data: list_subjects, error } = await supabase
       .from('Memoires_contributors')
       .select('*')
@@ -863,7 +861,7 @@ export async function getSubjects(id_user) {
       return { ...element, content_subject: content_subject[0] };
     }));
    
-    console.log("subjectsWithContent : ",subjectsWithContent)
+
     return subjectsWithContent;
   } catch (error) {
     console.error("Error in getSubject:", error.message);
