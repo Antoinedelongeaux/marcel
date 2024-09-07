@@ -102,9 +102,10 @@ const OrientationScreen = ({ route }) => {
   useEffect(() => {
     if (projectsCount === 1) {
       const fetchSubject = async () => {
-        const temp = await getActiveSubjectId();
-        if (temp !== subject?.id) {
-          const newSubject = await getSubject(temp);
+        const subjects = await getSubjects(session.user.id);
+        const temp = await saveActiveSubjectId(subjects[0].id_subject);
+        if (subjects[0].id !== subject?.id) {
+          const newSubject = await getSubject(subjects[0].id_subject);
           setSubject(newSubject);
         }
       };

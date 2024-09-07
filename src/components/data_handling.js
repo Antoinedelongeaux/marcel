@@ -401,6 +401,7 @@ export const delete_audio = async (name) => {
 export async function deleteMemories_Answer(answerToDelete) {
 
   try {
+
     // Effectuer la requête de suppression sur la table 'Memoires_answers'
     if (answerToDelete.audio) {
       try {
@@ -865,7 +866,6 @@ export async function getSubjects(id_user) {
       return { ...element, content_subject: content_subject[0] };
     }));
    
-
     return subjectsWithContent;
   } catch (error) {
     console.error("Error in getSubject:", error.message);

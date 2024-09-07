@@ -101,7 +101,7 @@ function AppNavigator({ session }) {
 
   
  
-  if (loading && session && (session.user || countSubjects===-1) ){
+  if (loading && session && (session.user || subjectCount===-1) ){
 
     return (
       <View >
@@ -114,7 +114,7 @@ function AppNavigator({ session }) {
 
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName={activeSubjectId==='blue' ?  "Projets":"Orientation"}>
+    <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName={subjectCount===0 ?  "Projets":"Orientation"}>
 
 
       {check.nature==='question' ? (
@@ -126,10 +126,10 @@ function AppNavigator({ session }) {
 <>
       {session && session.user ? (
         <>
-        {countSubjects===0?  (<> 
+        {subjectCount===0?  (<> 
           
           <Stack.Screen name="Projets" component={ManageBiographyScreen} initialParams={{ session }} />
-          <Stack.Screen name="ProfileScreen" component={ProfileScreen} initialParams={{ session }} />
+          <Stack.Screen name="Profil" component={ProfileScreen} initialParams={{ session }} />
      
           
           </>) :(<> 
@@ -139,7 +139,7 @@ function AppNavigator({ session }) {
           <Stack.Screen name="Account" component={Account} initialParams={{ session }} />
           <Stack.Screen name="Incipit" component={ReadNotesScreen} initialParams={{ session }} />  
           <Stack.Screen name="Notes" component={NoteScreen} initialParams={{ session }} />
-          <Stack.Screen name="ProfileScreen" component={ProfileScreen} initialParams={{ session }} />
+          <Stack.Screen name="Profil" component={ProfileScreen} initialParams={{ session }} />
           <Stack.Screen name="Projets" component={ManageBiographyScreen} initialParams={{ session }} />
           <Stack.Screen name="AskQuestionScreen" component={AskQuestionScreen} initialParams={{ session }} />
           <Stack.Screen name="EditChapterScreen" component={EditChapterScreen} initialParams={{ session }} />

@@ -170,6 +170,8 @@ function NoteScreen({ route }) {
   const [isModalAnswer_document_Visible, setModalAnswer_document_Visible] = useState(false); 
   const [isModalQuestion_Visible, setModalQuestion_Visible] = useState(false); 
   const [isModalImageVisible, setModalImageVisible] = useState(false); 
+  const [isDeleteModalVisible, setDeleteModalVisible] = useState(false); 
+  
 const [isRecording, setIsRecording] = useState(false); // Ajoutez cette ligne dans les états
 const [recording, setRecording] = useState(); // Ajoutez cette ligne dans les états
 const [note, setNote] = useState(''); // Ajoutez cette ligne dans les états
@@ -200,6 +202,7 @@ const [questionReponseFilter, setQuestionReponseFilter] = useState('');  // Ajou
 const [answerAndQuestion, setAnswerAndQuestion] = useState(question_reponse);
 const [transcribingId, setTranscribingId] = useState(null);
 const [isAssignModalVisible, setIsAssignModalVisible] = useState(false);
+const [selectedAnswer, setSelectedAnswer] = useState(null);
 const [selectedAnswerId, setSelectedAnswerId] = useState(null);
 const [selectedAnswerId_toAttribuate, setSelectedAnswerId_toAttribuate] = useState(null);
 const [selectedUserId, setSelectedUserId] = useState(null);
@@ -502,7 +505,7 @@ if(session.user){
     try {
       const result = await deleteMemories_Answer(answerToDelete);
       if (result.success) {
-        const updatedAnswers = answers.filter(ans => ans.id !== answerToDelete.id);
+        const updatedAnswers = answers.filter(ans => ans.id !== answerToDelete);
         setAnswers(updatedAnswers);
         Alert.alert("Réponse supprimée");
       } else {
@@ -511,6 +514,7 @@ if(session.user){
     } catch (error) {
       Alert.alert("Erreur", error.message);
     }
+    refreshAnswers()
   };
 
  // Créer une liste d'IDs de questions pour le chapitre sélectionné
@@ -644,6 +648,7 @@ return (
     <CheckBox
             value={true}
             onValueChange={() => {
+              setSelectedAnswer(null)
              setSelectedAnswerId(null) 
             }}
           />
@@ -2003,6 +2008,7 @@ return (
     selectedAnswerId && selectedAnswerId===item.id_answer_source && styles.connectedAnswerCard,
   ]}
   onLongPress={() => {
+    setSelectedAnswer(item)
     setSelectedAnswerId(item.id)
     setDraggedAnswer(item);
     drag();
@@ -2029,7 +2035,7 @@ return (
         )}
         */}
           <View style={{ flex: 1 }}>
-            {showDetails && (
+            {(showDetails || selectedAnswerId===item.id) && (
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20}}>
                 
 
@@ -2120,6 +2126,7 @@ return (
 
 <TouchableOpacity
    onPress={() => {
+    setSelectedAnswer(item)
      setSelectedAnswerId(item.id);
      setModalVisible(true);
    }}
@@ -2216,7 +2223,7 @@ return (
 
    
 
-   <TouchableOpacity onPress={() => handleDeleteAnswer(item)}>
+   <TouchableOpacity onPress={() => setDeleteModalVisible(true)}>
      <Image source={trash} style={{ width: 36, height: 36, opacity: 0.5, marginLeft: 15 }} />
      {isLargeScreen && <Text>Supprimer</Text>}
    </TouchableOpacity>
@@ -2225,7 +2232,7 @@ return (
               
             )}
 
-{!showDetails && (
+{(!showDetails && selectedAnswerId!=item.id) && (
 <Text></Text>
 )}
 
@@ -2234,7 +2241,7 @@ return (
               {userNames[item.id_user]}
             </Text>
             </View>
-            {item.audio && showDetails && (
+            {item.audio && (showDetails || selectedAnswerId===item.id) && (
      
        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
   <TouchableOpacity onPress={() => handlePlayPause(item.id, item.link_storage,currentAudioId,setCurrentAudioId,playbackStatus,setPlaybackStatus)}>
@@ -2272,6 +2279,27 @@ return (
 </>)}
 
 
+
+
+
+<Modal isVisible={isDeleteModalVisible}>
+<View style={styles.overlay}>
+  <View style={styles.modalContainer}>
+    <TouchableOpacity onPress={() => setDeleteModalVisible(false)} style={styles.closeButton}>
+      <Image source={closeIcon} style={styles.closeIcon} />
+    </TouchableOpacity>
+    <Text style={styles.modalTitle}>Êtes-vous sûr de vouloir supprimer cette note ? Cette action est irréversible.</Text>
+
+    <TouchableOpacity onPress={async () =>{
+      await handleDeleteAnswer(selectedAnswer);
+
+    setDeleteModalVisible(false);
+  }} style={globalStyles.globalButton_wide}>
+      <Text style={globalStyles.globalButtonText}>Supprimer</Text>
+    </TouchableOpacity>
+  </View>
+  </View>
+</Modal>
 
 <Modal isVisible={isAssignModalVisible}>
 <View style={styles.overlay}>

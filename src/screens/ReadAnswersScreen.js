@@ -225,7 +225,6 @@ function ReadAnswersScreen({ route }) {
 
   const fetchThemesAllUsers = async () => {
     if (subjectActive) {
-      console.log("on a fetch !");
       const themes = await getTheme_byProject(subjectActive); // Attendre que la fonction asynchrone soit terminée
       setThemesAllUsers(themes); // Mettre à jour l'état avec les thèmes récupérés
       return themes; // Retourner les thèmes pour l'utiliser après
@@ -294,9 +293,9 @@ useEffect(() => {
     } 
     if (statut && statut === 'Raconter') {
       const themes = await fetchThemesAllUsers(); // Attendre que fetchThemesAllUsers soit terminé
-      console.log('themesAllUsers : ', themes);
+
       if (themes.length === 0) {
-        setTextBlockage("Vous devez définir au moins un thème (via l'onglet 'Inspirer') avant de nous en parler.");
+        setTextBlockage("Vous devez définir au moins un thème (via l'onglet 'Inspirer') avant d'en parler.");
         setIsBlocage(true);
       } else {
         setIsBlocage(false);
@@ -320,7 +319,7 @@ useEffect(() => {
     } 
     if (statut && statut==='Rédiger') {
       if(questions.length===0) {
-        setTextBlockage("Vous devez définir au moins un chapitre (via l'onglet 'Structurer') avant de moi le rédiger.")
+        setTextBlockage("Vous devez définir au moins un chapitre (via l'onglet 'Structurer') avant de le rédiger.")
         setIsBlocage(true)
       }else {
         setIsBlocage(false)
@@ -652,7 +651,7 @@ useEffect(() => {
   }, [activeQuestionAnswers, miscState.question, statut]);
 
   const handleThemeValidation = () => {
-        console.log("A coder !")
+
 
 
   }

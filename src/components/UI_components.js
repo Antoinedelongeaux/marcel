@@ -747,7 +747,7 @@ export const Blocage = ({  textBlocage }) => {
     return (
       <View style={{ alignItems: 'center', justifyContent: 'center', }}> 
       <Text> </Text>
-      <Text>{textBlocage }</Text>
+      <Text style={globalStyles.title}>{textBlocage }</Text>
       
       </View>
 

@@ -33,7 +33,7 @@ import { Dimensions } from 'react-native';
 
 
 
-export default function ProfileScreen({ route }) {
+export default function ProjectScreen({ route }) {
     const session = route.params.session
     const [loading, setLoading] = useState(true)
     const [username, setUsername] = useState('')
@@ -45,9 +45,12 @@ export default function ProfileScreen({ route }) {
 
 
     const [subjects_pending, setSubjects_pending] = useState([]);
-    const [subject_active, setSubject_active] = useState({ id: 0 });
+    const [subject_active, setSubject_active] = useState();
     const [vision, setVision] = useState('Biographies');
     const [showProjects, setShowProjects] = useState(false);
+    const [showPendingProject, setShowPendingProject] = useState(false);
+
+    
     const [showNewProject, setShowNewProject] = useState(false);
     const [searchName, setSearchName] = useState('');
     const [newName, setNewName] = useState('');
@@ -144,6 +147,7 @@ const copyLinkToClipboard = (text) => {
                 const temp_bis = await getSubjects_pending(session.user.id);
                 setSubjects_active(temp);
                 setSubjects_pending(temp_bis);
+                console.log("Subjects_pending : ",temp_bis)
 
                 
 
@@ -305,8 +309,8 @@ const copyLinkToClipboard = (text) => {
     }
 
     const sortedSubjectsActive = subjects_active.sort((a, b) => {
-        if (a.content_subject.id === subject_active.id) return -1;
-        if (b.content_subject.id === subject_active.id) return 1;
+        if (a.content_subject.id === subject_active?.id) return -1;
+        if (b.content_subject.id === subject_active?.id) return 1;
         return 0;
     });
 
@@ -317,14 +321,17 @@ const copyLinkToClipboard = (text) => {
         <View style={globalStyles.container}>
             <View style={[globalStyles.navigationContainer, { position: 'fixed', bottom: '0%', alignSelf: 'center' }]}>
 
+            {subject_active && (
                 <TouchableOpacity
   onPress={() => { navigateToScreen('Orientation') }}
   style={[globalStyles.navButton, isHovered && globalStyles.navButton_over]}
   onMouseEnter={() => setIsHovered(true)}
   onMouseLeave={() => setIsHovered(false)}
 >
+
   <Image source={BookIcon} style={{ width: 120, height: 120, opacity: 0.5 }} />
 </TouchableOpacity>
+)}
                 {/* 
                 <TouchableOpacity onPress={() => navigateToScreen('NoteScreen')} style={styles.navButton}>
                     <Image source={note} style={{ width: 60, height: 60, opacity: 0.5 }} />
@@ -336,7 +343,7 @@ const copyLinkToClipboard = (text) => {
 
 
                 <TouchableOpacity 
-                    onPress={() => navigateToScreen('ProfileScreen')} 
+                    onPress={() => navigateToScreen('Profil')} 
                     style={[globalStyles.navButton, isHoveredPerson && globalStyles.navButton_over]}
                     onMouseEnter={() => setIsHoveredPerson(true)}
                     onMouseLeave={() => setIsHoveredPerson(false)}
@@ -370,6 +377,10 @@ const copyLinkToClipboard = (text) => {
                 </View>
             </Modal>
 
+
+            <Text></Text>
+            <Text style={globalStyles.title}>Vos projets</Text>
+            <Text></Text>
     
             {/* Première partie */}
             {subject_active && subject_active.title && (
@@ -497,7 +508,9 @@ const copyLinkToClipboard = (text) => {
 
     </View>)}
             {/* Deuxième partie */}
-            {subjects_active.length > 0 && (
+        
+        
+    {subjects_active.length > 0 && (
                 <View>
 
                     <TouchableOpacity
@@ -512,7 +525,6 @@ const copyLinkToClipboard = (text) => {
                 </View>
             )}
     
-            
     
             {showChangeProject && (
                 <>
@@ -524,18 +536,18 @@ const copyLinkToClipboard = (text) => {
                 key={subject.content_subject.id}
                 style={[
                     globalStyles.globalButton_tag,
-                    subject_active.id === subject.content_subject.id ? styles.SelectedTag : styles.unSelectedTag
+                    subject_active?.id === subject.content_subject.id ? styles.SelectedTag : styles.unSelectedTag
                 ]}
                 onPress={() => handleJoinSubject(subject.content_subject.id)}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                     <Text style={[
                         globalStyles.buttonText,
-                        subject_active.id === subject.content_subject.id ? globalStyles.globalButtonText_active : globalStyles.buttonText,
-                        { textAlign: 'left', flex: 1, fontWeight: subject_active.id === subject.content_subject.id ? 'bold' : 'normal' }
+                        subject_active?.id === subject.content_subject.id ? globalStyles.globalButtonText_active : globalStyles.buttonText,
+                        { textAlign: 'left', flex: 1, fontWeight: subject_active?.id === subject.content_subject.id ? 'bold' : 'normal' }
                     ]}>
                         {subject.content_subject.title}
                     </Text>
-                    {subject_active.id === subject.content_subject.id && (
+                    {subject_active?.id === subject.content_subject.id && (
                         <Text style={[
                             globalStyles.buttonText,
                             { textAlign: 'right', fontWeight: 'bold' }
@@ -547,12 +559,42 @@ const copyLinkToClipboard = (text) => {
             </TouchableOpacity>
         ))}
 
-        {subjects_pending.map((subject) => (
+ 
+    
+                        </View>
+                    ) : (
+                        <Text>Vous ne contribuez à aucun projet actuellement.</Text>
+                    )}
+                </>
+            )}
+    
+
+
+    {subjects_pending.length > 0 && (
+                <View>
+
+                    <TouchableOpacity
+                        style={showChangeProject ? globalStyles.globalButton_active : globalStyles.globalButton_wide}
+                        onPress={() => {
+                            setShowContributors(false);
+                            setShowPendingProject(!showPendingProject);
+                        }}
+                    >
+                        <Text style={globalStyles.globalButtonText}>Mes projet en cours de validation </Text>
+                    </TouchableOpacity>
+                </View>
+            )}
+
+
+{showPendingProject && (
+                <>
+
+{subjects_pending.map((subject) => (
             <TouchableOpacity
                 key={subject.content_subject.id}
                 style={[
                     globalStyles.globalButton_tag,
-                    subject_active.id === subject.content_subject.id ? styles.SelectedTag : styles.unSelectedTag
+                    styles.unSelectedTag
                 ]}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                     <Text style={[
@@ -570,14 +612,10 @@ const copyLinkToClipboard = (text) => {
                 </View>
             </TouchableOpacity>
         ))}
-    
-                        </View>
-                    ) : (
-                        <Text>Vous ne contribuez à aucun projet actuellement.</Text>
-                    )}
-                </>
-            )}
-    
+
+</>)}
+
+
             {/* Troisième partie */}
             <View>
 

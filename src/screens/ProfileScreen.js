@@ -21,8 +21,6 @@ export default function ProfileScreen({ route }) {
     const [full_name, setFull_name] = useState('')
     const [isHovered1, setIsHovered1] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
-
-    const [subject_active, setSubject_active] = useState(null);
     
     const navigateToScreen = (screenName, params) => {
         navigation.navigate(screenName, params);
@@ -30,12 +28,6 @@ export default function ProfileScreen({ route }) {
 
   
 
-
-    useEffect(() => {
-
-        saveActiveSubjectId(subject_active);
-
-    }, [subject_active]);
 
 
   
@@ -56,10 +48,6 @@ export default function ProfileScreen({ route }) {
 
 
 
-
-
-
-
     async function getProfile() {
         try {
             setLoading(true)
@@ -74,11 +62,9 @@ export default function ProfileScreen({ route }) {
                 throw error
             }
 
-            if (data) {
-                setUsername(data.username)
-                setFull_name(data.full_name)
-                setSubject_active(data.active_biography)
-            }
+            setUsername(data.username)
+            setFull_name(data.full_name)
+           
         } catch (error) {
             if (error instanceof Error) {
                 Alert.alert(error.message)
@@ -125,6 +111,8 @@ export default function ProfileScreen({ route }) {
     return (
         <View style={globalStyles.container}>
             <View style={[globalStyles.navigationContainer, { position: 'fixed', bottom: '0%', width: '100%' }]}>
+
+                {/* 
                 <TouchableOpacity onPress={() => navigateToScreen('Orientation')} 
                     style={[globalStyles.navButton, isHovered1 && globalStyles.navButton_over]}
                     onMouseEnter={() => setIsHovered1(true)}
@@ -132,7 +120,7 @@ export default function ProfileScreen({ route }) {
 
                     <Image source={BookIcon} style={{ width: 120, height: 120, opacity: 0.5 }} />
                 </TouchableOpacity>
-     
+     */}
                 
                 <TouchableOpacity onPress={() => navigateToScreen('Projets')}  style={[globalStyles.navButton, isHovered && globalStyles.navButton_over]}
   onMouseEnter={() => setIsHovered(true)}
