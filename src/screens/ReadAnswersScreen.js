@@ -42,6 +42,7 @@ import {
   validate_project_contributors,
   getTheme_byProject,
 
+
 } from '../components/data_handling';
 import {
   ToggleButton
@@ -122,8 +123,9 @@ const useFetchData = (userStatus, id_user, subjectActive, setQuestions, tags, pe
       previousValues.current = { userStatus, id_user, subjectActive, tags, personal };
 
       // Exécute le code de récupération des données
-      if (subjectActive && userStatus) {
+      if (subjectActive) {
         if (statut==='Lire') { 
+          console.log("Coco les jeunes ! ")
           getMemories_Questions_Published(subjectActive, setQuestions, tags, personal);
         } else {
           getMemories_Questions(subjectActive, setQuestions, tags, personal);
@@ -135,7 +137,7 @@ const useFetchData = (userStatus, id_user, subjectActive, setQuestions, tags, pe
         );
       }
     }
-  }, [userStatus]); // Toujours surveiller ces valeurs
+  }, [userStatus,statut]); // Toujours surveiller ces valeurs
 };
 
 
@@ -218,6 +220,9 @@ function ReadAnswersScreen({ route }) {
 
   const editor = useRef();
 
+
+
+
   useFetchActiveSubjectId(setSubjectActive, setSubject, setMiscState, navigation);
   
 
@@ -287,6 +292,7 @@ useEffect(() => {
 
 
   const actOnStatut = async () => {
+
     if (statut && statut==='Inspirer') {
       setIsBlocage(false)
       setVision('themes')
@@ -345,6 +351,9 @@ useEffect(() => {
       setVision('table')
     } 
     if (statut && statut === 'Lire') {
+
+
+      console.log("questions : ",questions)
       const hasPrivatePublishedQuestion = questions.some(question => question.published_private=== true);
     
       if (questions.length === 0 || !hasPrivatePublishedQuestion) {
@@ -400,7 +409,7 @@ useEffect(() => {
 
   useEffect(() => {
     actOnStatut()
-  }, [statut,subjectActive]);
+  }, [statut,subjectActive,questions]);
 
   useEffect(() => {
     if (miscState.userStatus && miscState.userStatus === "non trouvé") {
@@ -553,12 +562,10 @@ useEffect(() => {
 
   const refreshPage = async () => {
     if (subjectActive) {
-      if(statut==='Lire') { 
-        await getMemories_Questions_published(subjectActive, setQuestions, tags, personal);
-      }else {
+      
      
-        await getMemories_Questions(subjectActive, setQuestions, tags, personal);
-    }
+      await getMemories_Questions(subjectActive, setQuestions, tags, personal);
+    
       await get_chapters(subjectActive, setChapters);
     } else {
       Alert.alert('Erreur', 'Aucun sujet actif sélectionné. Veuillez sélectionner un sujet pour rafraîchir les données.');

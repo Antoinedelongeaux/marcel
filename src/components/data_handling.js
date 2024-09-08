@@ -294,7 +294,7 @@ export async function getMemories_Questions_Published(subject_active, setQuestio
       };
     }));
 
-
+    console.log("questionsWithDetails :",questionsWithDetails)
     setQuestions(questionsWithDetails);
   } catch (error) {
     Alert.alert("Error", error.message);
