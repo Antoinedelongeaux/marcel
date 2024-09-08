@@ -215,46 +215,40 @@ const copyLinkToClipboard = (text) => {
         if (subject_active) {
             try {
                 const result = await get_project_contributors(subject_active.id);
+                console.log("Contributors : ", result);
                 if (result.error) {
                     throw result.error;
                 }
+    
+                // Correction de l'initialisation des états des contributeurs
                 const initialStates = result.reduce((acc, contributor) => {
                     acc[contributor.id_user] = {
                         access: contributor.access === true,
-                        notes: contributor.notes || 'Pas d\'accès',
-                        chapters: contributor.chapters || 'Pas d\'accès',
+                        Inspirer: contributor.Inspirer === true,
+                        Raconter: contributor.Raconter === true,
+                        Reagir: contributor.Reagir === true,
+                        Structurer: contributor.Structurer === true,
+                        Rédiger: contributor["Rédiger"] === true, // Notez que "Rédiger" a un accent
+                        Relire: contributor.Relire === true,
+                        Publier: contributor.Publier === true,
+                        Lire: contributor.Lire === true,
+                        notes: contributor.notes,
+                        chapters: contributor.chapters,
                     };
                     return acc;
                 }, {});
-               
+    
                 setContributors(result);
                 setContributorStates(initialStates);
+                console.log("initialStates : ", initialStates);
             } catch (error) {
                 console.error("Error fetching project contributors:", error);
             }
         }
     };
-    
 
 
-    const toggleAuthorization = async (contributor) => {
-        const state = contributorStates[contributor.id_user];
-        try {
    
-            await validate_project_contributors(
-                subject_active.id,
-                contributor.id_user,
-                state.access,  // Utilise la valeur booléenne
-                state.notes,
-                state.chapters
-            );
-            await fetchContributors();
-        } catch (error) {
-            console.error("Erreur lors de la mise à jour de l'autorisation:", error);
-            Alert.alert("Erreur", "Impossible de mettre à jour l'autorisation du contributeur.");
-        }
-    };
-    
     
     
 
@@ -321,7 +315,7 @@ const copyLinkToClipboard = (text) => {
         <View style={globalStyles.container}>
             <View style={[globalStyles.navigationContainer, { position: 'fixed', bottom: '0%', alignSelf: 'center' }]}>
 
-            {subject_active && (
+            {subjects.lenth!=0 && (
                 <TouchableOpacity
   onPress={() => { navigateToScreen('Orientation') }}
   style={[globalStyles.navButton, isHovered && globalStyles.navButton_over]}
@@ -405,21 +399,30 @@ const copyLinkToClipboard = (text) => {
                         <View style={styles.headerRow}>
                             <Text style={styles.headerText}>Utilisateur</Text>
                             <Text style={styles.headerText}>Accès au projet</Text>
+                            <Text style={styles.headerText}>Inspirer</Text>
+                            <Text style={styles.headerText}>Raconter</Text>
+                            <Text style={styles.headerText}>Réagir</Text>
+                            <Text style={styles.headerText}>Structurer</Text>
+                            <Text style={styles.headerText}>Rédiger</Text>
+                            <Text style={styles.headerText}>Relire</Text>
+                            <Text style={styles.headerText}>Publier</Text>
+                            <Text style={styles.headerText}>Lire</Text>
+                          
                          
                         </View>
                     )}
                     {contributors.map((contributor) => (
     <View key={contributor.id_user} style={isLargeScreen ? styles.contributorRow : styles.contributorColumn}>
-        <Text style={styles.contributorText}>{contributor.name}</Text>
-        {!isLargeScreen && <Text style={styles.labelText}>Accès :</Text>}
-        <Picker
+<Text style={styles.contributorText}>{contributor.name}</Text>
+{!isLargeScreen && <Text style={styles.labelText}>Accès :</Text>}
+<Picker
     selectedValue={contributorStates[contributor.id_user]?.access ? 'Oui' : 'Non'}
     onValueChange={async (itemValue) => {
         const newState = {
             ...contributorStates,
             [contributor.id_user]: {
                 ...contributorStates[contributor.id_user],
-                access: itemValue === 'Oui'
+                access: itemValue === 'Oui' // Corrigé pour correspondre à la sélection 'Oui'
             }
         };
         setContributorStates(newState);
@@ -427,20 +430,278 @@ const copyLinkToClipboard = (text) => {
             subject_active.id,
             contributor.id_user,
             newState[contributor.id_user].access,
-            newState[contributor.id_user].notes,
-            newState[contributor.id_user].chapters
+            newState[contributor.id_user].Inspirer,
+            newState[contributor.id_user].Raconter,
+            newState[contributor.id_user].Reagir,
+            newState[contributor.id_user].Structurer,
+            newState[contributor.id_user].Rédiger,
+            newState[contributor.id_user].Relire,
+            newState[contributor.id_user].Publier,
+            newState[contributor.id_user].Lire,
         );
     }}
-    
     style={styles.picker}
 >
-
     <Picker.Item label="Oui" value="Oui" />
     <Picker.Item label="Non" value="Non" />
 </Picker>
 
+{!isLargeScreen && <Text style={styles.labelText}>Inspirer :</Text>}
+<Picker
+    selectedValue={contributorStates[contributor.id_user]?.Inspirer ? 'Oui' : 'Non'}
+    onValueChange={async (itemValue) => {
+        const newState = {
+            ...contributorStates,
+            [contributor.id_user]: {
+                ...contributorStates[contributor.id_user],
+                Inspirer: itemValue === 'Oui' // Corrigé pour correspondre à la sélection 'Oui'
+            }
+        };
+        setContributorStates(newState);
+        await validate_project_contributors(
+            subject_active.id,
+            contributor.id_user,
+            newState[contributor.id_user].access,
+            newState[contributor.id_user].Inspirer,
+            newState[contributor.id_user].Raconter,
+            newState[contributor.id_user].Reagir,
+            newState[contributor.id_user].Structurer,
+            newState[contributor.id_user].Rédiger,
+            newState[contributor.id_user].Relire,
+            newState[contributor.id_user].Publier,
+            newState[contributor.id_user].Lire,
+        );
+    }}
+    style={styles.picker}
+>
+    <Picker.Item label="Oui" value="Oui" />
+    <Picker.Item label="Non" value="Non" />
+</Picker>
 
-       
+{!isLargeScreen && <Text style={styles.labelText}>Raconter :</Text>}
+<Picker
+    selectedValue={contributorStates[contributor.id_user]?.Raconter ? 'Oui' : 'Non'}
+    onValueChange={async (itemValue) => {
+        const newState = {
+            ...contributorStates,
+            [contributor.id_user]: {
+                ...contributorStates[contributor.id_user],
+                Raconter: itemValue === 'Oui' // Corrigé pour correspondre à la sélection 'Oui'
+            }
+        };
+        setContributorStates(newState);
+        await validate_project_contributors(
+            subject_active.id,
+            contributor.id_user,
+            newState[contributor.id_user].access,
+            newState[contributor.id_user].Inspirer,
+            newState[contributor.id_user].Raconter,
+            newState[contributor.id_user].Reagir,
+            newState[contributor.id_user].Structurer,
+            newState[contributor.id_user].Rédiger,
+            newState[contributor.id_user].Relire,
+            newState[contributor.id_user].Publier,
+            newState[contributor.id_user].Lire,
+        );
+    }}
+    style={styles.picker}
+>
+    <Picker.Item label="Oui" value="Oui" />
+    <Picker.Item label="Non" value="Non" />
+</Picker>
+
+{!isLargeScreen && <Text style={styles.labelText}>Réagir :</Text>}
+<Picker
+    selectedValue={contributorStates[contributor.id_user]?.Reagir ? 'Oui' : 'Non'}
+    onValueChange={async (itemValue) => {
+        const newState = {
+            ...contributorStates,
+            [contributor.id_user]: {
+                ...contributorStates[contributor.id_user],
+                Reagir: itemValue === 'Oui' // Corrigé pour correspondre à la sélection 'Oui'
+            }
+        };
+        setContributorStates(newState);
+        await validate_project_contributors(
+            subject_active.id,
+            contributor.id_user,
+            newState[contributor.id_user].access,
+            newState[contributor.id_user].Inspirer,
+            newState[contributor.id_user].Raconter,
+            newState[contributor.id_user].Reagir,
+            newState[contributor.id_user].Structurer,
+            newState[contributor.id_user].Rédiger,
+            newState[contributor.id_user].Relire,
+            newState[contributor.id_user].Publier,
+            newState[contributor.id_user].Lire,
+        );
+    }}
+    style={styles.picker}
+>
+    <Picker.Item label="Oui" value="Oui" />
+    <Picker.Item label="Non" value="Non" />
+</Picker>
+
+{!isLargeScreen && <Text style={styles.labelText}>Structurer :</Text>}
+<Picker
+    selectedValue={contributorStates[contributor.id_user]?.Structurer ? 'Oui' : 'Non'}
+    onValueChange={async (itemValue) => {
+        const newState = {
+            ...contributorStates,
+            [contributor.id_user]: {
+                ...contributorStates[contributor.id_user],
+                Structurer: itemValue === 'Oui' // Corrigé pour correspondre à la sélection 'Oui'
+            }
+        };
+        setContributorStates(newState);
+        await validate_project_contributors(
+            subject_active.id,
+            contributor.id_user,
+            newState[contributor.id_user].access,
+            newState[contributor.id_user].Inspirer,
+            newState[contributor.id_user].Raconter,
+            newState[contributor.id_user].Reagir,
+            newState[contributor.id_user].Structurer,
+            newState[contributor.id_user].Rédiger,
+            newState[contributor.id_user].Relire,
+            newState[contributor.id_user].Publier,
+            newState[contributor.id_user].Lire,
+        );
+    }}
+    style={styles.picker}
+>
+    <Picker.Item label="Oui" value="Oui" />
+    <Picker.Item label="Non" value="Non" />
+</Picker>
+
+{!isLargeScreen && <Text style={styles.labelText}>Rédiger :</Text>}
+<Picker
+    selectedValue={contributorStates[contributor.id_user]?.Rédiger ? 'Oui' : 'Non'}
+    onValueChange={async (itemValue) => {
+        const newState = {
+            ...contributorStates,
+            [contributor.id_user]: {
+                ...contributorStates[contributor.id_user],
+                Rédiger: itemValue === 'Oui' // Corrigé pour correspondre à la sélection 'Oui'
+            }
+        };
+        setContributorStates(newState);
+        await validate_project_contributors(
+            subject_active.id,
+            contributor.id_user,
+            newState[contributor.id_user].access,
+            newState[contributor.id_user].Inspirer,
+            newState[contributor.id_user].Raconter,
+            newState[contributor.id_user].Reagir,
+            newState[contributor.id_user].Structurer,
+            newState[contributor.id_user].Rédiger,
+            newState[contributor.id_user].Relire,
+            newState[contributor.id_user].Publier,
+            newState[contributor.id_user].Lire,
+        );
+    }}
+    style={styles.picker}
+>
+    <Picker.Item label="Oui" value="Oui" />
+    <Picker.Item label="Non" value="Non" />
+</Picker>
+
+{!isLargeScreen && <Text style={styles.labelText}>Relire :</Text>}
+<Picker
+    selectedValue={contributorStates[contributor.id_user]?.Relire ? 'Oui' : 'Non'}
+    onValueChange={async (itemValue) => {
+        const newState = {
+            ...contributorStates,
+            [contributor.id_user]: {
+                ...contributorStates[contributor.id_user],
+                Relire: itemValue === 'Oui' // Corrigé pour correspondre à la sélection 'Oui'
+            }
+        };
+        setContributorStates(newState);
+        await validate_project_contributors(
+            subject_active.id,
+            contributor.id_user,
+            newState[contributor.id_user].access,
+            newState[contributor.id_user].Inspirer,
+            newState[contributor.id_user].Raconter,
+            newState[contributor.id_user].Reagir,
+            newState[contributor.id_user].Structurer,
+            newState[contributor.id_user].Rédiger,
+            newState[contributor.id_user].Relire,
+            newState[contributor.id_user].Publier,
+            newState[contributor.id_user].Lire,
+        );
+    }}
+    style={styles.picker}
+>
+    <Picker.Item label="Oui" value="Oui" />
+    <Picker.Item label="Non" value="Non" />
+</Picker>
+
+{!isLargeScreen && <Text style={styles.labelText}>Publier :</Text>}
+<Picker
+    selectedValue={contributorStates[contributor.id_user]?.Publier ? 'Oui' : 'Non'}
+    onValueChange={async (itemValue) => {
+        const newState = {
+            ...contributorStates,
+            [contributor.id_user]: {
+                ...contributorStates[contributor.id_user],
+                Publier: itemValue === 'Oui' // Corrigé pour correspondre à la sélection 'Oui'
+            }
+        };
+        setContributorStates(newState);
+        await validate_project_contributors(
+            subject_active.id,
+            contributor.id_user,
+            newState[contributor.id_user].access,
+            newState[contributor.id_user].Inspirer,
+            newState[contributor.id_user].Raconter,
+            newState[contributor.id_user].Reagir,
+            newState[contributor.id_user].Structurer,
+            newState[contributor.id_user].Rédiger,
+            newState[contributor.id_user].Relire,
+            newState[contributor.id_user].Publier,
+            newState[contributor.id_user].Lire,
+        );
+    }}
+    style={styles.picker}
+>
+    <Picker.Item label="Oui" value="Oui" />
+    <Picker.Item label="Non" value="Non" />
+</Picker>
+
+{!isLargeScreen && <Text style={styles.labelText}>Lire :</Text>}
+<Picker
+    selectedValue={contributorStates[contributor.id_user]?.Lire ? 'Oui' : 'Non'}
+    onValueChange={async (itemValue) => {
+        const newState = {
+            ...contributorStates,
+            [contributor.id_user]: {
+                ...contributorStates[contributor.id_user],
+                Lire: itemValue === 'Oui' // Corrigé pour correspondre à la sélection 'Oui'
+            }
+        };
+        setContributorStates(newState);
+        await validate_project_contributors(
+            subject_active.id,
+            contributor.id_user,
+            newState[contributor.id_user].access,
+            newState[contributor.id_user].Inspirer,
+            newState[contributor.id_user].Raconter,
+            newState[contributor.id_user].Reagir,
+            newState[contributor.id_user].Structurer,
+            newState[contributor.id_user].Rédiger,
+            newState[contributor.id_user].Relire,
+            newState[contributor.id_user].Publier,
+            newState[contributor.id_user].Lire,
+        );
+    }}
+    style={styles.picker}
+>
+    <Picker.Item label="Oui" value="Oui" />
+    <Picker.Item label="Non" value="Non" />
+</Picker>
+
 
         <TouchableOpacity onPress={async () => {
     await deleteExistingContributor(contributor.id_user, subject_active.id);
@@ -571,10 +832,10 @@ const copyLinkToClipboard = (text) => {
 
 
     {subjects_pending.length > 0 && (
-                <View>
+                <View >
 
                     <TouchableOpacity
-                        style={showChangeProject ? globalStyles.globalButton_active : globalStyles.globalButton_wide}
+                        style={showPendingProject ? globalStyles.globalButton_active : globalStyles.globalButton_wide}
                         onPress={() => {
                             setShowContributors(false);
                             setShowPendingProject(!showPendingProject);
@@ -587,7 +848,7 @@ const copyLinkToClipboard = (text) => {
 
 
 {showPendingProject && (
-                <>
+                <View style={globalStyles.container_wide}>
 
 {subjects_pending.map((subject) => (
             <TouchableOpacity
@@ -613,7 +874,7 @@ const copyLinkToClipboard = (text) => {
             </TouchableOpacity>
         ))}
 
-</>)}
+</View>)}
 
 
             {/* Troisième partie */}

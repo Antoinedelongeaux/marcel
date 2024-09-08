@@ -800,10 +800,9 @@ export async function countSubjects(id_user) {
 }
 
 
-export async function joinSubject(id_subject, id_user,access) {
+export async function joinSubject(id_subject, id_user, access,Inspirer,Raconter,Reagir,Structurer, Rédiger,Relire,Publier,Lire ) {
   try {
     // Vérifier d'abord si l'enregistrement existe
-
     const { data: existing, error: fetchError } = await supabase
       .from('Memoires_contributors')
       .select('*')
@@ -815,27 +814,28 @@ export async function joinSubject(id_subject, id_user,access) {
 
     // Si un enregistrement existe déjà, ne rien faire et peut-être informer l'utilisateur
     if (existing) {
-      console.log('Vous avez dejà émis une demande d\'accès à ce projet. Le propriétaire doit valider votre demande');
+      console.log('Vous avez déjà émis une demande d\'accès à ce projet. Le propriétaire doit valider votre demande');
       return; // Sortir de la fonction pour éviter d'ajouter un doublon
-    }else{
+    }
 
     // Si aucun enregistrement existant n'a été trouvé, procéder à l'insertion
     const { error: insertError } = await supabase
       .from('Memoires_contributors')
       .insert([
-        { id_subject: id_subject, id_user: id_user,access : access } // Assurez-vous d'inclure id_user dans l'insertion
+        { id_subject: id_subject, id_user: id_user, access: access,Inspirer,Raconter,Reagir,Structurer, Rédiger,Relire,Publier,Lire  } // Assurez-vous d'inclure id_user dans l'insertion
       ]);
 
     if (insertError) throw insertError;
 
     // L'insertion a réussi
     console.log('Le contributeur a été ajouté avec succès.');
-  }
+    
   } catch (error) {
     console.error('Erreur lors de la tentative d\'ajout du contributeur :', error.message);
     throw error; // Propager l'erreur pour une gestion ultérieure si nécessaire
   }
 }
+
 
 
 
@@ -1108,13 +1108,13 @@ export async function get_project_contributors(id_subject) {
 
 
 
-export async function validate_project_contributors(id_subject,id_user,access,notes,chapters) {
+export async function validate_project_contributors(id_subject,id_user,access,Inspirer,Raconter,Reagir,Structurer, Rédiger,Relire,Publier,Lire) {
   // Exemple de pseudo code, à adapter selon votre logique d'application
   try {
 
     const { data, error } = await supabase
       .from('Memoires_contributors') 
-      .update({ access: access,notes:notes,chapters:chapters})
+      .update({ access: access,Inspirer,Raconter,Reagir,Structurer, Rédiger,Relire,Publier,Lire})
       .eq('id_user', id_user)
       .eq('id_subject', id_subject); 
 
@@ -1403,7 +1403,7 @@ export async function linkAnalysis(suffix) {
 
 
     if (data_subject) {
-      return { nature: 'subject', id_subject: data_subject.id_subject };
+      return { nature: 'subject', id_subject: data_subject.id_subject,Inspirer: data_subject.Inspirer,Raconter: data_subject.Raconter,Reagir: data_subject.Reagir,Structurer: data_subject.Structurer, Rédiger: data_subject.Rédiger,Relire: data_subject.Relire,Publier: data_subject.Publier,Lire: data_subject.Lire };
     }
 
     return { nature: 'normal' };

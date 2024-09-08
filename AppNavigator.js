@@ -40,6 +40,7 @@ function AppNavigator({ session }) {
   const [subjectCount, setSubjectCount] = useState(-1); 
   const { suffix } = useParams(); // Utiliser useParams pour extraire le suffixe
   const [loading, setLoading] = useState(true);
+  const [actionLaunch,setActionLaunch]= useState(false);
 
   
 
@@ -62,16 +63,22 @@ function AppNavigator({ session }) {
   useEffect(() => {
     if (session && session.user && check.nature === 'subject') {
       const joinSubjectAction = async () => {
+        
         try {
+          if(!actionLaunch){
+
+          setActionLaunch(true)
           // Rejoindre le projet et attendre la réussite
           console.log("Etape 1 :  s'associer au projet")
-          await joinSubject(check.id_subject, session.user.id, true);
+          await joinSubject(check.id_subject, session.user.id, true,check.Inspirer,check.Raconter,check.Reagir,check.Structurer, check.Rédiger,check.Relire,check.Publier,check.Lire);
           console.log("Etape 2 :  désactiver le lien d'association")
           // Si joinSubject a réussi, procéder avec les autres opérations
           await updateExistingLink(suffix, true);
           const temp = await getUserStatus(session.user.id,check.id_subject)
           await saveActiveSubjectUserStatus(temp)
           setLoading(false)
+            setActionLaunch(false)
+        }
           
         } catch (error) {
           // Gérer les erreurs ici
