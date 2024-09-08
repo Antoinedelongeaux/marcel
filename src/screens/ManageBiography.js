@@ -98,16 +98,31 @@ const copyLinkToClipboard = (text) => {
     Alert.alert('Lien copié dans le presse-papier', text);
   };
   
-  const toggleLinkStatus = async (index) => {
+
+  
+  const toggleLink = async (index, column) => {
     const linkToUpdate = links[index];
-    const newExpired = !linkToUpdate.expired;
-    await updateExistingLink(linkToUpdate.id, newExpired);
-    const updatedLinks = links.map((link, idx) => 
-      idx === index ? { ...link, expired: newExpired } : link
+    const newValue = !linkToUpdate[column]; // Utilisation correcte de la propriété dynamique
+    await updateExistingLink(linkToUpdate.id, newValue, column);
+  
+    const updatedLinks = links.map((link, idx) =>
+      idx === index ? { ...link, [column]: newValue } : link // Utilisation correcte de la propriété dynamique
     );
+  
     setLinks(updatedLinks);
   };
   
+  useEffect(() => {
+
+    if(subjects && subjects.length===1 && !subject_active) {
+    
+        setSubject_active(subjects[0])
+
+
+    }
+
+  }, [subjects]);
+
 
 
   useEffect(() => {
@@ -226,9 +241,9 @@ const copyLinkToClipboard = (text) => {
                         access: contributor.access === true,
                         Inspirer: contributor.Inspirer === true,
                         Raconter: contributor.Raconter === true,
-                        Reagir: contributor.Reagir === true,
+                        Réagir: contributor.Réagir === true,
                         Structurer: contributor.Structurer === true,
-                        Rédiger: contributor["Rédiger"] === true, // Notez que "Rédiger" a un accent
+                        Rédiger: contributor.Rédiger === true, // Notez que "Rédiger" a un accent
                         Relire: contributor.Relire === true,
                         Publier: contributor.Publier === true,
                         Lire: contributor.Lire === true,
@@ -315,7 +330,7 @@ const copyLinkToClipboard = (text) => {
         <View style={globalStyles.container}>
             <View style={[globalStyles.navigationContainer, { position: 'fixed', bottom: '0%', alignSelf: 'center' }]}>
 
-            {subjects.lenth!=0 && (
+            {subjects_active.lenth!=0 && (
                 <TouchableOpacity
   onPress={() => { navigateToScreen('Orientation') }}
   style={[globalStyles.navButton, isHovered && globalStyles.navButton_over]}
@@ -432,7 +447,7 @@ const copyLinkToClipboard = (text) => {
             newState[contributor.id_user].access,
             newState[contributor.id_user].Inspirer,
             newState[contributor.id_user].Raconter,
-            newState[contributor.id_user].Reagir,
+            newState[contributor.id_user].Réagir,
             newState[contributor.id_user].Structurer,
             newState[contributor.id_user].Rédiger,
             newState[contributor.id_user].Relire,
@@ -464,7 +479,7 @@ const copyLinkToClipboard = (text) => {
             newState[contributor.id_user].access,
             newState[contributor.id_user].Inspirer,
             newState[contributor.id_user].Raconter,
-            newState[contributor.id_user].Reagir,
+            newState[contributor.id_user].Réagir,
             newState[contributor.id_user].Structurer,
             newState[contributor.id_user].Rédiger,
             newState[contributor.id_user].Relire,
@@ -496,7 +511,7 @@ const copyLinkToClipboard = (text) => {
             newState[contributor.id_user].access,
             newState[contributor.id_user].Inspirer,
             newState[contributor.id_user].Raconter,
-            newState[contributor.id_user].Reagir,
+            newState[contributor.id_user].Réagir,
             newState[contributor.id_user].Structurer,
             newState[contributor.id_user].Rédiger,
             newState[contributor.id_user].Relire,
@@ -512,13 +527,13 @@ const copyLinkToClipboard = (text) => {
 
 {!isLargeScreen && <Text style={styles.labelText}>Réagir :</Text>}
 <Picker
-    selectedValue={contributorStates[contributor.id_user]?.Reagir ? 'Oui' : 'Non'}
+    selectedValue={contributorStates[contributor.id_user]?.Réagir ? 'Oui' : 'Non'}
     onValueChange={async (itemValue) => {
         const newState = {
             ...contributorStates,
             [contributor.id_user]: {
                 ...contributorStates[contributor.id_user],
-                Reagir: itemValue === 'Oui' // Corrigé pour correspondre à la sélection 'Oui'
+                Réagir: itemValue === 'Oui' // Corrigé pour correspondre à la sélection 'Oui'
             }
         };
         setContributorStates(newState);
@@ -528,7 +543,7 @@ const copyLinkToClipboard = (text) => {
             newState[contributor.id_user].access,
             newState[contributor.id_user].Inspirer,
             newState[contributor.id_user].Raconter,
-            newState[contributor.id_user].Reagir,
+            newState[contributor.id_user].Réagir,
             newState[contributor.id_user].Structurer,
             newState[contributor.id_user].Rédiger,
             newState[contributor.id_user].Relire,
@@ -560,7 +575,7 @@ const copyLinkToClipboard = (text) => {
             newState[contributor.id_user].access,
             newState[contributor.id_user].Inspirer,
             newState[contributor.id_user].Raconter,
-            newState[contributor.id_user].Reagir,
+            newState[contributor.id_user].Réagir,
             newState[contributor.id_user].Structurer,
             newState[contributor.id_user].Rédiger,
             newState[contributor.id_user].Relire,
@@ -592,7 +607,7 @@ const copyLinkToClipboard = (text) => {
             newState[contributor.id_user].access,
             newState[contributor.id_user].Inspirer,
             newState[contributor.id_user].Raconter,
-            newState[contributor.id_user].Reagir,
+            newState[contributor.id_user].Réagir,
             newState[contributor.id_user].Structurer,
             newState[contributor.id_user].Rédiger,
             newState[contributor.id_user].Relire,
@@ -624,7 +639,7 @@ const copyLinkToClipboard = (text) => {
             newState[contributor.id_user].access,
             newState[contributor.id_user].Inspirer,
             newState[contributor.id_user].Raconter,
-            newState[contributor.id_user].Reagir,
+            newState[contributor.id_user].Réagir,
             newState[contributor.id_user].Structurer,
             newState[contributor.id_user].Rédiger,
             newState[contributor.id_user].Relire,
@@ -656,7 +671,7 @@ const copyLinkToClipboard = (text) => {
             newState[contributor.id_user].access,
             newState[contributor.id_user].Inspirer,
             newState[contributor.id_user].Raconter,
-            newState[contributor.id_user].Reagir,
+            newState[contributor.id_user].Réagir,
             newState[contributor.id_user].Structurer,
             newState[contributor.id_user].Rédiger,
             newState[contributor.id_user].Relire,
@@ -688,7 +703,7 @@ const copyLinkToClipboard = (text) => {
             newState[contributor.id_user].access,
             newState[contributor.id_user].Inspirer,
             newState[contributor.id_user].Raconter,
-            newState[contributor.id_user].Reagir,
+            newState[contributor.id_user].Réagir,
             newState[contributor.id_user].Structurer,
             newState[contributor.id_user].Rédiger,
             newState[contributor.id_user].Relire,
@@ -718,40 +733,81 @@ const copyLinkToClipboard = (text) => {
             )}
     {links?.length > 0 && (
   <>
-  <Text> </Text>
-    <Text style={globalStyles.title}>Liens de partage</Text>
+
+    <Text style={[globalStyles.title,{marginVertical:30}]}>Liens de partage</Text>
+
     <View style={styles.headerRow}>
       <Text style={styles.headerText}>Date de création</Text>
       <Text style={styles.headerText}>Lien actif</Text>
-      <Text style={styles.headerText}>Actions</Text>
+      {isLargeScreen && (<>
+      <Text style={styles.headerText}>Se désactive après utlisation</Text>
+      <Text style={styles.headerText}>Inspirer</Text>
+      <Text style={styles.headerText}>Raconter</Text>
+      <Text style={styles.headerText}>Réagir</Text>
+      <Text style={styles.headerText}>Strucurer</Text>
+      <Text style={styles.headerText}>Rédiger</Text>
+      <Text style={styles.headerText}>Relire</Text>
+      <Text style={styles.headerText}>Publier</Text>
+      <Text style={styles.headerText}>Lire</Text>
+      <Text style={styles.headerText}> </Text>
+      </>)}
+      <Text style={styles.headerText}> </Text>
     </View>
     {links.map((link, index) => (
-      <View key={link.id} style={styles.linkRow}>
-        <Text style={styles.linkText}>{new Date(link.created_at).toLocaleString()}</Text>
-        <View style={styles.toggleContainer}>
-          <TouchableOpacity
-            style={[styles.toggleButton, !link.expired && styles.activeToggle]}
-            onPress={() => toggleLinkStatus(index)}
-          >
-            <View style={[
-              styles.toggleButtonCircle,
-              { left: link.expired ? 2 : null, right: link.expired ? null : 2 }
-            ]} />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.toggleContainer}>
-          <TouchableOpacity onPress={() => copyLinkToClipboard(`https://bioscriptum.com/marcel/${link.id}`)}>
-            <Text style={styles.copyButtonText}>Copier le lien de partage</Text>
-          </TouchableOpacity>
-   
-        </View>
-        <TouchableOpacity onPress={async () => {
-    await deleteExistingLink(link.id);
-    setLinks(await getExistingLink(subject_active.id, 'id_subject'));
-}}>
-    <Image source={trash} style={{ width: 40, height: 40, opacity: 0.5 }} />
-</TouchableOpacity>
-      </View>
+ <View key={link.id} style={styles.linkRow}>
+ <View style={styles.toggleContainer}>
+   <Text style={styles.linkText}>{new Date(link.created_at).toLocaleString()}</Text>
+ </View>
+ 
+ <View style={styles.toggleContainer}>
+   <TouchableOpacity
+     style={[styles.toggleButton, !link.expired && styles.activeToggle]}
+     onPress={() => toggleLink(index,"expired")}
+   >
+     <View style={[
+       styles.toggleButtonCircle,
+       { left: link.expired ? 2 : null, right: link.expired ? null : 2 }
+     ]} />
+   </TouchableOpacity>
+ </View>
+
+ {isLargeScreen && (
+   <>
+     {['permanent', 'Inspirer', 'Raconter', 'Réagir', 'Structurer', 'Rédiger', 'Relire', 'Publier', 'Lire'].map((field) => (
+       <View key={field} style={styles.toggleContainer}>
+         <TouchableOpacity
+           style={[styles.toggleButton, link[field] && styles.activeToggle]}
+           onPress={() => toggleLink(index, field)}
+         >
+           <View style={[
+             styles.toggleButtonCircle,
+             { left: link[field] ? null : 2, right: link[field] ? 2 : null }
+           ]} />
+         </TouchableOpacity>
+       </View>
+     ))}
+   </>
+ )}
+ 
+ <View style={styles.toggleContainer}>
+   <TouchableOpacity onPress={() => copyLinkToClipboard(`https://bioscriptum.com/marcel/${link.id}`)}>
+     <Text style={styles.copyButtonText}>Copier le lien de partage</Text>
+   </TouchableOpacity>
+ </View>
+
+ {isLargeScreen && (
+ <View style={styles.toggleContainer}>
+   <TouchableOpacity onPress={async () => {
+     await deleteExistingLink(link.id);
+     setLinks(await getExistingLink(subject_active.id, 'id_subject'));
+   }}>
+     <Image source={trash} style={{ width: 40, height: 40, opacity: 0.5 }} />
+   </TouchableOpacity>
+ </View>
+ )}
+
+</View>
+
     ))}
 
   </>
@@ -1177,7 +1233,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
       },
       toggleContainer: {
-        width: '33.33%',
+        width: '7.5%',
         alignItems: 'center',
       },
       toggleButton: {

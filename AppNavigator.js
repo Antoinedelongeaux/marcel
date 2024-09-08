@@ -70,10 +70,12 @@ function AppNavigator({ session }) {
           setActionLaunch(true)
           // Rejoindre le projet et attendre la réussite
           console.log("Etape 1 :  s'associer au projet")
-          await joinSubject(check.id_subject, session.user.id, true,check.Inspirer,check.Raconter,check.Reagir,check.Structurer, check.Rédiger,check.Relire,check.Publier,check.Lire);
+          await joinSubject(check.id_subject, session.user.id, true,check.Inspirer,check.Raconter,check.Réagir,check.Structurer, check.Rédiger,check.Relire,check.Publier,check.Lire);
           console.log("Etape 2 :  désactiver le lien d'association")
           // Si joinSubject a réussi, procéder avec les autres opérations
-          await updateExistingLink(suffix, true);
+          if(!check.permanent){
+          await updateExistingLink(suffix, true,'expired');
+        }
           const temp = await getUserStatus(session.user.id,check.id_subject)
           await saveActiveSubjectUserStatus(temp)
           setLoading(false)

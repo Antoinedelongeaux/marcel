@@ -767,20 +767,34 @@ export async function save_or_update_personal_answer(answer, question, owner) {
   }
 }
 
+
+
 export async function listSubjects(id_user) {
   try {
     // Récupère d'abord les sujets associés à l'utilisateur
     const associatedSubjects = await getSubjects(id_user);
-    const associatedSubjectIds = associatedSubjects.map(subject => subject.id_subject);
+    console.log("associatedSubjects : ", associatedSubjects);
 
-    // Ensuite, récupère tous les sujets et exclut ceux associés à l'utilisateur
+    const associatedSubjectIds = associatedSubjects.map(subject => subject.id_subject);
+    console.log("associatedSubjectIds : ", associatedSubjectIds);
+
+    if (associatedSubjectIds.length === 0) {
+      // Si aucun sujet associé, retourne une liste vide
+      return [];
+    }
+
+    // Formatez correctement les IDs pour le filtre 'in'
+    const filterString = `(${associatedSubjectIds.join(',')})`;
+
+    // Utilisez le format de chaîne correcte pour le filtre 'in'
     const { data: list_subjects, error } = await supabase
       .from('Memoires_subjects')
       .select('*')
-      .not('id', 'in', `(${associatedSubjectIds.join(',')})`); // Assurez-vous que la syntaxe correspond à celle attendue par votre base de données
+      .in('id', associatedSubjectIds); // Utilisez l'opérateur 'in' avec le tableau d'IDs
 
     if (error) throw error;
 
+    console.log("list_subjects : ", list_subjects);
 
     return list_subjects;
   } catch (error) {
@@ -788,6 +802,11 @@ export async function listSubjects(id_user) {
     throw error;
   }
 }
+
+
+
+
+
 
 export async function countSubjects(id_user) {
   
@@ -800,7 +819,7 @@ export async function countSubjects(id_user) {
 }
 
 
-export async function joinSubject(id_subject, id_user, access,Inspirer,Raconter,Reagir,Structurer, Rédiger,Relire,Publier,Lire ) {
+export async function joinSubject(id_subject, id_user, access,Inspirer,Raconter,Réagir,Structurer, Rédiger,Relire,Publier,Lire ) {
   try {
     // Vérifier d'abord si l'enregistrement existe
     const { data: existing, error: fetchError } = await supabase
@@ -822,7 +841,7 @@ export async function joinSubject(id_subject, id_user, access,Inspirer,Raconter,
     const { error: insertError } = await supabase
       .from('Memoires_contributors')
       .insert([
-        { id_subject: id_subject, id_user: id_user, access: access,Inspirer,Raconter,Reagir,Structurer, Rédiger,Relire,Publier,Lire  } // Assurez-vous d'inclure id_user dans l'insertion
+        { id_subject: id_subject, id_user: id_user, access: access,Inspirer,Raconter,Réagir,Structurer, Rédiger,Relire,Publier,Lire  } // Assurez-vous d'inclure id_user dans l'insertion
       ]);
 
     if (insertError) throw insertError;
@@ -851,6 +870,7 @@ export async function getSubjects(id_user) {
       .eq('access', true);
     if (error) throw error;
 
+ 
 
     // Utilisez Promise.all pour attendre que toutes les requêtes soient terminées
     const subjectsWithContent = await Promise.all(list_subjects.map(async (element) => {
@@ -1108,13 +1128,13 @@ export async function get_project_contributors(id_subject) {
 
 
 
-export async function validate_project_contributors(id_subject,id_user,access,Inspirer,Raconter,Reagir,Structurer, Rédiger,Relire,Publier,Lire) {
+export async function validate_project_contributors(id_subject,id_user,access,Inspirer,Raconter,Réagir,Structurer, Rédiger,Relire,Publier,Lire) {
   // Exemple de pseudo code, à adapter selon votre logique d'application
   try {
 
     const { data, error } = await supabase
       .from('Memoires_contributors') 
-      .update({ access: access,Inspirer,Raconter,Reagir,Structurer, Rédiger,Relire,Publier,Lire})
+      .update({ access: access,Inspirer,Raconter,Réagir,Structurer, Rédiger,Relire,Publier,Lire})
       .eq('id_user', id_user)
       .eq('id_subject', id_subject); 
 
@@ -1403,7 +1423,7 @@ export async function linkAnalysis(suffix) {
 
 
     if (data_subject) {
-      return { nature: 'subject', id_subject: data_subject.id_subject,Inspirer: data_subject.Inspirer,Raconter: data_subject.Raconter,Reagir: data_subject.Reagir,Structurer: data_subject.Structurer, Rédiger: data_subject.Rédiger,Relire: data_subject.Relire,Publier: data_subject.Publier,Lire: data_subject.Lire };
+      return { nature: 'subject', id_subject: data_subject.id_subject,Inspirer: data_subject.Inspirer,Raconter: data_subject.Raconter,Réagir: data_subject.Réagir,Structurer: data_subject.Structurer, Rédiger: data_subject.Rédiger,Relire: data_subject.Relire,Publier: data_subject.Publier,Lire: data_subject.Lire };
     }
 
     return { nature: 'normal' };
@@ -1430,24 +1450,29 @@ export async function getExistingLink(id_target,id_question_id_subject) {
   }
 }
 
-export async function updateExistingLink(id_link,expired) { 
+export async function updateExistingLink(id_link, value, column) { 
   try {
-    // Vérification pour les questions
+    // Construction dynamique de l'objet de mise à jour
+    const updateObject = {};
+    updateObject[column] = value;
 
-    const { data, error: errorUpdate } = await supabase
+    const { data, error } = await supabase
       .from('Memoires_magic_link')
-      .update({ expired: expired }) 
+      .update(updateObject)
       .eq('id', id_link);
 
+    if (error) {
+      throw error; // Lance une exception pour être capturée dans le bloc catch
+    }
 
-
-      return data;
+    return data;
     
-  } catch (errorUpdate) {
-    console.error("Erreur : ", errorUpdate);
-    return { nature: 'error', message: errorUpdate.message };
+  } catch (error) {
+    console.error("Erreur : ", error);
+    return { nature: 'error', message: error.message };
   }
 }
+
 
 export async function createNewLink(id_target, id_question_id_subject) { 
   try {

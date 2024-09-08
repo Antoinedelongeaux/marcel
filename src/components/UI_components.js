@@ -555,9 +555,14 @@ export const ToggleButton = ({ bool, setBool }) => {
   );
 };
 
-export const CarrousselOrientation = ({ isLargeScreen, setStatut, statut }) => {
-  const titles = ['Inspirer', 'Raconter', 'Réagir', 'Structurer', 'Rédiger', 'Corriger', 'Publier', 'Lire'];
-  const colors = ['#0c2d48', '#145da0', '#2e8bc0', '#570701', '#fc2e20', '#fd7f20', '#fdb750', '#01693c'];
+export const CarrousselOrientation = ({ isLargeScreen, setStatut, statut,accessRight }) => {
+  const titlesFull = ['Inspirer', 'Raconter', 'Réagir', 'Structurer', 'Rédiger', 'Relire', 'Publier', 'Lire'];
+  const colorsFull = ['#0c2d48', '#145da0', '#2e8bc0', '#570701', '#fc2e20', '#fd7f20', '#fdb750', '#01693c'];
+
+   // Pour chacun des 8 éléments, ne laisser dans titles et dans color que si accessRight[element] est true
+   const titles = titlesFull.filter((title, index) => accessRight[title]);
+   const colors = colorsFull.filter((color, index) => accessRight[titlesFull[index]]);
+ 
 
   const SLIDER_WIDTH = Dimensions.get('window').width;
   const SLIDER_HEIGHT = Dimensions.get('window').height*0.03;

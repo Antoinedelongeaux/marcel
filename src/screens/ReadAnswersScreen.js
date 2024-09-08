@@ -752,7 +752,7 @@ useEffect(() => {
      
       */}
 
-<CarrousselOrientation isLargeScreen={miscState.isLargeScreen} setStatut={setStatut} statut={statut}/>
+<CarrousselOrientation isLargeScreen={miscState.isLargeScreen} setStatut={setStatut} statut={statut} accessRight={miscState.userStatus} />
       
       </View>
 
