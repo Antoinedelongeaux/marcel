@@ -1118,7 +1118,7 @@ return (
 
         <View style={{ flexDirection: 'row', justifyContent: 'center', marginBottom: 5 }}>
         
-        {(statut === "Corriger"|| statut === "Réagir" ) && (<>
+        {(statut === "Corriger" ) && (<>
           <TouchableOpacity onPress={() => {setModalVisible(true)}} style={globalStyles.globalButton_wide}>
       <Text style={globalStyles.globalButtonText}>{statut==='Corriger'? 'Commenter':statut}</Text>
     </TouchableOpacity>
@@ -1137,6 +1137,15 @@ return (
 */}
 
     </>
+  )}
+
+
+{(statut === "Réagir" ) && (
+  <View style={{ flexDirection: 'column'}}>
+          <Text style={globalStyles.title} >Choississez une note existante sur laquelle vous souhaitez réagir.</Text>
+          <Text>Utilisez pour celà les boutons de filtre et de tri ci-dessous puis cliquez de manière continue sur la note choisie.</Text>
+ </View>
+    
   )}
 
 {(statut === "Raconter"  ) && (<>
@@ -1524,12 +1533,19 @@ return (
 
 {!showExistingNotes && statut=='Raconter' && (
   <View style={{ flexDirection: 'row', justifyContent: 'center', marginBottom: 5 }}> 
+
+
+
 <TouchableOpacity onPress={() => setShowExistingNotes(true)} style={styles.filterIcon}>
+<View style={{ flexDirection: 'column', alignItems: 'center', marginHorizontal: 10 }}> 
+{isLargeScreen && (<Text>Afficher les notes existantes sur ce thème</Text>)}
   <Image 
     source= {plusIcon} 
     style={{ width: 50, height: 50, opacity: 0.5, marginVertical: 30 }} 
   />
+</View>
 </TouchableOpacity>
+
 </View>
 )} 
 

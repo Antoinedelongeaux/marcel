@@ -5,7 +5,6 @@ import { useParams } from 'react-router-dom';
 import { Card, Paragraph } from 'react-native-paper';
 import {
   Image,
-  Modal,
   Platform,
   TextInput,
   Alert,
@@ -19,6 +18,7 @@ import {
   Pressable,
   TouchableWithoutFeedback,
 } from 'react-native';
+import Modal from 'react-native-modal'; 
 import {
   getSubject,
   getMemories_Questions,
@@ -60,6 +60,7 @@ import RenderContent from '../components/RenderContent';
 import ModalComponent from '../components/ModalComponent';
 import plusIcon from '../../assets/icons/plus.png';
 import minusIcon from '../../assets/icons/minus.png';
+import closeIcon from '../../assets/icons/close.png'; 
 import doubleArrowIcon from '../../assets/icons/arrows_1.png';
 import leftArrowIcon from '../../assets/icons/left-arrow.png';
 import rightArrowIcon from '../../assets/icons/right-arrow.png';
@@ -163,6 +164,8 @@ function ReadAnswersScreen({ route }) {
     isEditModalVisible: false,
     isEditChapterModalVisible: false,
     deleteModalVisible: false,
+    isNotesModalVisible:false,    
+
   });
   const [newTitles, setNewTitles] = useState({
     newChapterTitle: '',
@@ -216,6 +219,8 @@ function ReadAnswersScreen({ route }) {
   const [theme, setTheme] = useState(null);
   const [isBlocage, setIsBlocage] = useState(false);
   const [textBlockage, setTextBlockage] = useState('');
+
+
   
 
   const editor = useRef();
@@ -455,6 +460,7 @@ useEffect(() => {
   const handleReferencePress = useCallback((referenceContent) => {
 
     setReference(referenceContent);
+    setModals(prevState => ({ ...prevState, isNotesModalVisible: true })); 
 
   }, []);
 
@@ -1327,6 +1333,42 @@ useEffect(() => {
   }}
 />
 
+<Modal isVisible={modals.isNotesModalVisible}>
+  <View style={styles.overlay}>
+    <View style={styles.modalContainer}>
+      <TouchableOpacity onPress={() => setModals(prevState => ({ ...prevState, isNotesModalVisible: false }))} style={styles.closeButton}>
+        <Image source={closeIcon} style={styles.closeIcon} />
+      </TouchableOpacity>
+      <ScrollView>
+        <NoteScreen 
+          route={{ 
+            params: { 
+              session, 
+              miscState:miscState,
+              setMiscState: setMiscState, 
+              filterSelectedQuestion: filterSelectedQuestion, 
+              setFilterSelectedQuestion: setFilterSelectedQuestion, 
+              question_reponse: miscState.question_reponse, 
+              mode: miscState.userStatus?.chapters,
+              reference: reference, 
+              setReference: setReference, 
+              statut:statut,
+              theme:theme,
+              setTheme:setTheme,
+            } 
+          }} 
+          key={reference} 
+        />
+      </ScrollView>
+    </View>
+  </View>
+</Modal>
+
+
+
+
+
+
 </>
 )}
 
@@ -1503,6 +1545,58 @@ const styles = StyleSheet.create({
   contentContainer: {
     zIndex: 10,
     position: 'relative',
+  },
+
+
+  modalContainer: {
+    backgroundColor: '#E8FFF6',
+    width:'100%',
+    height:'100%',
+    padding: 20,
+    borderRadius: 10,
+    alignSelf: 'center',
+    zIndex: 20,
+    padding: 20,
+    borderRadius: 10,
+  },
+  
+  closeButtonText: {
+    color: 'white',
+    fontSize: 30,
+  },
+
+
+  closeButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    zIndex: 10,
+  },
+
+
+  closeIcon: {
+    width: 24,
+    height: 24,
+  },
+
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
   },
 });
 
