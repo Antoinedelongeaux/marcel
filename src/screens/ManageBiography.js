@@ -33,6 +33,7 @@ import {
   createNewLink,
   remember_active_subject,
   get_Profile,
+  updateSubject,
 } from "../components/data_handling";
 import {
   saveActiveSubjectId,
@@ -100,6 +101,7 @@ export default function ProjectScreen({ route }) {
   const [userStatus, setUserStatus] = useState("");
   const prevSubjectActiveRef = useRef(subject_active);
   const prevSessionRef = useRef(session);
+  const [selectedOption, setSelectedOption] = useState(null);
 
   useEffect(() => {
     const updateLayout = () => {
@@ -254,12 +256,16 @@ export default function ProjectScreen({ route }) {
 
   const handleCreateProject = () => {
     if (!newName.trim()) {
-      Alert.alert("Validation Error", "Please enter a valid project name.");
+      Alert.alert("Veuillez définir un nom deporjet valide.");
+      return;
+    }
+    if (!selectedOption) {
+      Alert.alert("Veuillez choisir l'une des deux options.");
       return;
     }
     setLoading(true);
 
-    create_project(newName, session.user.id)
+    create_project(newName, session.user.id, selectedOption)
       .then((creationResult) => {
         setShowModal(true); // Afficher la modal
 
@@ -310,10 +316,31 @@ export default function ProjectScreen({ route }) {
           { position: "fixed", bottom: "0%", alignSelf: "center" },
         ]}
       >
-        {subjects_active.lenth != 0 && (
+        {subject_active && (
           <TouchableOpacity
             onPress={() => {
-              navigateToScreen("Orientation");
+              if (!subject_active.etape_collecting) {
+                if (subject_active.etape_writting) {
+                  navigateToScreen("Marcel", {
+                    session: session,
+                    initialStatut: "Structurer",
+                  });
+                } else {
+                  if (subject_active.etape_publishing) {
+                    navigateToScreen("Marcel", {
+                      session: session,
+                      initialStatut: "Publier",
+                    });
+                  } else {
+                    navigateToScreen("Projets");
+                  }
+                }
+              } else {
+                navigateToScreen("Marcel", {
+                  session: session,
+                  initialStatut: "Inspirer",
+                });
+              }
             }}
             style={[
               globalStyles.navButton,
@@ -377,15 +404,11 @@ export default function ProjectScreen({ route }) {
         </View>
       </Modal>
 
-      <Text></Text>
-      <Text style={globalStyles.title}>Vos projets</Text>
-      <Text></Text>
-
       {/* Deuxième partie */}
 
       <View
         style={{
-          flexDirection: "row",
+          flexDirection: isLargeScreen ? "row" : "Column",
           alignItems: "center",
           justifyContent: "space-between",
           width: "100%",
@@ -395,8 +418,8 @@ export default function ProjectScreen({ route }) {
           <TouchableOpacity
             style={[
               showContent === "projets"
-                ? globalStyles.globalButton_active
-                : globalStyles.globalButton_wide,
+                ? globalStyles.globalButton_wide
+                : globalStyles.globalButton_active,
               {
                 flex: 1, // Les éléments auront la même largeur
                 marginHorizontal: 5, // Marge horizontale pour chaque élément
@@ -419,8 +442,8 @@ export default function ProjectScreen({ route }) {
           <TouchableOpacity
             style={[
               showContent === "projets_pending"
-                ? globalStyles.globalButton_active
-                : globalStyles.globalButton_wide,
+                ? globalStyles.globalButton_wide
+                : globalStyles.globalButton_active,
               {
                 flex: 1, // Les éléments auront la même largeur
                 marginHorizontal: 5, // Marge horizontale pour chaque élément
@@ -438,8 +461,8 @@ export default function ProjectScreen({ route }) {
         <TouchableOpacity
           style={[
             showContent === "projets_all"
-              ? globalStyles.globalButton_active
-              : globalStyles.globalButton_wide,
+              ? globalStyles.globalButton_wide
+              : globalStyles.globalButton_active,
             {
               flex: 1, // Les éléments auront la même largeur
               marginHorizontal: 5, // Marge horizontale pour chaque élément
@@ -459,8 +482,8 @@ export default function ProjectScreen({ route }) {
         <TouchableOpacity
           style={[
             showContent === "projet_create"
-              ? globalStyles.globalButton_active
-              : globalStyles.globalButton_wide,
+              ? globalStyles.globalButton_wide
+              : globalStyles.globalButton_active,
             {
               flex: 1, // Les éléments auront la même largeur
               marginHorizontal: 5, // Marge horizontale pour chaque élément
@@ -647,6 +670,41 @@ export default function ProjectScreen({ route }) {
                 />
               </TouchableOpacity>
             </View>
+
+            {/* Ajout des options mutuellement exclusives */}
+            <View style={styles.radioContainer}>
+              <Text style={styles.label}>
+                Choisissez une option pour initier le projet :
+              </Text>
+              <TouchableOpacity
+                style={styles.radioButton}
+                onPress={() => setSelectedOption("collecte_information")}
+              >
+                <View style={styles.radioCircle}>
+                  {selectedOption === "collecte_information" && (
+                    <View style={styles.selectedRb} />
+                  )}
+                </View>
+                <Text style={styles.radioText}>
+                  Vous allez initier le projet par une collecte d'information
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.radioButton}
+                onPress={() => setSelectedOption("structurer_projet")}
+              >
+                <View style={styles.radioCircle}>
+                  {selectedOption === "structurer_projet" && (
+                    <View style={styles.selectedRb} />
+                  )}
+                </View>
+                <Text style={styles.radioText}>
+                  Vous allez initier le projet en structurant les parties et
+                  leurs chapitres
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
       </View>
@@ -660,44 +718,136 @@ export default function ProjectScreen({ route }) {
           </Text>
           <Text></Text>
 
-          <View>
+          <View
+            style={{
+              flexDirection: isLargeScreen ? "row" : "Column",
+              alignItems: "center",
+              justifyContent: "space-between",
+              width: "100%",
+            }}
+          >
             <TouchableOpacity
-              style={
-                showContributors
-                  ? globalStyles.globalButton_active
-                  : globalStyles.globalButton_wide
-              }
+              style={[
+                showContent === "étapes"
+                  ? globalStyles.globalButton_wide
+                  : globalStyles.globalButton_active,
+                {
+                  flex: 1, // Les éléments auront la même largeur
+                  marginHorizontal: 5, // Marge horizontale pour chaque élément
+                },
+              ]}
               onPress={() => {
-                setShowChangeProject(false);
-                setShowContributors(!showContributors);
+                setShowContent("étapes");
+              }}
+            >
+              <Text style={globalStyles.globalButtonText}>
+                Définir l'étape d'avancement du projet
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                showContent === "utilisateurs"
+                  ? globalStyles.globalButton_wide
+                  : globalStyles.globalButton_active,
+                {
+                  flex: 1, // Les éléments auront la même largeur
+                  marginHorizontal: 5, // Marge horizontale pour chaque élément
+                },
+              ]}
+              onPress={() => {
                 fetchContributors();
+                setShowContent("utilisateurs");
               }}
             >
               <Text style={globalStyles.globalButtonText}>
                 Gérer les droits d'accès du projet actif{" "}
               </Text>
             </TouchableOpacity>
-            <View>
-              <TouchableOpacity
-                style={
-                  showContent === "liens"
-                    ? globalStyles.globalButton_active
-                    : globalStyles.globalButton_wide
-                }
-                onPress={() => {
-                  setShowContent("liens");
-                }}
-              >
-                <Text style={globalStyles.globalButtonText}>
-                  Gérer les liens de partage{" "}
-                </Text>
-              </TouchableOpacity>
-            </View>
+
+            <TouchableOpacity
+              style={[
+                showContent === "liens"
+                  ? globalStyles.globalButton_wide
+                  : globalStyles.globalButton_active,
+                {
+                  flex: 1, // Les éléments auront la même largeur
+                  marginHorizontal: 5, // Marge horizontale pour chaque élément
+                },
+              ]}
+              onPress={() => {
+                setShowContent("liens");
+              }}
+            >
+              <Text style={globalStyles.globalButtonText}>
+                Gérer les liens de partage{" "}
+              </Text>
+            </TouchableOpacity>
           </View>
         </>
       )}
 
-      {showContributors && (
+      {showContent === "étapes" && (
+        <View style={globalStyles.container_wide}>
+          {/* Frise chronologique avec les trois étapes */}
+          {[
+            {
+              label: "Etape 1. Collecter l'information",
+              key: "etape_collecting",
+              stateKey: "etape_collecting",
+            },
+            {
+              label: "Etape 2. Rédiger",
+              key: "etape_writting",
+              stateKey: "etape_writting",
+            },
+            {
+              label: "Etape 3. Publier",
+              key: "etape_publishing",
+              stateKey: "etape_publishing",
+            },
+          ].map((etape, index) => (
+            <View key={index} style={globalStyles.stepContainer}>
+              <Text style={globalStyles.stepTitle}>{etape.label}</Text>
+              <Picker
+                selectedValue={
+                  subject_active[etape.stateKey] ? "Actif" : "Inactif"
+                }
+                onValueChange={async (itemValue) => {
+                  const newState = {
+                    ...subject_active,
+                    [etape.stateKey]: itemValue === "Actif",
+                  };
+
+                  updateSubject(
+                    subject_active.id,
+                    etape.stateKey,
+                    !subject_active[etape.stateKey]
+                  );
+                  setSubject_active(newState);
+                  // Appel à une fonction de mise à jour si nécessaire, par exemple :
+                  // await updateSubjectActive(newState);
+                }}
+                style={globalStyles.picker}
+              >
+                <Picker.Item label="Actif" value="Actif" />
+                <Picker.Item label="Inactif" value="Inactif" />
+              </Picker>
+              <Text style={globalStyles.stepDescription}>
+                {/* Texte d'explication de chaque étape */}
+                {etape.label === "Etape 1. Collecter l'information" &&
+                  "Description pour collecter l'information."}
+                {etape.label === "Etape 2. Rédiger" &&
+                  "Description pour rédiger."}
+                {etape.label === "Etape 3. Publier" &&
+                  "Description pour publier."}
+              </Text>
+            </View>
+          ))}
+        </View>
+      )}
+
+      {showContent === "utilisateurs" && (
         <View style={globalStyles.container_wide}>
           {contributors?.length > 0 ? (
             <>
@@ -1090,7 +1240,7 @@ export default function ProjectScreen({ route }) {
         </View>
       )}
 
-      {subject_active && (
+      {showContent === "liens" && (
         <View style={globalStyles.container_wide}>
           {links?.length > 0 && (
             <>
@@ -1523,5 +1673,37 @@ const styles = StyleSheet.create({
   createLinkButtonText: {
     color: "#fff",
     fontSize: 16,
+  },
+  radioContainer: {
+    marginTop: 20,
+  },
+  label: {
+    marginBottom: 10,
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  radioButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  radioCircle: {
+    height: 20,
+    width: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: "#000",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 10,
+  },
+  selectedRb: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: "#000",
+  },
+  radioText: {
+    fontSize: 14,
   },
 });
