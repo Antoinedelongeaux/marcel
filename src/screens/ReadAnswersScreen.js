@@ -407,7 +407,7 @@ function ReadAnswersScreen({ route }) {
       }
       setVision("table");
     }
-    if (statut && statut === "Corriger") {
+    if (statut && statut === "Relire") {
       if (questions.length === 0) {
         setTextBlockage(
           "Il n'y a pas encore de chapitre à corriger dans ce projet. Ils seront définis via 'Structurer' et rédigés via 'Rédiger'."
@@ -443,10 +443,10 @@ function ReadAnswersScreen({ route }) {
       setVision("table");
     }
 
-    if (statut && statut != "Rédiger" && statut != "Corriger") {
+    if (statut && statut != "Rédiger" && statut != "Relire") {
       setEditVsView("view");
     }
-    if (statut && (statut === "Rédiger" || statut === "Corriger")) {
+    if (statut && (statut === "Rédiger" || statut === "Relire")) {
       setEditVsView("edit");
     }
 
@@ -1414,7 +1414,7 @@ function ReadAnswersScreen({ route }) {
                     )}
                     {!miscState.isContentModified &&
                       statut &&
-                      (statut === "Rédiger" || statut === "Corriger") &&
+                      (statut === "Rédiger" || statut === "Relire") &&
                       subject.etape_writting &&
                       editVsView === "edit" && (
                         <TouchableOpacity
@@ -1429,7 +1429,7 @@ function ReadAnswersScreen({ route }) {
                       )}
 
                     {statut &&
-                      (statut === "Rédiger" || statut === "Corriger") &&
+                      (statut === "Rédiger" || statut === "Relire") &&
                       subject.etape_writting &&
                       editVsView === "view" && (
                         <TouchableOpacity

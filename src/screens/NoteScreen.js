@@ -226,7 +226,7 @@ function NoteScreen({ route }) {
   const [showExistingNotes, setShowExistingNotes] = useState(false);
 
   useEffect(() => {
-    if (statut === "Réagir") {
+    if (statut === "Réagir" || statut === "Relire") {
       setVoirTout(true);
     }
   }, [statut]);
@@ -1246,7 +1246,7 @@ useEffect(() => {
           </>
         )}
 
-        {statut === "Réagir" && (
+        {(statut === "Réagir" || statut === "Relire") && (
           <View
             style={{
               flexDirection: "column",
@@ -1876,6 +1876,7 @@ useEffect(() => {
             {(statut === "Rédiger" ||
               statut === "Corriger" ||
               statut === "Réagir" ||
+              statut === "Relire" ||
               statut === "Raconter") && (
               <>
                 <TouchableOpacity
@@ -3005,7 +3006,9 @@ useEffect(() => {
                         </Text>
                       </View>
                       {item.audio &&
-                        (showDetails || selectedAnswerId === item.id) && (
+                        (showDetails ||
+                          selectedAnswerId === item.id ||
+                          statut == "Lire") && (
                           <View
                             style={{
                               flexDirection: "row",
