@@ -48,6 +48,7 @@ import {
   getSubjects,
   validate_project_contributors,
   getTheme_byProject,
+  getLast_Answer,
 } from "../components/data_handling";
 import { ToggleButton } from "../components/UI_components";
 
@@ -101,7 +102,9 @@ const useFetchActiveSubjectId = (
   setSubjectActive,
   setSubject,
   setMiscState,
-  navigation
+  navigation,
+  setLastAnswer,
+  id_user
 ) => {
   useFocusEffect(
     useCallback(() => {
@@ -116,6 +119,7 @@ const useFetchActiveSubjectId = (
           navigation.navigate("Projets");
         }
         setMiscState((prevState) => ({ ...prevState, isLoading: false }));
+        setLastAnswer(await getLast_Answer(id_user));
       };
       fetchActiveSubjectId();
     }, [navigation, setSubjectActive, setSubject, setMiscState.isLoading])
@@ -264,6 +268,7 @@ function ReadAnswersScreen({ route }) {
   const [theme, setTheme] = useState(null);
   const [isBlocage, setIsBlocage] = useState(false);
   const [textBlockage, setTextBlockage] = useState("");
+  const [lastAnswer, setLastAnswer] = useState(null);
 
   const editor = useRef();
 
@@ -271,7 +276,9 @@ function ReadAnswersScreen({ route }) {
     setSubjectActive,
     setSubject,
     setMiscState,
-    navigation
+    navigation,
+    setLastAnswer,
+    session.user.id
   );
 
   useFetchData(
@@ -284,7 +291,8 @@ function ReadAnswersScreen({ route }) {
     setChapters,
     setMiscState,
     statut,
-    subject
+    subject,
+    setLastAnswer
   );
 
   const fetchThemesAllUsers = async () => {
@@ -303,6 +311,17 @@ function ReadAnswersScreen({ route }) {
 
     fetchData();
   }, [session.user.id, subjectActive, navigateToScreen]);
+
+  useEffect(() => {
+    if (lastAnswer) {
+      const setThings = () => {
+        setStatut("Raconter");
+        setTheme(lastAnswer.id_connection);
+      };
+
+      setThings();
+    }
+  }, [lastAnswer]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -348,10 +367,8 @@ function ReadAnswersScreen({ route }) {
   }, []);
 
   const actOnStatut = async () => {
-    console.log("statut : ", statut);
     if (statut && statut === "Inspirer") {
       if (subject && !subject.etape_collecting) {
-        console.log("Subject :", subject);
         if (subject.etape_writting) {
           setStatut("Structurer");
         } else {

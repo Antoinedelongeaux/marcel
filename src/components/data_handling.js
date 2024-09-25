@@ -375,6 +375,32 @@ export async function getMemories_Answers() {
   }
 }
 
+export async function getLast_Answer(id_user) {
+  try {
+    const id_subject = await getActiveSubjectId();
+    if (id_subject == null) {
+      console.log("ID subject is null or undefined.");
+      return []; // Retourner un tableau vide si l'ID du sujet est null
+    }
+
+    const { data: answers, error } = await supabase
+      .from("Memoires_answers")
+      .select("*")
+      .eq("id_subject", id_subject)
+      .eq("id_user", id_user)
+      .order("created_at", { ascending: false }); // Trier par 'created_at' pour obtenir la réponse la plus récente en premier
+
+    if (error) {
+      throw error;
+    }
+
+    return answers.length > 0 ? answers[0] : null; // Retourner la réponse ou null si aucune réponse n'est trouvée
+  } catch (error) {
+    console.error("Error fetching answers:", error.message);
+    return null; // Retourner null en cas d'erreur
+  }
+}
+
 export const delete_Image = async (name) => {
   const { data, error } = await supabase.storage.from("photos").remove([name]);
 };

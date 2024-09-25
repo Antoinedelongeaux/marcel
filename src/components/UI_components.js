@@ -669,14 +669,53 @@ export const AnswerCard = ({
 
 export const CarrousselThemes = ({
   themes,
-  theme,
+  theme, // Thème initial (ID)
   isLargeScreen,
   setTheme,
 }) => {
   const SLIDER_WIDTH = Dimensions.get("window").width;
   const ITEM_WIDTH = SLIDER_WIDTH * (isLargeScreen ? 0.6 : 0.7); // Ajuste la taille des éléments en fonction de l'écran
   const carouselRef = useRef(null);
-  const [currentIndex, setCurrentIndex] = useState(0);
+
+  // Trouver l'index du thème initial
+  const initialIndex = themes.findIndex((t) => t.id === theme); // Utilisation de l'id pour la correspondance
+
+  // Si aucun thème correspondant n'est trouvé, initialiser avec le premier index
+  const [currentIndex, setCurrentIndex] = useState(
+    initialIndex !== -1 ? initialIndex : 0
+  );
+
+  // Utiliser un useEffect pour initialiser le carrousel au bon index lors du premier montage
+  useEffect(() => {
+    if (carouselRef.current && initialIndex !== -1) {
+      setTimeout(() => {
+        carouselRef.current.snapToItem(initialIndex, false);
+      }, 500); // Temporisation légèrement plus longue pour attendre le montage
+    }
+  }, [initialIndex]);
+
+  useEffect(() => {
+    if (carouselRef.current && currentIndex !== initialIndex) {
+      carouselRef.current.snapToItem(currentIndex, false);
+    }
+  }, [currentIndex]);
+
+  // Exécuter setTheme à chaque changement de currentIndex
+  useEffect(() => {
+    if (themes[currentIndex]) {
+      setTheme(themes[currentIndex]); // Appeler setTheme avec le thème correspondant à currentIndex
+    }
+  }, [currentIndex, themes, setTheme]);
+
+  // Fonction pour générer une couleur à partir du texte du thème
+  const generateColorFromTheme = (themeText) => {
+    let hash = 0;
+    for (let i = 0; i < themeText.length; i++) {
+      hash = themeText.charCodeAt(i) + ((hash << 5) - hash); // Simple hachage basé sur le texte
+    }
+    const hue = hash % 360; // Utilise le hachage pour générer une teinte
+    return `hsl(${hue}, 70%, 80%)`; // Couleur basée sur la teinte
+  };
 
   const renderItem = ({ item }) => (
     <TouchableOpacity
@@ -685,25 +724,18 @@ export const CarrousselThemes = ({
       }}
       style={[
         styles.carouselItem,
-        { backgroundColor: generatePastelColor() }, // Applique une couleur de fond pastel aléatoire
+        { backgroundColor: generateColorFromTheme(item.theme) }, // Utilise une couleur basée sur le texte du thème
       ]}
     >
       <Text style={styles.carouselThemeText}>{item.theme}</Text>
     </TouchableOpacity>
   );
 
-  // Fonction pour générer une couleur pastel aléatoire
-  const generatePastelColor = () => {
-    const hue = Math.floor(Math.random() * 360); // Génère une teinte aléatoire
-    return `hsl(${hue}, 70%, 90%)`; // Utilise la teinte pour créer une couleur pastel
-  };
-
   // Fonction pour faire défiler vers la gauche
   const scrollLeft = () => {
     if (carouselRef.current) {
       const prevIndex =
         currentIndex - 1 < 0 ? themes.length - 1 : currentIndex - 1;
-      carouselRef.current.snapToItem(prevIndex);
       setCurrentIndex(prevIndex); // Mise à jour de l'index actuel
     }
   };
@@ -712,7 +744,6 @@ export const CarrousselThemes = ({
   const scrollRight = () => {
     if (carouselRef.current) {
       const nextIndex = (currentIndex + 1) % themes.length;
-      carouselRef.current.snapToItem(nextIndex);
       setCurrentIndex(nextIndex); // Mise à jour de l'index actuel
     }
   };
@@ -842,13 +873,7 @@ export const CarrousselOrientation = ({
   const ITEM_HEIGHT = SLIDER_HEIGHT * 2;
 
   const [currentIndex, setCurrentIndex] = useState(
-    isLargeScreen
-      ? titles.indexOf(statut) < 0
-        ? 0
-        : titles.indexOf(statut)
-      : titles.indexOf(statut) < 1
-      ? 1
-      : titles.indexOf(statut)
+    titles.indexOf(statut) !== -1 ? titles.indexOf(statut) : 0
   );
 
   const [isHoveredExit, setIsHoveredExit] = useState(false);
@@ -859,6 +884,13 @@ export const CarrousselOrientation = ({
   const navigateToScreen = (screenName, params) => {
     navigation.navigate(screenName, params);
   };
+
+  useEffect(() => {
+    const index = titles.indexOf(statut);
+    if (index !== -1 && currentIndex !== index) {
+      setCurrentIndex(index);
+    }
+  }, [statut, titles, currentIndex]);
 
   // Fonction de rendu des éléments de la grille (pour les grands écrans)
   const renderGridItem = ({ item, index }) => (
