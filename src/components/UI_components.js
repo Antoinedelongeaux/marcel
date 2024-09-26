@@ -888,7 +888,11 @@ export const CarrousselOrientation = ({
   useEffect(() => {
     const index = titles.indexOf(statut);
     if (index !== -1 && currentIndex !== index) {
-      setCurrentIndex(index);
+      if (isLargeScreen) {
+        setCurrentIndex(index);
+      } else {
+        setCurrentIndex(index + 1);
+      }
     }
   }, [statut, titles, currentIndex]);
 
@@ -983,7 +987,7 @@ export const CarrousselOrientation = ({
             styles.carouselItem,
             {
               backgroundColor: colors[index - (1 % colors.length)],
-              height: ITEM_HEIGHT, // Ajoutez cette ligne
+              height: currentIndex === index ? ITEM_HEIGHT * 1.2 : ITEM_HEIGHT, // Ajoutez cette ligne
             },
           ]}
         >
@@ -1022,7 +1026,9 @@ export const CarrousselOrientation = ({
               globalStyles.navButton,
               isHoveredSettings && globalStyles.navButton_over,
             ]}
-            onMouseEnter={() => setIsHoveredSettings(true)}
+            onMouseEnter={() => {
+              setIsHoveredSettings(true);
+            }}
             onMouseLeave={() => setIsHoveredSettings(false)}
           >
             <Image
@@ -1073,11 +1079,6 @@ export const CarrousselOrientation = ({
             loop={false}
             decelerationRate={0.9}
             useScrollView={true}
-            onSnapToItem={(index) => {
-              if (currentIndex !== index) {
-                setCurrentIndex(index);
-              }
-            }}
             firstItem={Math.min(currentIndex, carouselData.length - 1)}
           />
         </View>
