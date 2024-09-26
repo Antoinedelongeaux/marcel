@@ -2073,6 +2073,7 @@ useEffect(() => {
                           marginBottom: 10,
                         }}
                       >
+                        <Text style={styles.toggleText}> </Text>
                         <Text style={styles.toggleText}>Notes </Text>
                         <TouchableOpacity
                           style={[
@@ -2106,6 +2107,7 @@ useEffect(() => {
                           marginBottom: 10,
                         }}
                       >
+                        <Text style={styles.toggleText}> </Text>
                         <Text style={styles.toggleText}>Questions</Text>
                         <TouchableOpacity
                           style={[
@@ -2143,6 +2145,7 @@ useEffect(() => {
                           marginBottom: 10,
                         }}
                       >
+                        <Text style={styles.toggleText}> </Text>
                         <Text style={styles.toggleText}>Relu</Text>
                         <TouchableOpacity
                           style={[
@@ -2181,6 +2184,7 @@ useEffect(() => {
                           marginBottom: 10,
                         }}
                       >
+                        <Text style={styles.toggleText}> </Text>
                         <Text style={styles.toggleText}>Non relu</Text>
                         <TouchableOpacity
                           style={[
@@ -2224,6 +2228,7 @@ useEffect(() => {
                           marginBottom: 10,
                         }}
                       >
+                        <Text style={styles.toggleText}> </Text>
                         <Text style={styles.toggleText}>Utilisé</Text>
                         <TouchableOpacity
                           style={[
@@ -2263,6 +2268,7 @@ useEffect(() => {
                           marginBottom: 10,
                         }}
                       >
+                        <Text style={styles.toggleText}> </Text>
                         <Text style={styles.toggleText}>Non utilisé</Text>
                         <TouchableOpacity
                           style={[
@@ -2295,7 +2301,7 @@ useEffect(() => {
                         </TouchableOpacity>
                       </View>
                     </View>
-
+                    <Text style={styles.toggleText}> </Text>
                     <View
                       style={{
                         flexDirection: "column",
@@ -2337,6 +2343,7 @@ useEffect(() => {
                           )}
                         </View>
                       )}
+                      <Text style={styles.toggleText}> </Text>
                       {Platform.OS === "web" ? (
                         <DatePicker
                           selected={dateAfter}
@@ -2372,7 +2379,7 @@ useEffect(() => {
                         </View>
                       )}
                     </View>
-
+                    <Text style={styles.toggleText}> </Text>
                     <TouchableOpacity
                       onPress={() => handleRemoveFilters()}
                       style={styles.filterIcon}
@@ -2579,7 +2586,7 @@ useEffect(() => {
                     drag();
                   }}
                   onPress={() => {
-                    setSelectedAnswerId(selectedAnswerId ? null : item.id);
+                    setSelectedAnswerId(item.id);
                   }}
                 >
                   <View style={{ flexDirection: "row", alignItems: "center" }}>
@@ -2772,6 +2779,7 @@ useEffect(() => {
 
                             {item.answer !==
                               "audio pas encore converti en texte" &&
+                              item.id_user == session.user.id &&
                               item.id !== editingAnswerId && (
                                 <TouchableOpacity
                                   onPress={() => {
@@ -2787,10 +2795,10 @@ useEffect(() => {
                                       opacity: 0.5,
                                     }}
                                   />
-                                  {isLargeScreen && <Text>Editer</Text>}
+                                  {isLargeScreen && <Text>Corriger</Text>}
                                 </TouchableOpacity>
                               )}
-                            {item.audio && (
+                            {item.audio && item.id_user == session.user.id && (
                               <>
                                 <TouchableOpacity
                                   onPress={() => handleCaptionClick(item.id)}
@@ -2850,9 +2858,72 @@ useEffect(() => {
                                 </TouchableOpacity>
                               </>
                             )}
-                            {statut != "Réagir" && (
-                              <>
-                                {statut != "Réagir" && statut != "Raconter" && (
+                            {statut != "Réagir" &&
+                              item.id_user == session.user.id && (
+                                <>
+                                  {statut != "Réagir" &&
+                                    statut != "Raconter" && (
+                                      <View
+                                        style={{
+                                          flexDirection: "column",
+                                          alignItems: "center",
+                                        }}
+                                      >
+                                        <TouchableOpacity
+                                          style={[
+                                            styles.toggleButton,
+                                            item.used && styles.selectedToggle,
+                                          ]}
+                                          onPress={async () => {
+                                            await updateAnswer(
+                                              item.id,
+                                              "used",
+                                              !item.used
+                                            );
+                                            const updatedAnswers = answers.map(
+                                              (answer) =>
+                                                answer.id === item.id
+                                                  ? {
+                                                      ...answer,
+                                                      used: !answer.used,
+                                                    }
+                                                  : answer
+                                            );
+                                            setAnswers(updatedAnswers);
+                                          }}
+                                        >
+                                          <View
+                                            style={{
+                                              flexDirection: "column",
+                                              alignItems: "center",
+                                            }}
+                                          >
+                                            <View
+                                              style={[
+                                                styles.toggleButtonCircle,
+                                                {
+                                                  left: item.used ? 2 : null,
+                                                  right: !item.used ? 2 : null,
+                                                },
+                                              ]}
+                                            />
+                                          </View>
+                                          <Text
+                                            style={[
+                                              styles.toggleText,
+                                              { marginTop: 5 },
+                                            ]}
+                                          >
+                                            {" "}
+                                          </Text>
+                                        </TouchableOpacity>
+                                        <Text>
+                                          {item.used
+                                            ? "Utilisé"
+                                            : "Non utilisé"}
+                                        </Text>
+                                      </View>
+                                    )}
                                   <View
                                     style={{
                                       flexDirection: "column",
@@ -2862,20 +2933,20 @@ useEffect(() => {
                                     <TouchableOpacity
                                       style={[
                                         styles.toggleButton,
-                                        item.used && styles.selectedToggle,
+                                        item.quality && styles.selectedToggle,
                                       ]}
                                       onPress={async () => {
                                         await updateAnswer(
                                           item.id,
-                                          "used",
-                                          !item.used
+                                          "quality",
+                                          !item.quality
                                         );
                                         const updatedAnswers = answers.map(
                                           (answer) =>
                                             answer.id === item.id
                                               ? {
                                                   ...answer,
-                                                  used: !answer.used,
+                                                  quality: !answer.quality,
                                                 }
                                               : answer
                                         );
@@ -2892,8 +2963,8 @@ useEffect(() => {
                                           style={[
                                             styles.toggleButtonCircle,
                                             {
-                                              left: item.used ? 2 : null,
-                                              right: !item.used ? 2 : null,
+                                              left: item.quality ? 2 : null,
+                                              right: !item.quality ? 2 : null,
                                             },
                                           ]}
                                         />
@@ -2908,85 +2979,26 @@ useEffect(() => {
                                       </Text>
                                     </TouchableOpacity>
                                     <Text>
-                                      {item.used ? "Utilisé" : "Non utilisé"}
+                                      {item.quality ? "Relu" : "Non relu"}
                                     </Text>
                                   </View>
-                                )}
-                                <View
-                                  style={{
-                                    flexDirection: "column",
-                                    alignItems: "center",
-                                  }}
-                                >
-                                  <TouchableOpacity
-                                    style={[
-                                      styles.toggleButton,
-                                      item.quality && styles.selectedToggle,
-                                    ]}
-                                    onPress={async () => {
-                                      await updateAnswer(
-                                        item.id,
-                                        "quality",
-                                        !item.quality
-                                      );
-                                      const updatedAnswers = answers.map(
-                                        (answer) =>
-                                          answer.id === item.id
-                                            ? {
-                                                ...answer,
-                                                quality: !answer.quality,
-                                              }
-                                            : answer
-                                      );
-                                      setAnswers(updatedAnswers);
-                                    }}
-                                  >
-                                    <View
-                                      style={{
-                                        flexDirection: "column",
-                                        alignItems: "center",
-                                      }}
-                                    >
-                                      <View
-                                        style={[
-                                          styles.toggleButtonCircle,
-                                          {
-                                            left: item.quality ? 2 : null,
-                                            right: !item.quality ? 2 : null,
-                                          },
-                                        ]}
-                                      />
-                                    </View>
-                                    <Text
-                                      style={[
-                                        styles.toggleText,
-                                        { marginTop: 5 },
-                                      ]}
-                                    >
-                                      {" "}
-                                    </Text>
-                                  </TouchableOpacity>
-                                  <Text>
-                                    {item.quality ? "Relu" : "Non relu"}
-                                  </Text>
-                                </View>
 
-                                <TouchableOpacity
-                                  onPress={() => setDeleteModalVisible(true)}
-                                >
-                                  <Image
-                                    source={trash}
-                                    style={{
-                                      width: 36,
-                                      height: 36,
-                                      opacity: 0.5,
-                                      marginLeft: 15,
-                                    }}
-                                  />
-                                  {isLargeScreen && <Text>Supprimer</Text>}
-                                </TouchableOpacity>
-                              </>
-                            )}
+                                  <TouchableOpacity
+                                    onPress={() => setDeleteModalVisible(true)}
+                                  >
+                                    <Image
+                                      source={trash}
+                                      style={{
+                                        width: 36,
+                                        height: 36,
+                                        opacity: 0.5,
+                                        marginLeft: 15,
+                                      }}
+                                    />
+                                    {isLargeScreen && <Text>Supprimer</Text>}
+                                  </TouchableOpacity>
+                                </>
+                              )}
                           </>
                         )}
 
