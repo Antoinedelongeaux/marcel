@@ -1,764 +1,1047 @@
-import React, { useState, useEffect, useRef } from 'react';
-import {   Image,View, Text, TouchableOpacity, TextInput, StyleSheet,Alert, Modal,  Picker,  Dimensions,} from 'react-native';
-import { globalStyles } from '../../global';
-import { 
-    createAudioChunk, 
-    startRecording, 
-    stopRecording,
-    uploadAudioToSupabase, 
-    delete_audio,
-    playRecording_fromAudioFile, 
-    uploadImageToSupabase,
-    handlePlayPause,
-}   from '../components/sound_handling'; 
+import React, { useState, useEffect, useRef } from "react";
 import {
-    getSubject,
-    getMemories_Answers,
-    integration,
-    getMemories_Questions,
-    get_chapters,
-    submitMemories_Answer,
-    submitMemories_Answer_written,
-    submitMemories_Answer_oral,
-    submitMemories_Answer_image,
-    update_answer_text,
-    deleteMemories_Answer,
-    get_user_name,
-    connectAnswers,
-    disconnectAnswers,
-    moveAnswer,
-    get_project_contributors,
-    update_answer_owner,
-    getExistingLink,
-    updateExistingLink,
-    createNewLink,
-    updateAnswer,
-    getTheme_byProject,
-    createTheme,
-    customUUIDv4,
-    updateTheme,
-    deleteTheme,
-    getTheme_byUser,
-    getAnswer,
-  } from '../components/data_handling';
-  import { v4 as uuidv4 } from 'uuid';
-  import MicroIcon from '../../assets/icons/microphone-lines-solid.svg';
-  import * as DocumentPicker from 'expo-document-picker';
-  import Upload from '../../assets/icons/upload.png';
-  import closeIcon from '../../assets/icons/close.png'; 
-  import { transcribeAudio_HQ, transcribeAudio_slow } from '../components/call_to_whisper';
-  import ModalComponent from '../components/ModalComponent';
-
-
-  
+  Image,
+  View,
+  Text,
+  TouchableOpacity,
+  TextInput,
+  StyleSheet,
+  Alert,
+  Modal,
+  Picker,
+  Dimensions,
+} from "react-native";
+import { globalStyles } from "../../global";
+import {
+  createAudioChunk,
+  startRecording,
+  stopRecording,
+  uploadAudioToSupabase,
+  delete_audio,
+  playRecording_fromAudioFile,
+  uploadImageToSupabase,
+  handlePlayPause,
+} from "../components/sound_handling";
+import {
+  getSubject,
+  getMemories_Answers,
+  integration,
+  getMemories_Questions,
+  get_chapters,
+  submitMemories_Answer,
+  submitMemories_Answer_written,
+  submitMemories_Answer_oral,
+  submitMemories_Answer_image,
+  update_answer_text,
+  deleteMemories_Answer,
+  get_user_name,
+  connectAnswers,
+  disconnectAnswers,
+  moveAnswer,
+  get_project_contributors,
+  update_answer_owner,
+  getExistingLink,
+  updateExistingLink,
+  createNewLink,
+  updateAnswer,
+  getTheme_byProject,
+  createTheme,
+  customUUIDv4,
+  updateTheme,
+  deleteTheme,
+  getTheme_byUser,
+  getAnswer,
+} from "../components/data_handling";
+import { v4 as uuidv4 } from "uuid";
+import MicroIcon from "../../assets/icons/microphone-lines-solid.svg";
+import * as DocumentPicker from "expo-document-picker";
+import Upload from "../../assets/icons/upload.png";
+import closeIcon from "../../assets/icons/close.png";
+import {
+  transcribeAudio_HQ,
+  transcribeAudio_slow,
+} from "../components/call_to_whisper";
+import ModalComponent from "../components/ModalComponent";
 
 //export default AnswerPanel_written = ({ answer, id_user, id_question,id_suject,id_connection }) => {
 
-    
-  export const AnswerPanel_written = ({ ID_USER, Id_question, Id_connection,question_reponse,refreshAnswers,id_answer_source }) => {
-      const [answer, setAnswer] = useState('');
+export const AnswerPanel_written = ({
+  ID_USER,
+  Id_question,
+  Id_connection,
+  question_reponse,
+  refreshAnswers,
+  id_answer_source,
+}) => {
+  const [answer, setAnswer] = useState("");
 
- 
+  const handleAnswerSubmit = async (
+    answer,
+    ID_USER,
+    Id_question,
+    Id_connection,
+    question_reponse,
+    refreshAnswers,
+    id_answer_source
+  ) => {
+    let ID_QUESTION = Id_question;
+    let ID_CONNECTION = Id_connection;
 
-
-
-      const handleAnswerSubmit = async ( answer, ID_USER, Id_question, Id_connection,question_reponse,refreshAnswers,id_answer_source) => {
-        
-        let ID_QUESTION = Id_question;
-        let ID_CONNECTION = Id_connection;
-  
-      if(id_answer_source) {
-      
-        const temp = await getAnswer(id_answer_source);
-        ID_QUESTION = temp.id_question;
-        ID_CONNECTION = temp.id_connection;
-
-      } 
-        await submitMemories_Answer_written(answer, ID_USER, ID_QUESTION, ID_CONNECTION,question_reponse,id_answer_source);
-        setAnswer('');
-        await refreshAnswers();
-      };
-    
-
-
-
-
-      return (
-        <View style={{ flexDirection: 'column', justifyContent: 'space-between', marginBottom: 10 }}>
-          <TextInput
-            style={globalStyles.input}
-            value={answer}
-            onChangeText={setAnswer}
-            placeholder={question_reponse ==='question'? "Poser votre question ici..." : "Écrire votre contribution ici..."}
-            multiline={true}
-            rows={4}
-          />
-          <TouchableOpacity
-            style={[globalStyles.globalButton_wide, {  marginRight: 5 }]}
-            onPress={() => handleAnswerSubmit(answer, ID_USER, Id_question, Id_connection,question_reponse,refreshAnswers,id_answer_source)}
-          >
-            <Text style={globalStyles.globalButtonText}>{question_reponse ==='question'? "Poser la question" : "Enregistrer la note"}</Text>
-          </TouchableOpacity>
-        </View>
-      );
-    };
-    
-    export const AnswerPanel_oral = ({ ID_USER, Id_question, Id_connection, question_reponse, refreshAnswers,id_answer_source }) => {
-      const [isRecording, setIsRecording] = useState(false);
-      const [recording, setRecording] = useState(null);
-      const [namePrefix, setNamePrefix] = useState('');
-      const [count, setCount] = useState(1);
-      const countRef = useRef(count);
-      const namePrefixRef = useRef(namePrefix);
-      const isRecordingRef = useRef(isRecording);
-
-      useEffect(() => {
-          isRecordingRef.current = isRecording;
-      }, [isRecording]);
-      useEffect(() => {
-        countRef.current = count;
-      }, [count]);
-      useEffect(() => {
-        namePrefixRef.current = namePrefix;
-      }, [namePrefix]);
-
-      useEffect(() => {
-        isRecordingRef.current = isRecording;
-    }, [isRecording]);
-  
-      const handleAnswerSubmit = async (answer, ID_USER, Id_question, Id_connection, question_reponse, name, refreshAnswers,id_answer_source) => {
-          const ID_answer= customUUIDv4()
-          let ID_QUESTION = Id_question;
-          let ID_CONNECTION = Id_connection;
-    
-        if(id_answer_source) {
-        
-          const temp = await getAnswer(id_answer_source);
-          ID_QUESTION = temp.id_question;
-          ID_CONNECTION = temp.id_connection;
-  
-        } 
-          
-      
-          await submitMemories_Answer_oral(answer, ID_USER, ID_QUESTION, ID_CONNECTION, question_reponse, name,ID_answer,id_answer_source);
-          transcribeAudio_slow(name, ID_answer);
-          await refreshAnswers();
-      };
-  
-      const startNewRecording = async () => {
-          try {
-              console.log("On relance l'enregistrement");
-              const temp = await startRecording();
-              setRecording(temp);
-              setIsRecording(true);
-              
-  
-              setTimeout(async () => {
-          
-                  if (isRecordingRef.current) {
-
-                    
-                    
-                      console.log("On stop l'enregistrement");
-                            const { uri, duration } = await stopRecording(temp);
-          
-                            const chunkName = `${namePrefixRef.current}_part_${countRef.current}.mp3`;
-                            setCount(countRef.current +1)
-                            const chunkUri = await createAudioChunk(uri, chunkName, 0, duration);
-                            // Start a new recording chunk immediately
-                            await startNewRecording();
-                            console.log(`Created chunk: ${chunkName} with URI: ${chunkUri}`);
-                            const cleanedChunkName = chunkName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_\.-]/g, '');
-                              await uploadAudioToSupabase(chunkUri, cleanedChunkName);
-                              await handleAnswerSubmit("L'audio est en cours de transcription ...", ID_USER, Id_question, Id_connection, question_reponse, cleanedChunkName, refreshAnswers);            
-                  }
-              }, 60000); // Change back to 60000 for 1-minute chunks
-          } catch (error) {
-              console.error('Error starting new recording:', error);
-          }
-      };
-  
-      const handleRecording = async () => {
-          if (isRecordingRef.current) {
-              try {
-                  setIsRecording(false);
-                  const { uri, duration } = await stopRecording(recording);
-
-                  const chunkName = `${namePrefix}_part_${count}.mp3`;
-                  const chunkUri = await createAudioChunk(uri, chunkName, 0, duration);
-                  console.log(`Created chunk: ${chunkName} with URI: ${chunkUri}`);
-                  const cleanedChunkName = chunkName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_\.-]/g, '');
-                    await uploadAudioToSupabase(chunkUri, cleanedChunkName)
-                    await handleAnswerSubmit("L'audio est en cours de transcription ...", ID_USER, Id_question, Id_connection, question_reponse, cleanedChunkName, refreshAnswers,id_answer_source);
-                  }
-               catch (error) {
-                  console.error('Error during handleRecording:', error);
-              }
-          } else {
-              setCount(1)
-              setNamePrefix(Date.now())
-              await startNewRecording();
-          }
-      };
-  
-      return (
-          <View style={{ flexDirection: 'column', justifyContent: 'space-between', marginBottom: 10 }}>
-              <TouchableOpacity
-                  style={[
-                      globalStyles.globalButton_wide,
-                      { backgroundColor: isRecording ? "red" : '#b1b3b5', marginHorizontal: 20, width: '80%' },
-                  ]}
-                  onPress={handleRecording}
-              >
-                  <View style={{ justifyContent: 'center', alignItems: 'center' }}>
-                      <Image source={MicroIcon} style={{ width: 60, height: 60, opacity: 0.5 }} />
-                      <Text style={globalStyles.globalButtonText}>
-                          {isRecording ? "Arrêter l'enregistrement" : "Commencer l'enregistrement"}
-                      </Text>
-                  </View>
-              </TouchableOpacity>
-          </View>
-      );
+    if (id_answer_source) {
+      const temp = await getAnswer(id_answer_source);
+      ID_QUESTION = temp.id_question;
+      ID_CONNECTION = temp.id_connection;
+    }
+    await submitMemories_Answer_written(
+      answer,
+      ID_USER,
+      ID_QUESTION,
+      ID_CONNECTION,
+      question_reponse,
+      id_answer_source
+    );
+    setAnswer("");
+    await refreshAnswers();
   };
 
-
-  export const AnswerPanel_AudioFile = ({ ID_USER, Id_question, Id_connection, question_reponse, refreshAnswers,id_answer_source})=> {
-  
-    const handleAnswerSubmit = async (answer, ID_USER, Id_question, Id_connection, question_reponse, name, refreshAnswers,id_answer_source) => {
-        const ID_answer= customUUIDv4()
-        let ID_QUESTION = Id_question;
-        let ID_CONNECTION = Id_connection;
-
-      if(id_answer_source) {
-      
-        const temp = await getAnswer(id_answer_source);
-        ID_QUESTION = temp.id_question;
-        ID_CONNECTION = temp.id_connection;
-
-      } 
-        console.log('answer, ID_USER, ID_QUESTION, ID_CONNECTION, question_reponse, name,ID_answer,id_answer_source :',answer, ID_USER, ID_QUESTION, ID_CONNECTION, question_reponse, name,ID_answer,id_answer_source )
-        await submitMemories_Answer_oral(answer, ID_USER, ID_QUESTION, ID_CONNECTION, question_reponse, name,ID_answer,id_answer_source);
-        transcribeAudio_HQ(name, ID_answer);
-        await refreshAnswers();
-    };
-
-    const getAudioDuration = (uri) => {
-      return new Promise((resolve, reject) => {
-        const audio = new Audio(uri);
-        audio.addEventListener('loadedmetadata', () => {
-          resolve(audio.duration);
-        });
-        audio.addEventListener('error', (e) => {
-          reject(e);
-        });
-      });
-    };
-
-    const handleUploadAudio = async () => {
-        try {
-          const result = await DocumentPicker.getDocumentAsync({
-            type: 'audio/*',
-            copyToCacheDirectory: false
-          });
-      
-          if (!result.canceled) {
-            let uri, name, mimeType;
-      
-            if (result.output && result.output.length > 0) {
-              const file = result.output[0];
-              uri = URL.createObjectURL(file);
-              name = file.name;
-              mimeType = file.type;
-            } else if (result.assets && result.assets.length > 0) {
-              const asset = result.assets[0];
-              uri = asset.uri;
-              name = asset.name;
-              mimeType = asset.mimeType;
-            } else {
-              throw new Error("Invalid file selection result");
-            }
-      
-            if (!uri || !name) {
-              throw new Error("Invalid file selection: URI or name is missing");
-            }
-      
-            if (mimeType && mimeType.startsWith('audio/')) {
-              try {
-                const duration = await getAudioDuration(uri); // Modifié pour récupérer directement la durée
-                console.log("Audio duration:", duration);
-                const maxDuration = 60;  // Durée maximale d'un morceau en secondes
-                const chunks = Math.ceil(duration / maxDuration);
-      
-                for (let i = 0; i < chunks; i++) {
-                  const start = i * maxDuration;
-                  const end = (i + 1) * maxDuration > duration ? duration : (i + 1) * maxDuration;
-                  const chunkName = `${name}_part_${i + 1}.mp3`;
-      
-                  console.log(`Creating chunk: ${chunkName} from ${start} to ${end}`);
-                  const chunkUri = await createAudioChunk(uri, chunkName, start, end);
-      
-                  if (chunkUri) {
-                    console.log(`Uploading chunk: ${chunkName}`);
-                    const cleanedChunkName = chunkName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_\.-]/g, '');
-                    await uploadAudioToSupabase(chunkUri, cleanedChunkName);
-                    await handleAnswerSubmit("L'audio est en cours de transcription ...", ID_USER, Id_question, Id_connection, question_reponse, cleanedChunkName, refreshAnswers,id_answer_source);
-                  } else {
-                    console.error(`Failed to create chunk: ${chunkName}`);
-                  }
-                }
-              } catch (e) {
-                console.error("Error getting audio duration:", e);
-                Alert.alert("Erreur", "Impossible d'obtenir la durée de l'audio");
-              }
-            } else {
-              Alert.alert("Erreur", "Le fichier sélectionné n'est pas un fichier audio");
-            }
-          } else {
-            Alert.alert("Erreur", "Sélection du fichier échouée");
-          }
-        } catch (error) {
-          console.error("Error during file selection or processing:", error);
-          Alert.alert("Erreur", "Une erreur s'est produite lors de la sélection du fichier");
+  return (
+    <View
+      style={{
+        flexDirection: "column",
+        justifyContent: "space-between",
+        marginBottom: 10,
+      }}
+    >
+      <TextInput
+        style={globalStyles.input}
+        value={answer}
+        onChangeText={setAnswer}
+        placeholder={
+          question_reponse === "question"
+            ? "Poser votre question ici..."
+            : "Écrire votre contribution ici..."
         }
-      };
-
-      return (
-        <TouchableOpacity
-        style={[globalStyles.globalButton_wide, { backgroundColor: '#b1b3b5', flex: 1, marginLeft: 5 }]}
-        onPress={handleUploadAudio}
+        multiline={true}
+        rows={4}
+      />
+      <TouchableOpacity
+        style={[globalStyles.globalButton_wide, { marginRight: 5 }]}
+        onPress={() =>
+          handleAnswerSubmit(
+            answer,
+            ID_USER,
+            Id_question,
+            Id_connection,
+            question_reponse,
+            refreshAnswers,
+            id_answer_source
+          )
+        }
       >
-        <View style={{ flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-          <Image source={Upload} style={{ width: 60, height: 60, opacity: 0.5 }} />
+        <Text style={globalStyles.globalButtonText}>
+          {question_reponse === "question"
+            ? "Poser la question"
+            : "Enregistrer la note"}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
+
+export const AnswerPanel_oral = ({
+  ID_USER,
+  Id_question,
+  Id_connection,
+  question_reponse,
+  refreshAnswers,
+  id_answer_source,
+}) => {
+  const [isRecording, setIsRecording] = useState(false);
+  const [recording, setRecording] = useState(null);
+  const [namePrefix, setNamePrefix] = useState("");
+  const [count, setCount] = useState(1);
+  const countRef = useRef(count);
+  const namePrefixRef = useRef(namePrefix);
+  const isRecordingRef = useRef(isRecording);
+
+  useEffect(() => {
+    isRecordingRef.current = isRecording;
+  }, [isRecording]);
+  useEffect(() => {
+    countRef.current = count;
+  }, [count]);
+  useEffect(() => {
+    namePrefixRef.current = namePrefix;
+  }, [namePrefix]);
+
+  useEffect(() => {
+    isRecordingRef.current = isRecording;
+  }, [isRecording]);
+
+  const handleAnswerSubmit = async (
+    answer,
+    ID_USER,
+    Id_question,
+    Id_connection,
+    question_reponse,
+    name,
+    refreshAnswers,
+    id_answer_source
+  ) => {
+    const ID_answer = customUUIDv4();
+    let ID_QUESTION = Id_question;
+    let ID_CONNECTION = Id_connection;
+
+    if (id_answer_source) {
+      const temp = await getAnswer(id_answer_source);
+      ID_QUESTION = temp.id_question;
+      ID_CONNECTION = temp.id_connection;
+    }
+
+    await submitMemories_Answer_oral(
+      answer,
+      ID_USER,
+      ID_QUESTION,
+      ID_CONNECTION,
+      question_reponse,
+      name,
+      ID_answer,
+      id_answer_source
+    );
+    //transcribeAudio_HQ(name, ID_answer);
+    await refreshAnswers();
+  };
+
+  const startNewRecording = async () => {
+    try {
+      console.log("On relance l'enregistrement");
+      const temp = await startRecording();
+      setRecording(temp);
+      setIsRecording(true);
+
+      setTimeout(async () => {
+        if (isRecordingRef.current) {
+          console.log("On stop l'enregistrement");
+          const { uri, duration } = await stopRecording(temp);
+
+          const chunkName = `${namePrefixRef.current}_part_${countRef.current}.mp3`;
+          setCount(countRef.current + 1);
+          const chunkUri = await createAudioChunk(uri, chunkName, 0, duration);
+          // Start a new recording chunk immediately
+          await startNewRecording();
+          console.log(`Created chunk: ${chunkName} with URI: ${chunkUri}`);
+          const cleanedChunkName = chunkName
+            .replace(/\s+/g, "_")
+            .replace(/[^a-zA-Z0-9_\.-]/g, "");
+          await uploadAudioToSupabase(chunkUri, cleanedChunkName);
+          await handleAnswerSubmit(
+            "L'audio n'a pas encore été envoyé en transription ...",
+            ID_USER,
+            Id_question,
+            Id_connection,
+            question_reponse,
+            cleanedChunkName,
+            refreshAnswers
+          );
+        }
+      }, 60000); // Change back to 60000 for 1-minute chunks
+    } catch (error) {
+      console.error("Error starting new recording:", error);
+    }
+  };
+
+  const handleRecording = async () => {
+    if (isRecordingRef.current) {
+      try {
+        setIsRecording(false);
+        const { uri, duration } = await stopRecording(recording);
+
+        const chunkName = `${namePrefix}_part_${count}.mp3`;
+        const chunkUri = await createAudioChunk(uri, chunkName, 0, duration);
+        console.log(`Created chunk: ${chunkName} with URI: ${chunkUri}`);
+        const cleanedChunkName = chunkName
+          .replace(/\s+/g, "_")
+          .replace(/[^a-zA-Z0-9_\.-]/g, "");
+        await uploadAudioToSupabase(chunkUri, cleanedChunkName);
+        await handleAnswerSubmit(
+          "L'audio n'a pas encore été envoyé en transription...",
+          ID_USER,
+          Id_question,
+          Id_connection,
+          question_reponse,
+          cleanedChunkName,
+          refreshAnswers,
+          id_answer_source
+        );
+      } catch (error) {
+        console.error("Error during handleRecording:", error);
+      }
+    } else {
+      setCount(1);
+      setNamePrefix(Date.now());
+      await startNewRecording();
+    }
+  };
+
+  return (
+    <View
+      style={{
+        flexDirection: "column",
+        justifyContent: "space-between",
+        marginBottom: 10,
+      }}
+    >
+      <TouchableOpacity
+        style={[
+          globalStyles.globalButton_wide,
+          {
+            backgroundColor: isRecording ? "red" : "#b1b3b5",
+            marginHorizontal: 20,
+            width: "80%",
+          },
+        ]}
+        onPress={handleRecording}
+      >
+        <View style={{ justifyContent: "center", alignItems: "center" }}>
+          <Image
+            source={MicroIcon}
+            style={{ width: 60, height: 60, opacity: 0.5 }}
+          />
           <Text style={globalStyles.globalButtonText}>
-            Envoyer un enregistrement vocal
+            {isRecording
+              ? "Arrêter l'enregistrement"
+              : "Commencer l'enregistrement"}
           </Text>
         </View>
-        
       </TouchableOpacity>
+    </View>
+  );
+};
 
+export const AnswerPanel_AudioFile = ({
+  ID_USER,
+  Id_question,
+  Id_connection,
+  question_reponse,
+  refreshAnswers,
+  id_answer_source,
+}) => {
+  const handleAnswerSubmit = async (
+    answer,
+    ID_USER,
+    Id_question,
+    Id_connection,
+    question_reponse,
+    name,
+    refreshAnswers,
+    id_answer_source
+  ) => {
+    const ID_answer = customUUIDv4();
+    let ID_QUESTION = Id_question;
+    let ID_CONNECTION = Id_connection;
 
+    if (id_answer_source) {
+      const temp = await getAnswer(id_answer_source);
+      ID_QUESTION = temp.id_question;
+      ID_CONNECTION = temp.id_connection;
+    }
 
-      )
-
-
-  }
-
-
-  export const AnswerPanel_imageFile = ({ ID_USER, Id_question, Id_connection, question_reponse, refreshAnswers,id_answer_source }) => {
-    const [caption, setCaption] = useState('');
-    const [modalVisible, setModalVisible] = useState(false);
-    const [selectedFile, setSelectedFile] = useState(null);
-  
-    const handleAnswerSubmit = async (answer, ID_USER, Id_question, Id_connection, question_reponse, name, refreshAnswersid_answer_source) => {
-      let ID_QUESTION = Id_connection;
-        let ID_CONNECTION = Id_connection;
-  
-      if(id_answer_source) {
-      
-        const temp = await getAnswer(id_answer_source);
-        ID_QUESTION = temp.id_question;
-        ID_CONNECTION = temp.id_connection;
-
-      } 
-      
-      await submitMemories_Answer_image(answer, ID_USER, ID_QUESTION, ID_CONNECTION, question_reponse, name,id_answer_source);
-      await refreshAnswers();
-    };
-  
-    const handleUploadPhoto = async () => {
-      try {
-        const result = await DocumentPicker.getDocumentAsync({
-          type: 'image/*', // Accepter les fichiers image
-          copyToCacheDirectory: false
-        });
-  
-        if (!result.canceled) {
-          let uri, name, mimeType;
-  
-          // Gérer les différences de plateforme
-          if (result.output && result.output.length > 0) {
-            const file = result.output[0];
-            uri = URL.createObjectURL(file);
-            name = file.name;
-            mimeType = file.type;
-          } else if (result.assets && result.assets.length > 0) {
-            const asset = result.assets[0];
-            uri = asset.uri;
-            name = asset.name;
-            mimeType = asset.mimeType;
-          } else {
-            console.error("Invalid file selection result", result);
-            throw new Error("Invalid file selection result");
-          }
-  
-          if (!uri || !name) {
-            console.error("Invalid file selection: URI or name is missing", { uri, name });
-            throw new Error("Invalid file selection: URI or name is missing");
-          }
-  
-          // Vérification du type MIME
-          if (mimeType && mimeType.startsWith('image/')) {
-            console.log("File selected is an image file:", { uri, name, mimeType });
-          } else {
-            console.error("Selected file is not an image file:", { uri, name, mimeType });
-            Alert.alert("Erreur", "Le fichier sélectionné n'est pas un fichier image");
-            return;
-          }
-  
-          console.log("File selected successfully:", { uri, name });
-          setSelectedFile({ uri, name }); // Enregistrer le fichier sélectionné
-          setModalVisible(true); // Afficher la modale pour entrer la légende
-        } else {
-          console.error("File selection was not successful: ", result);
-          Alert.alert("Erreur", "Sélection du fichier échouée");
-        }
-      } catch (error) {
-        console.error("Error handling file upload: ", error);
-        Alert.alert("Erreur", "Une erreur s'est produite lors de la sélection du fichier");
-      }
-    };
-  
-    const handleCaptionSubmit = async () => {
-      if (caption.trim() === '') {
-        Alert.alert("Erreur", "Veuillez entrer une légende pour l'image");
-        return;
-      }
-      
-      setModalVisible(false);
-      
-      await uploadImageToSupabase(selectedFile.uri, selectedFile.name);
-      await handleAnswerSubmit(caption, ID_USER, Id_question, Id_connection, question_reponse, selectedFile.name, refreshAnswers,id_answer_source);
-    };
-  
-    return (
-      <View>
-        <TouchableOpacity
-          style={[globalStyles.globalButton_wide, { backgroundColor: '#b1b3b5', flex: 1, marginLeft: 5 }]}
-          onPress={handleUploadPhoto}
-        >
-          <View style={{ flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-            <Image source={Upload} style={{ width: 60, height: 60, opacity: 0.5 }} />
-            <Text style={globalStyles.globalButtonText}>
-              Envoyer un document ou une photo
-            </Text>
-          </View>
-        </TouchableOpacity>
-  
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={modalVisible}
-          onRequestClose={() => {
-            setModalVisible(!modalVisible);
-          }}
-        >
-          <View style={globalStyles.overlay}>
-          <View style={globalStyles.modalContainer}>
-
-            <Text style={globalStyles.modalTitle}>Entrez la légende de l'image</Text>
-            <TextInput
-              style={globalStyles.input}
-              placeholder="Légende"
-              value={caption}
-              onChangeText={setCaption}
-            />
-                      <TouchableOpacity
-            style={[globalStyles.globalButton_wide ]}
-            onPress={handleCaptionSubmit}
-          >
-            <Text style={globalStyles.globalButtonText}> Soumettre </Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => setModalVisible(false)} style={globalStyles.closeButton}>
-      <Image source={closeIcon} style={globalStyles.closeIcon} />
-    </TouchableOpacity>
-        
-            
-          </View>
-          </View>
-        
-        
-        </Modal>
-      </View>
+    await submitMemories_Answer_oral(
+      answer,
+      ID_USER,
+      ID_QUESTION,
+      ID_CONNECTION,
+      question_reponse,
+      name,
+      ID_answer,
+      id_answer_source
     );
-  };
-  
-  export const AnswerPanel_documentFile = ({ ID_USER, Id_question, Id_connection, question_reponse, refreshAnswers,id_answer_source }) => {
-    const [caption, setCaption] = useState('');
-    const [modalVisible, setModalVisible] = useState(false);
-    const [selectedFile, setSelectedFile] = useState(null);
-  
-    const handleAnswerSubmit = async (answer, ID_USER, Id_question, Id_connection, question_reponse, name, refreshAnswersid_answer_source) => {
-        let ID_QUESTION = Id_question;
-        let ID_CONNECTION = Id_connection;
-  
-      if(id_answer_source) {
-      
-        const temp = await getAnswer(id_answer_source);
-        ID_QUESTION = temp.id_question;
-        ID_CONNECTION = temp.id_connection;
-
-      } 
-      
-      await submitMemories_Answer_image(answer, ID_USER, ID_QUESTION, ID_CONNECTION, question_reponse, name,id_answer_source);
-      await refreshAnswers();
-    };
-  
-    const handleUploadPhoto = async () => {
-      try {
-        const result = await DocumentPicker.getDocumentAsync({
-          type: 'image/*', // Accepter les fichiers image
-          copyToCacheDirectory: false
-        });
-  
-        if (!result.canceled) {
-          let uri, name, mimeType;
-  
-          // Gérer les différences de plateforme
-          if (result.output && result.output.length > 0) {
-            const file = result.output[0];
-            uri = URL.createObjectURL(file);
-            name = file.name;
-            mimeType = file.type;
-          } else if (result.assets && result.assets.length > 0) {
-            const asset = result.assets[0];
-            uri = asset.uri;
-            name = asset.name;
-            mimeType = asset.mimeType;
-          } else {
-            console.error("Invalid file selection result", result);
-            throw new Error("Invalid file selection result");
-          }
-  
-          if (!uri || !name) {
-            console.error("Invalid file selection: URI or name is missing", { uri, name });
-            throw new Error("Invalid file selection: URI or name is missing");
-          }
-  
-          // Vérification du type MIME
-          if (mimeType && mimeType.startsWith('image/')) {
-            console.log("File selected is an image file:", { uri, name, mimeType });
-          } else {
-            console.error("Selected file is not an image file:", { uri, name, mimeType });
-            Alert.alert("Erreur", "Le fichier sélectionné n'est pas un fichier image");
-            return;
-          }
-  
-          console.log("File selected successfully:", { uri, name });
-          setSelectedFile({ uri, name }); // Enregistrer le fichier sélectionné
-          setModalVisible(true); // Afficher la modale pour entrer la légende
-        } else {
-          console.error("File selection was not successful: ", result);
-          Alert.alert("Erreur", "Sélection du fichier échouée");
-        }
-      } catch (error) {
-        console.error("Error handling file upload: ", error);
-        Alert.alert("Erreur", "Une erreur s'est produite lors de la sélection du fichier");
-      }
-    };
-  
-    const handleCaptionSubmit = async () => {
-      if (caption.trim() === '') {
-        Alert.alert("Erreur", "Veuillez entrer une légende pour l'image");
-        return;
-      }
-      
-      setModalVisible(false);
-      
-      await uploadImageToSupabase(selectedFile.uri, selectedFile.name);
-      await handleAnswerSubmit(caption, ID_USER, Id_question, Id_connection, question_reponse, selectedFile.name, refreshAnswers,id_answer_source);
-    };
-  
-    return (
-      <View>
-        <TouchableOpacity
-          style={[globalStyles.globalButton_wide, { backgroundColor: '#b1b3b5', flex: 1, marginLeft: 5 }]}
-          onPress={handleUploadPhoto}
-        >
-          <View style={{ flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-            <Image source={Upload} style={{ width: 60, height: 60, opacity: 0.5 }} />
-            <Text style={globalStyles.globalButtonText}>
-              Envoyer un document ou une photo
-            </Text>
-          </View>
-        </TouchableOpacity>
-  
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={modalVisible}
-          onRequestClose={() => {
-            setModalVisible(!modalVisible);
-          }}
-        >
-          <View style={globalStyles.overlay}>
-          <View style={globalStyles.modalContainer}>
-
-            <Text style={globalStyles.modalTitle}>Entrez la légende de l'image</Text>
-            <TextInput
-              style={globalStyles.input}
-              placeholder="Légende"
-              value={caption}
-              onChangeText={setCaption}
-            />
-                      <TouchableOpacity
-            style={[globalStyles.globalButton_wide ]}
-            onPress={handleCaptionSubmit}
-          >
-            <Text style={globalStyles.globalButtonText}> Soumettre </Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => setModalVisible(false)} style={globalStyles.closeButton}>
-      <Image source={closeIcon} style={globalStyles.closeIcon} />
-    </TouchableOpacity>
-        
-            
-          </View>
-          </View>
-        
-        
-        </Modal>
-      </View>
-    );
+    //transcribeAudio_HQ(name, ID_answer);
+    await refreshAnswers();
   };
 
-
-  export const ThemePanel = ({ ID_USER, ID_subject, new_theme, themes,setThemes, themesAllUsers,setThemesAllUsers, theme, setTheme, themeText, setThemeText, closureFunction }) => {
-    const [merciModalVisible, setMerciModalVisible] = useState(false);
-    const [showThemeInput, setShowThemeInput] = useState(false);
-    const [showModalThemeEdit, setShowModalThemeEdit] = useState(false);
-    const [showModalThemeDelete, setShowModalThemeDelete] = useState(false);
-    const themesInspiration = [
-      'Les différents lieux de vie',
-      'Une journée type à 15 ans',
-      'Les meilleurs amis',
-      "Hobbys, passions, et centres d'intérêts",
-      "Histoire d'un lieu ou d'une maison de famille",
-    ];
-    const windowWidth = Dimensions.get('window').width;
-    const isLargeScreen = windowWidth > 768;
-    const [modals, setModals] = useState({
-      isEditModalVisible: false,
-      newThemeTitle: '',
-      isDeleteModalVisible: false,
+  const getAudioDuration = (uri) => {
+    return new Promise((resolve, reject) => {
+      const audio = new Audio(uri);
+      audio.addEventListener("loadedmetadata", () => {
+        resolve(audio.duration);
+      });
+      audio.addEventListener("error", (e) => {
+        reject(e);
+      });
     });
-  
-    const handleSaveTheme = async (text) => {
-      const temp = await createTheme(text, ID_subject);
-      setTheme(temp);
-  
-      if (new_theme) {
-        setMerciModalVisible(true);
+  };
+
+  const handleUploadAudio = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: "audio/*",
+        copyToCacheDirectory: false,
+      });
+
+      if (!result.canceled) {
+        let uri, name, mimeType;
+
+        if (result.output && result.output.length > 0) {
+          const file = result.output[0];
+          uri = URL.createObjectURL(file);
+          name = file.name;
+          mimeType = file.type;
+        } else if (result.assets && result.assets.length > 0) {
+          const asset = result.assets[0];
+          uri = asset.uri;
+          name = asset.name;
+          mimeType = asset.mimeType;
+        } else {
+          throw new Error("Invalid file selection result");
+        }
+
+        if (!uri || !name) {
+          throw new Error("Invalid file selection: URI or name is missing");
+        }
+
+        if (mimeType && mimeType.startsWith("audio/")) {
+          try {
+            const duration = await getAudioDuration(uri); // Modifié pour récupérer directement la durée
+            console.log("Audio duration:", duration);
+            const maxDuration = 60; // Durée maximale d'un morceau en secondes
+            const chunks = Math.ceil(duration / maxDuration);
+
+            for (let i = 0; i < chunks; i++) {
+              const start = i * maxDuration;
+              const end =
+                (i + 1) * maxDuration > duration
+                  ? duration
+                  : (i + 1) * maxDuration;
+              const chunkName = `${name}_part_${i + 1}.mp3`;
+
+              console.log(
+                `Creating chunk: ${chunkName} from ${start} to ${end}`
+              );
+              const chunkUri = await createAudioChunk(
+                uri,
+                chunkName,
+                start,
+                end
+              );
+
+              if (chunkUri) {
+                console.log(`Uploading chunk: ${chunkName}`);
+                const cleanedChunkName = chunkName
+                  .replace(/\s+/g, "_")
+                  .replace(/[^a-zA-Z0-9_\.-]/g, "");
+                await uploadAudioToSupabase(chunkUri, cleanedChunkName);
+                await handleAnswerSubmit(
+                  "L'audio n'a pas encore été envoyé en transription ...",
+                  ID_USER,
+                  Id_question,
+                  Id_connection,
+                  question_reponse,
+                  cleanedChunkName,
+                  refreshAnswers,
+                  id_answer_source
+                );
+              } else {
+                console.error(`Failed to create chunk: ${chunkName}`);
+              }
+            }
+          } catch (e) {
+            console.error("Error getting audio duration:", e);
+            Alert.alert("Erreur", "Impossible d'obtenir la durée de l'audio");
+          }
+        } else {
+          Alert.alert(
+            "Erreur",
+            "Le fichier sélectionné n'est pas un fichier audio"
+          );
+        }
       } else {
-        closureFunction('Thème ok');
+        Alert.alert("Erreur", "Sélection du fichier échouée");
       }
-    };
-  
-    useEffect(() => {
-      if (theme) {
-        closureFunction('Thème ok');
-      } else {
-        closureFunction('Thème not ok');
-      }
-    }, [theme]);
-  
-    return (
+    } catch (error) {
+      console.error("Error during file selection or processing:", error);
+      Alert.alert(
+        "Erreur",
+        "Une erreur s'est produite lors de la sélection du fichier"
+      );
+    }
+  };
+
+  return (
+    <TouchableOpacity
+      style={[
+        globalStyles.globalButton_wide,
+        { backgroundColor: "#b1b3b5", flex: 1, marginLeft: 5 },
+      ]}
+      onPress={handleUploadAudio}
+    >
       <View
         style={{
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          marginBottom: 10,
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
         }}
+      >
+        <Image
+          source={Upload}
+          style={{ width: 60, height: 60, opacity: 0.5 }}
+        />
+        <Text style={globalStyles.globalButtonText}>
+          Envoyer un enregistrement vocal
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
+};
+
+export const AnswerPanel_imageFile = ({
+  ID_USER,
+  Id_question,
+  Id_connection,
+  question_reponse,
+  refreshAnswers,
+  id_answer_source,
+}) => {
+  const [caption, setCaption] = useState("");
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+
+  const handleAnswerSubmit = async (
+    answer,
+    ID_USER,
+    Id_question,
+    Id_connection,
+    question_reponse,
+    name,
+    refreshAnswersid_answer_source
+  ) => {
+    let ID_QUESTION = Id_connection;
+    let ID_CONNECTION = Id_connection;
+
+    if (id_answer_source) {
+      const temp = await getAnswer(id_answer_source);
+      ID_QUESTION = temp.id_question;
+      ID_CONNECTION = temp.id_connection;
+    }
+
+    await submitMemories_Answer_image(
+      answer,
+      ID_USER,
+      ID_QUESTION,
+      ID_CONNECTION,
+      question_reponse,
+      name,
+      id_answer_source
+    );
+    await refreshAnswers();
+  };
+
+  const handleUploadPhoto = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: "image/*", // Accepter les fichiers image
+        copyToCacheDirectory: false,
+      });
+
+      if (!result.canceled) {
+        let uri, name, mimeType;
+
+        // Gérer les différences de plateforme
+        if (result.output && result.output.length > 0) {
+          const file = result.output[0];
+          uri = URL.createObjectURL(file);
+          name = file.name;
+          mimeType = file.type;
+        } else if (result.assets && result.assets.length > 0) {
+          const asset = result.assets[0];
+          uri = asset.uri;
+          name = asset.name;
+          mimeType = asset.mimeType;
+        } else {
+          console.error("Invalid file selection result", result);
+          throw new Error("Invalid file selection result");
+        }
+
+        if (!uri || !name) {
+          console.error("Invalid file selection: URI or name is missing", {
+            uri,
+            name,
+          });
+          throw new Error("Invalid file selection: URI or name is missing");
+        }
+
+        // Vérification du type MIME
+        if (mimeType && mimeType.startsWith("image/")) {
+          console.log("File selected is an image file:", {
+            uri,
+            name,
+            mimeType,
+          });
+        } else {
+          console.error("Selected file is not an image file:", {
+            uri,
+            name,
+            mimeType,
+          });
+          Alert.alert(
+            "Erreur",
+            "Le fichier sélectionné n'est pas un fichier image"
+          );
+          return;
+        }
+
+        console.log("File selected successfully:", { uri, name });
+        setSelectedFile({ uri, name }); // Enregistrer le fichier sélectionné
+        setModalVisible(true); // Afficher la modale pour entrer la légende
+      } else {
+        console.error("File selection was not successful: ", result);
+        Alert.alert("Erreur", "Sélection du fichier échouée");
+      }
+    } catch (error) {
+      console.error("Error handling file upload: ", error);
+      Alert.alert(
+        "Erreur",
+        "Une erreur s'est produite lors de la sélection du fichier"
+      );
+    }
+  };
+
+  const handleCaptionSubmit = async () => {
+    if (caption.trim() === "") {
+      Alert.alert("Erreur", "Veuillez entrer une légende pour l'image");
+      return;
+    }
+
+    setModalVisible(false);
+
+    await uploadImageToSupabase(selectedFile.uri, selectedFile.name);
+    await handleAnswerSubmit(
+      caption,
+      ID_USER,
+      Id_question,
+      Id_connection,
+      question_reponse,
+      selectedFile.name,
+      refreshAnswers,
+      id_answer_source
+    );
+  };
+
+  return (
+    <View>
+      <TouchableOpacity
+        style={[
+          globalStyles.globalButton_wide,
+          { backgroundColor: "#b1b3b5", flex: 1, marginLeft: 5 },
+        ]}
+        onPress={handleUploadPhoto}
       >
         <View
           style={{
-            padding: 10,
-            marginBottom: 10,
-            width: '90%',
-            alignSelf: 'center',
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
           }}
         >
-          {themes.length > 0 && !new_theme && (
-            <View>
-              <Picker
-                selectedValue={theme?.id || ''}
-                onValueChange={(itemValue) => {
-                  const selected = themes.find((theme) => theme.id === itemValue);
-                  setShowThemeInput(false);
-                  setTheme(selected);
-                  setThemeText(selected ? selected.theme : '');
-                }}
-              >
-                <Picker.Item label="Choisir parmi mes thèmes existants" value="" />
-                {themes.map((theme) => (
-                  <Picker.Item
-                    key={theme.id}
-                    label={theme.theme}
-                    value={theme.id}
-                  />
-                ))}
-              </Picker>
-            </View>
-          )}
-          {themesAllUsers.length > 0 && !new_theme && (
-            <View style={{ marginTop: 10 }}>
-              <Picker
-                selectedValue={theme?.id || ''}
-                onValueChange={(itemValue) => {
-                  const selected = themesAllUsers.find(
-                    (theme) => theme.id === itemValue
-                  );
-                  setShowThemeInput(false);
-                  setTheme(selected);
-                  setThemeText(selected ? selected.theme : '');
-                }}
-              >
-                <Picker.Item
-                  label="Choisir parmi tous les thèmes existants"
-                  value=""
-                />
-                {themesAllUsers.map((theme) => (
-                  <Picker.Item
-                    key={theme.id}
-                    label={theme.theme}
-                    value={theme.id}
-                  />
-                ))}
-              </Picker>
-            </View>
-          )}
-  
-          {!new_theme && (
+          <Image
+            source={Upload}
+            style={{ width: 60, height: 60, opacity: 0.5 }}
+          />
+          <Text style={globalStyles.globalButtonText}>
+            Envoyer un document ou une photo
+          </Text>
+        </View>
+      </TouchableOpacity>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => {
+          setModalVisible(!modalVisible);
+        }}
+      >
+        <View style={globalStyles.overlay}>
+          <View style={globalStyles.modalContainer}>
+            <Text style={globalStyles.modalTitle}>
+              Entrez la légende de l'image
+            </Text>
+            <TextInput
+              style={globalStyles.input}
+              placeholder="Légende"
+              value={caption}
+              onChangeText={setCaption}
+            />
             <TouchableOpacity
-              style={{
-                backgroundColor: '#D3D3D3',
-                padding: 10,
-                borderRadius: 5,
-                marginTop: 10,
-              }}
-              onPress={() => setShowThemeInput(!showThemeInput)}
+              style={[globalStyles.globalButton_wide]}
+              onPress={handleCaptionSubmit}
             >
-              <Text style={{ color: '#000' }}>Définir un nouveau thème</Text>
+              <Text style={globalStyles.globalButtonText}> Soumettre </Text>
             </TouchableOpacity>
-          )}
-  
-          {(showThemeInput || new_theme) && (
-            <View style={{ marginTop: 10 }}>
-              <TextInput
-                style={globalStyles.input}
-                placeholder="Renseigner un nouveau thème"
-                onChangeText={(text) => {
-                  setThemeText(text);
-                  setTheme(null);
-                }}
-                value={themeText}
-                multiline={true}
-                rows={4}
+            <TouchableOpacity
+              onPress={() => setModalVisible(false)}
+              style={globalStyles.closeButton}
+            >
+              <Image source={closeIcon} style={globalStyles.closeIcon} />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    </View>
+  );
+};
+
+export const AnswerPanel_documentFile = ({
+  ID_USER,
+  Id_question,
+  Id_connection,
+  question_reponse,
+  refreshAnswers,
+  id_answer_source,
+}) => {
+  const [caption, setCaption] = useState("");
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+
+  const handleAnswerSubmit = async (
+    answer,
+    ID_USER,
+    Id_question,
+    Id_connection,
+    question_reponse,
+    name,
+    refreshAnswersid_answer_source
+  ) => {
+    let ID_QUESTION = Id_question;
+    let ID_CONNECTION = Id_connection;
+
+    if (id_answer_source) {
+      const temp = await getAnswer(id_answer_source);
+      ID_QUESTION = temp.id_question;
+      ID_CONNECTION = temp.id_connection;
+    }
+
+    await submitMemories_Answer_image(
+      answer,
+      ID_USER,
+      ID_QUESTION,
+      ID_CONNECTION,
+      question_reponse,
+      name,
+      id_answer_source
+    );
+    await refreshAnswers();
+  };
+
+  const handleUploadPhoto = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: "image/*", // Accepter les fichiers image
+        copyToCacheDirectory: false,
+      });
+
+      if (!result.canceled) {
+        let uri, name, mimeType;
+
+        // Gérer les différences de plateforme
+        if (result.output && result.output.length > 0) {
+          const file = result.output[0];
+          uri = URL.createObjectURL(file);
+          name = file.name;
+          mimeType = file.type;
+        } else if (result.assets && result.assets.length > 0) {
+          const asset = result.assets[0];
+          uri = asset.uri;
+          name = asset.name;
+          mimeType = asset.mimeType;
+        } else {
+          console.error("Invalid file selection result", result);
+          throw new Error("Invalid file selection result");
+        }
+
+        if (!uri || !name) {
+          console.error("Invalid file selection: URI or name is missing", {
+            uri,
+            name,
+          });
+          throw new Error("Invalid file selection: URI or name is missing");
+        }
+
+        // Vérification du type MIME
+        if (mimeType && mimeType.startsWith("image/")) {
+          console.log("File selected is an image file:", {
+            uri,
+            name,
+            mimeType,
+          });
+        } else {
+          console.error("Selected file is not an image file:", {
+            uri,
+            name,
+            mimeType,
+          });
+          Alert.alert(
+            "Erreur",
+            "Le fichier sélectionné n'est pas un fichier image"
+          );
+          return;
+        }
+
+        console.log("File selected successfully:", { uri, name });
+        setSelectedFile({ uri, name }); // Enregistrer le fichier sélectionné
+        setModalVisible(true); // Afficher la modale pour entrer la légende
+      } else {
+        console.error("File selection was not successful: ", result);
+        Alert.alert("Erreur", "Sélection du fichier échouée");
+      }
+    } catch (error) {
+      console.error("Error handling file upload: ", error);
+      Alert.alert(
+        "Erreur",
+        "Une erreur s'est produite lors de la sélection du fichier"
+      );
+    }
+  };
+
+  const handleCaptionSubmit = async () => {
+    if (caption.trim() === "") {
+      Alert.alert("Erreur", "Veuillez entrer une légende pour l'image");
+      return;
+    }
+
+    setModalVisible(false);
+
+    await uploadImageToSupabase(selectedFile.uri, selectedFile.name);
+    await handleAnswerSubmit(
+      caption,
+      ID_USER,
+      Id_question,
+      Id_connection,
+      question_reponse,
+      selectedFile.name,
+      refreshAnswers,
+      id_answer_source
+    );
+  };
+
+  return (
+    <View>
+      <TouchableOpacity
+        style={[
+          globalStyles.globalButton_wide,
+          { backgroundColor: "#b1b3b5", flex: 1, marginLeft: 5 },
+        ]}
+        onPress={handleUploadPhoto}
+      >
+        <View
+          style={{
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Image
+            source={Upload}
+            style={{ width: 60, height: 60, opacity: 0.5 }}
+          />
+          <Text style={globalStyles.globalButtonText}>
+            Envoyer un document ou une photo
+          </Text>
+        </View>
+      </TouchableOpacity>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => {
+          setModalVisible(!modalVisible);
+        }}
+      >
+        <View style={globalStyles.overlay}>
+          <View style={globalStyles.modalContainer}>
+            <Text style={globalStyles.modalTitle}>
+              Entrez la légende de l'image
+            </Text>
+            <TextInput
+              style={globalStyles.input}
+              placeholder="Légende"
+              value={caption}
+              onChangeText={setCaption}
+            />
+            <TouchableOpacity
+              style={[globalStyles.globalButton_wide]}
+              onPress={handleCaptionSubmit}
+            >
+              <Text style={globalStyles.globalButtonText}> Soumettre </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setModalVisible(false)}
+              style={globalStyles.closeButton}
+            >
+              <Image source={closeIcon} style={globalStyles.closeIcon} />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    </View>
+  );
+};
+
+export const ThemePanel = ({
+  ID_USER,
+  ID_subject,
+  new_theme,
+  themes,
+  setThemes,
+  themesAllUsers,
+  setThemesAllUsers,
+  theme,
+  setTheme,
+  themeText,
+  setThemeText,
+  closureFunction,
+}) => {
+  const [merciModalVisible, setMerciModalVisible] = useState(false);
+  const [showThemeInput, setShowThemeInput] = useState(false);
+  const [showModalThemeEdit, setShowModalThemeEdit] = useState(false);
+  const [showModalThemeDelete, setShowModalThemeDelete] = useState(false);
+  const themesInspiration = [
+    "Les différents lieux de vie",
+    "Une journée type à 15 ans",
+    "Les meilleurs amis",
+    "Hobbys, passions, et centres d'intérêts",
+    "Histoire d'un lieu ou d'une maison de famille",
+  ];
+  const windowWidth = Dimensions.get("window").width;
+  const isLargeScreen = windowWidth > 768;
+  const [modals, setModals] = useState({
+    isEditModalVisible: false,
+    newThemeTitle: "",
+    isDeleteModalVisible: false,
+  });
+
+  const handleSaveTheme = async (text) => {
+    const temp = await createTheme(text, ID_subject);
+    setTheme(temp);
+
+    if (new_theme) {
+      setMerciModalVisible(true);
+    } else {
+      closureFunction("Thème ok");
+    }
+  };
+
+  useEffect(() => {
+    if (theme) {
+      closureFunction("Thème ok");
+    } else {
+      closureFunction("Thème not ok");
+    }
+  }, [theme]);
+
+  return (
+    <View
+      style={{
+        flexDirection: "column",
+        justifyContent: "space-between",
+        marginBottom: 10,
+      }}
+    >
+      <View
+        style={{
+          padding: 10,
+          marginBottom: 10,
+          width: "90%",
+          alignSelf: "center",
+        }}
+      >
+        {themes.length > 0 && !new_theme && (
+          <View>
+            <Picker
+              selectedValue={theme?.id || ""}
+              onValueChange={(itemValue) => {
+                const selected = themes.find((theme) => theme.id === itemValue);
+                setShowThemeInput(false);
+                setTheme(selected);
+                setThemeText(selected ? selected.theme : "");
+              }}
+            >
+              <Picker.Item
+                label="Choisir parmi mes thèmes existants"
+                value=""
               />
-            </View>
-          )}
-  
-          {theme ? (
-            !new_theme && (
-              <View style={{ flexDirection: isLargeScreen ? 'row' : 'column' }}>
+              {themes.map((theme) => (
+                <Picker.Item
+                  key={theme.id}
+                  label={theme.theme}
+                  value={theme.id}
+                />
+              ))}
+            </Picker>
+          </View>
+        )}
+        {themesAllUsers.length > 0 && !new_theme && (
+          <View style={{ marginTop: 10 }}>
+            <Picker
+              selectedValue={theme?.id || ""}
+              onValueChange={(itemValue) => {
+                const selected = themesAllUsers.find(
+                  (theme) => theme.id === itemValue
+                );
+                setShowThemeInput(false);
+                setTheme(selected);
+                setThemeText(selected ? selected.theme : "");
+              }}
+            >
+              <Picker.Item
+                label="Choisir parmi tous les thèmes existants"
+                value=""
+              />
+              {themesAllUsers.map((theme) => (
+                <Picker.Item
+                  key={theme.id}
+                  label={theme.theme}
+                  value={theme.id}
+                />
+              ))}
+            </Picker>
+          </View>
+        )}
+
+        {!new_theme && (
+          <TouchableOpacity
+            style={{
+              backgroundColor: "#D3D3D3",
+              padding: 10,
+              borderRadius: 5,
+              marginTop: 10,
+            }}
+            onPress={() => setShowThemeInput(!showThemeInput)}
+          >
+            <Text style={{ color: "#000" }}>Définir un nouveau thème</Text>
+          </TouchableOpacity>
+        )}
+
+        {(showThemeInput || new_theme) && (
+          <View style={{ marginTop: 10 }}>
+            <TextInput
+              style={globalStyles.input}
+              placeholder="Renseigner un nouveau thème"
+              onChangeText={(text) => {
+                setThemeText(text);
+                setTheme(null);
+              }}
+              value={themeText}
+              multiline={true}
+              rows={4}
+            />
+          </View>
+        )}
+
+        {theme
+          ? !new_theme && (
+              <View style={{ flexDirection: isLargeScreen ? "row" : "column" }}>
                 <TouchableOpacity
                   style={
                     isLargeScreen
@@ -799,117 +1082,136 @@ import {
                 </TouchableOpacity>
               </View>
             )
-          ) : (
-            themeText && (
+          : themeText && (
               <TouchableOpacity
                 style={globalStyles.globalButton_wide}
                 onPress={() => handleSaveTheme(themeText)}
               >
                 <Text style={globalStyles.globalButtonText}>
                   {!new_theme
-                    ? 'Démarrer ce nouveau thème'
-                    : 'Envoyer votre proposition'}
+                    ? "Démarrer ce nouveau thème"
+                    : "Envoyer votre proposition"}
                 </Text>
               </TouchableOpacity>
-            )
-          )}
-        </View>
-  
-        {themesAllUsers.length > 0 && new_theme && (
-          <View style={{ marginTop: 10 }}>
-            <Text style={{ marginBottom: 10 }}>
-              Pour information, voici tous les thèmes existants :
-            </Text>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-              {themesAllUsers.map((theme) => (
-                <View
-                  key={theme.id}
-                  style={{
-                    backgroundColor: `hsl(${Math.random() * 360}, 70%, 90%)`,
-                    padding: 5,
-                    margin: 5,
-                    borderRadius: 10,
-                  }}
-                >
-                  <Text>{theme.theme}</Text>
-                </View>
-              ))}
-            </View>
-            
-          </View>
-        )}
-        {new_theme && (<>
-        <Text style={{ marginBottom: 10, marginTop: 30 }}>
-              Voici quelques idées de thèmes :
-            </Text>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-              {themesInspiration.map((theme, index) => (
-                <TouchableOpacity
-                  key={index}
-                  onPress={() => setThemeText(theme)}
-                  style={{
-                    backgroundColor: `hsl(${Math.random() * 360}, 70%, 90%)`,
-                    padding: 5,
-                    margin: 5,
-                    borderRadius: 10,
-                  }}
-                >
-                  <Text>{theme}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-            </>
-        )}
-
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={merciModalVisible}
-          onRequestClose={() => {
-            setMerciModalVisible(!merciModalVisible);
-            closureFunction("Thème ok");
-          }}
-        >
-          <View style={globalStyles.overlay}>
-            <View style={globalStyles.modalContainer}>
-              <Text style={globalStyles.modalTitle}>Merci de cette proposition</Text>
-              <TouchableOpacity onPress={() => { setMerciModalVisible(false); closureFunction("Thème ok") }} style={globalStyles.closeButton}>
-                <Image source={closeIcon} style={globalStyles.closeIcon} />
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
-        <ModalComponent
-              isVisible={modals.isEditModalVisible}
-              onClose={() => setModals(prevState => ({ ...prevState, isEditModalVisible: false }))}
-              title="Éditer le titre du thème"
-              inputValue={modals.newThemeTitle!== undefined ? modals.newThemeTitle : ''}
-              onInputChange={(text) => {setModals(prevState => ({ ...prevState, newThemeTitle: text })) }}
-              onSave={async () => {
-                  await updateTheme(theme.id, modals.newThemeTitle);
-                  setModals(prevState => ({ ...prevState, isEditModalVisible: false }));
-                  await getTheme_byProject(theme.id_subject).then(setThemesAllUsers)
-                  await getTheme_byUser(ID_USER,theme.id_subject).then(setThemes)
-                  
-                  }}
-        />
-        <ModalComponent
-              isVisible={modals.isDeleteModalVisible}
-              onClose={() => setModals(prevState => ({ ...prevState, isDeleteModalVisible: false }))}
-              title="Voulez-vous vraiment supprimer ce thème ? "
-              onConfirm={async () => {
-                  await deleteTheme(theme.id);
-                  setModals(prevState => ({ ...prevState, isDeleteModalVisible: false }));
-                  await getTheme_byProject(theme.id_subject).then(setThemesAllUsers)
-                  await getTheme_byUser(ID_USER,theme.id_subject).then(setThemes)
-
-                  }}
-        />
-
-
-
-
+            )}
       </View>
-    );
-  };
-  
+
+      {themesAllUsers.length > 0 && new_theme && (
+        <View style={{ marginTop: 10 }}>
+          <Text style={{ marginBottom: 10 }}>
+            Pour information, voici tous les thèmes existants :
+          </Text>
+          <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
+            {themesAllUsers.map((theme) => (
+              <View
+                key={theme.id}
+                style={{
+                  backgroundColor: `hsl(${Math.random() * 360}, 70%, 90%)`,
+                  padding: 5,
+                  margin: 5,
+                  borderRadius: 10,
+                }}
+              >
+                <Text>{theme.theme}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      )}
+      {new_theme && (
+        <>
+          <Text style={{ marginBottom: 10, marginTop: 30 }}>
+            Voici quelques idées de thèmes :
+          </Text>
+          <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
+            {themesInspiration.map((theme, index) => (
+              <TouchableOpacity
+                key={index}
+                onPress={() => setThemeText(theme)}
+                style={{
+                  backgroundColor: `hsl(${Math.random() * 360}, 70%, 90%)`,
+                  padding: 5,
+                  margin: 5,
+                  borderRadius: 10,
+                }}
+              >
+                <Text>{theme}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </>
+      )}
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={merciModalVisible}
+        onRequestClose={() => {
+          setMerciModalVisible(!merciModalVisible);
+          closureFunction("Thème ok");
+        }}
+      >
+        <View style={globalStyles.overlay}>
+          <View style={globalStyles.modalContainer}>
+            <Text style={globalStyles.modalTitle}>
+              Merci de cette proposition
+            </Text>
+            <TouchableOpacity
+              onPress={() => {
+                setMerciModalVisible(false);
+                closureFunction("Thème ok");
+              }}
+              style={globalStyles.closeButton}
+            >
+              <Image source={closeIcon} style={globalStyles.closeIcon} />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+      <ModalComponent
+        isVisible={modals.isEditModalVisible}
+        onClose={() =>
+          setModals((prevState) => ({
+            ...prevState,
+            isEditModalVisible: false,
+          }))
+        }
+        title="Éditer le titre du thème"
+        inputValue={
+          modals.newThemeTitle !== undefined ? modals.newThemeTitle : ""
+        }
+        onInputChange={(text) => {
+          setModals((prevState) => ({ ...prevState, newThemeTitle: text }));
+        }}
+        onSave={async () => {
+          await updateTheme(theme.id, modals.newThemeTitle);
+          setModals((prevState) => ({
+            ...prevState,
+            isEditModalVisible: false,
+          }));
+          await getTheme_byProject(theme.id_subject).then(setThemesAllUsers);
+          await getTheme_byUser(ID_USER, theme.id_subject).then(setThemes);
+        }}
+      />
+      <ModalComponent
+        isVisible={modals.isDeleteModalVisible}
+        onClose={() =>
+          setModals((prevState) => ({
+            ...prevState,
+            isDeleteModalVisible: false,
+          }))
+        }
+        title="Voulez-vous vraiment supprimer ce thème ? "
+        onConfirm={async () => {
+          await deleteTheme(theme.id);
+          setModals((prevState) => ({
+            ...prevState,
+            isDeleteModalVisible: false,
+          }));
+          await getTheme_byProject(theme.id_subject).then(setThemesAllUsers);
+          await getTheme_byUser(ID_USER, theme.id_subject).then(setThemes);
+        }}
+      />
+    </View>
+  );
+};

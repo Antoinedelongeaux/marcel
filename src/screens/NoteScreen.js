@@ -40,6 +40,7 @@ import {
   createNewLink,
   updateAnswer,
   getTheme_byProject,
+  getAnswer,
 } from "../components/data_handling";
 import ModalComponent from "../components/ModalComponent";
 import { useFocusEffect } from "@react-navigation/native";
@@ -51,6 +52,7 @@ import settings from "../../assets/icons/accueil.png";
 import copyIcon from "../../assets/icons/paste.png";
 import noteIcon from "../../assets/icons/notes.png";
 import filterIcon from "../../assets/icons/filtre.png";
+import refreshIcon from "../../assets/icons/refresh_black_24dp.svg";
 import sortIcon from "../../assets/icons/trier.png";
 import calendarIcon from "../../assets/icons/calendar.png";
 import EmptyfilterIcon from "../../assets/icons/filtre_empty.png";
@@ -269,6 +271,19 @@ function NoteScreen({ route }) {
     if (subjectActive != null) {
       await getMemories_Questions(subjectActive, setQuestions, tags, personal);
       await get_chapters(subjectActive, setChapters);
+    }
+  };
+
+  const refreshAnswer = async (id_answer) => {
+    try {
+      const updatedAnswer = await await getAnswer(id_answer); // Récupère la réponse spécifique par son ID
+      setAnswers((prevAnswers) =>
+        prevAnswers.map(
+          (answer) => (answer.id === id_answer ? updatedAnswer : answer) // Met à jour la réponse correspondante
+        )
+      );
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour de la réponse :", error);
     }
   };
 
@@ -1122,7 +1137,7 @@ useEffect(() => {
 
       {statut === "Lire" && <Text style={globalStyles.title}>Notes</Text>}
 
-      {(statut === "Rédiger" || statut === "Corriger") && (
+      {(statut === "Rédiger" || statut === "Relire") && (
         <>
           <View
             style={{
@@ -1870,7 +1885,7 @@ useEffect(() => {
               </>
             )}
             {(statut === "Rédiger" ||
-              statut === "Corriger" ||
+              statut === "Relire" ||
               statut === "Réagir" ||
               statut === "Relire" ||
               statut === "Raconter") && (
@@ -2644,11 +2659,11 @@ useEffect(() => {
                   onLongPress={() => {
                     setSelectedAnswer(item);
                     setSelectedAnswerId(item.id);
-                    setDraggedAnswer(item);
                     drag();
                   }}
                   onPress={() => {
                     setSelectedAnswerId(item.id);
+                    setSelectedAnswer(item);
                   }}
                 >
                   <View style={{ flexDirection: "row", alignItems: "center" }}>
@@ -2862,6 +2877,7 @@ useEffect(() => {
                                   {isLargeScreen && <Text>Corriger</Text>}
                                 </TouchableOpacity>
                               )}
+
                             {item.audio &&
                               (item.id_user == session.user.id ||
                                 session.user.id ==
@@ -2881,6 +2897,22 @@ useEffect(() => {
                                       }}
                                     />
                                     {isLargeScreen && <Text>Retranscrire</Text>}
+                                  </TouchableOpacity>
+
+                                  <TouchableOpacity
+                                    onPress={() => refreshAnswer(item.id)}
+                                    style={styles.playButton}
+                                  >
+                                    <Image
+                                      source={refreshIcon}
+                                      style={{
+                                        width: 25,
+                                        height: 25,
+                                        opacity: 0.5,
+                                        marginHorizontal: 15,
+                                      }}
+                                    />{" "}
+                                    {isLargeScreen && <Text>Rafraichir</Text>}
                                   </TouchableOpacity>
                                 </>
                               )}
