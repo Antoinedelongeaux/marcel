@@ -2898,7 +2898,7 @@ useEffect(() => {
                                     />
                                     {isLargeScreen && <Text>Retranscrire</Text>}
                                   </TouchableOpacity>
-
+                                  {/*}
                                   <TouchableOpacity
                                     onPress={() => refreshAnswer(item.id)}
                                     style={styles.playButton}
@@ -2914,6 +2914,7 @@ useEffect(() => {
                                     />{" "}
                                     {isLargeScreen && <Text>Rafraichir</Text>}
                                   </TouchableOpacity>
+                                  */}
                                 </>
                               )}
                             {item.image && (
