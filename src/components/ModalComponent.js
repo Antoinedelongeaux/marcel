@@ -1,10 +1,27 @@
-import React from 'react';
-import { View, Text, TextInput, TouchableOpacity, Modal, ScrollView,  StyleSheet, Image} from 'react-native';
-import { globalStyles } from '../../global';
-import closeIcon from '../../assets/icons/close.png'; 
+import React from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Image,
+} from "react-native";
+import { globalStyles } from "../../global";
+import closeIcon from "../../assets/icons/close.png";
 
-
-const ModalComponent = ({ isVisible, onClose, title, inputValue, onInputChange, onSave,onConfirm, content }) => {
+const ModalComponent = ({
+  isVisible,
+  onClose,
+  title,
+  inputValue,
+  onInputChange,
+  onSave,
+  onConfirm,
+  content,
+}) => {
   return (
     <Modal
       animationType="slide"
@@ -18,25 +35,31 @@ const ModalComponent = ({ isVisible, onClose, title, inputValue, onInputChange, 
           {inputValue !== undefined && onInputChange && (
             <TextInput
               style={styles.modalInput}
-              onChangeText={text => onInputChange(text)}
+              onChangeText={(text) => onInputChange(text)}
               value={inputValue}
               placeholder={title}
             />
           )}
           {content && <ScrollView>{content}</ScrollView>}
           {onSave && (
-            <TouchableOpacity style={[globalStyles.globalButton_wide]} onPress={onSave}>
+            <TouchableOpacity
+              style={[globalStyles.globalButton_wide]}
+              onPress={onSave}
+            >
               <Text style={globalStyles.globalButtonText}>Sauvegarder</Text>
             </TouchableOpacity>
           )}
           {onConfirm && (
-            <TouchableOpacity style={[globalStyles.globalButton_wide]} onPress={onConfirm}>
+            <TouchableOpacity
+              style={[globalStyles.globalButton_wide]}
+              onPress={onConfirm}
+            >
               <Text style={globalStyles.globalButtonText}>Confirmer</Text>
             </TouchableOpacity>
           )}
 
           <TouchableOpacity onPress={onClose} style={globalStyles.closeButton}>
-              <Image source={closeIcon} style={globalStyles.closeIcon} />
+            <Image source={closeIcon} style={globalStyles.closeIcon} />
           </TouchableOpacity>
         </View>
       </View>
@@ -46,24 +69,24 @@ const ModalComponent = ({ isVisible, onClose, title, inputValue, onInputChange, 
 const styles = StyleSheet.create({
   contentContainer: {
     zIndex: 10,
-    position: 'relative',
+    position: "relative",
   },
   associateButton: {
     marginRight: 5,
   },
   centeredView: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginTop: 22,
   },
   modalView: {
     margin: 20,
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderRadius: 20,
     padding: 35,
-    alignItems: 'center',
-    shadowColor: '#000',
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
@@ -71,24 +94,27 @@ const styles = StyleSheet.create({
   },
   modalText: {
     marginBottom: 15,
-    textAlign: 'center',
+    textAlign: "center",
+    fontSize: 18, // Augmente la taille du texte (ajuste selon tes besoins)
+    fontWeight: "bold", // Met le texte en gras
   },
+
   modalInput: {
     marginBottom: 15,
     borderWidth: 1,
-    width: '100%',
+    width: "100%",
     padding: 10,
     borderRadius: 5,
-    borderColor: 'gray',
+    borderColor: "gray",
   },
   modalButton: {
     marginBottom: 10,
     padding: 10,
   },
   textStyle: {
-    color: 'black',
-    fontWeight: 'bold',
-    textAlign: 'center',
+    color: "black",
+    fontWeight: "bold",
+    textAlign: "center",
     fontSize: 18,
   },
 });

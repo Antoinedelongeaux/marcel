@@ -35,6 +35,7 @@ import {
   get_Profile,
   updateSubject,
 } from "../components/data_handling";
+import ModalComponent from "../components/ModalComponent";
 import {
   saveActiveSubjectId,
   getActiveSubjectId,
@@ -95,6 +96,8 @@ export default function ProjectScreen({ route }) {
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [isHovered, setIsHovered] = useState(false);
   const [isHoveredPerson, setIsHoveredPerson] = useState(false);
+  const [isRestrictionModalVisible, setRestrictionModalVisible] =
+    useState(false);
 
   const [isLargeScreen, setIsLargeScreen] = useState(false);
   const [links, setLinks] = useState(false);
@@ -255,31 +258,35 @@ export default function ProjectScreen({ route }) {
   };
 
   const handleCreateProject = () => {
-    if (!newName.trim()) {
-      Alert.alert("Veuillez définir un nom deporjet valide.");
-      return;
-    }
-    if (!selectedOption) {
-      Alert.alert("Veuillez choisir l'une des deux options.");
-      return;
-    }
-    setLoading(true);
+    if (session.user.id == "8a3d731c-6d40-4400-9dc5-b5926e6d5bbd") {
+      if (!newName.trim()) {
+        Alert.alert("Veuillez définir un nom de projet valide.");
+        return;
+      }
+      if (!selectedOption) {
+        Alert.alert("Veuillez choisir l'une des deux options.");
+        return;
+      }
+      setLoading(true);
 
-    create_project(newName, session.user.id, selectedOption)
-      .then((creationResult) => {
-        setShowModal(true); // Afficher la modal
+      create_project(newName, session.user.id, selectedOption)
+        .then((creationResult) => {
+          setShowModal(true); // Afficher la modal
 
-        return fetchSubjects(); // Continuer avec la récupération des sujets si la création est réussie
-      })
-      .catch((error) => {
-        Alert.alert(
-          "Failed to create project",
-          error.message || "An unknown error occurred."
-        ); // Gérer les erreurs de création ou de récupération des sujets
-      })
-      .finally(() => {
-        setLoading(false); // Arrêter l'indicateur de chargement peu importe le résultat
-      });
+          return fetchSubjects(); // Continuer avec la récupération des sujets si la création est réussie
+        })
+        .catch((error) => {
+          Alert.alert(
+            "Failed to create project",
+            error.message || "An unknown error occurred."
+          ); // Gérer les erreurs de création ou de récupération des sujets
+        })
+        .finally(() => {
+          setLoading(false); // Arrêter l'indicateur de chargement peu importe le résultat
+        });
+    } else {
+      setRestrictionModalVisible(true);
+    }
   };
 
   async function getProfile() {
@@ -1438,6 +1445,20 @@ export default function ProjectScreen({ route }) {
           </View>
         </View>
       </Modal>
+
+      <ModalComponent
+        isVisible={isRestrictionModalVisible}
+        onClose={() => setRestrictionModalVisible(false)}
+        title="La création de projet est pour l'instant réalisée sur demande"
+        content={
+          <Text style={globalStyles.textStyle}>
+            La création de projet est limitée en phase de développement de la
+            solution. Pour être beta testeur, veuillez demander une invitation à
+            antoine@longeaux.com
+          </Text>
+        }
+      />
+
       <View>
         <Text> </Text>
         <Text> </Text>

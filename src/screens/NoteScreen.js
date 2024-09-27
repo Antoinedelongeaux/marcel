@@ -2779,7 +2779,9 @@ useEffect(() => {
 
                             {item.answer !==
                               "audio pas encore converti en texte" &&
-                              item.id_user == session.user.id &&
+                              (item.id_user == session.user.id ||
+                                session.user.id ==
+                                  "8a3d731c-6d40-4400-9dc5-b5926e6d5bbd") &&
                               item.id !== editingAnswerId && (
                                 <TouchableOpacity
                                   onPress={() => {
@@ -2798,25 +2800,28 @@ useEffect(() => {
                                   {isLargeScreen && <Text>Corriger</Text>}
                                 </TouchableOpacity>
                               )}
-                            {item.audio && item.id_user == session.user.id && (
-                              <>
-                                <TouchableOpacity
-                                  onPress={() => handleCaptionClick(item.id)}
-                                  style={styles.playButton}
-                                >
-                                  <Image
-                                    source={captionIcon}
-                                    style={{
-                                      width: 25,
-                                      height: 25,
-                                      opacity: 0.5,
-                                      marginHorizontal: 15,
-                                    }}
-                                  />
-                                  {isLargeScreen && <Text>Retranscrire</Text>}
-                                </TouchableOpacity>
-                              </>
-                            )}
+                            {item.audio &&
+                              (item.id_user == session.user.id ||
+                                session.user.id ==
+                                  "8a3d731c-6d40-4400-9dc5-b5926e6d5bbd") && (
+                                <>
+                                  <TouchableOpacity
+                                    onPress={() => handleCaptionClick(item.id)}
+                                    style={styles.playButton}
+                                  >
+                                    <Image
+                                      source={captionIcon}
+                                      style={{
+                                        width: 25,
+                                        height: 25,
+                                        opacity: 0.5,
+                                        marginHorizontal: 15,
+                                      }}
+                                    />
+                                    {isLargeScreen && <Text>Retranscrire</Text>}
+                                  </TouchableOpacity>
+                                </>
+                              )}
                             {item.image && (
                               <TouchableOpacity
                                 onPress={() =>
@@ -2859,7 +2864,9 @@ useEffect(() => {
                               </>
                             )}
                             {statut != "Réagir" &&
-                              item.id_user == session.user.id && (
+                              (item.id_user == session.user.id ||
+                                session.user.id ==
+                                  "8a3d731c-6d40-4400-9dc5-b5926e6d5bbd") && (
                                 <>
                                   {statut != "Réagir" &&
                                     statut != "Raconter" && (
