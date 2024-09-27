@@ -1218,35 +1218,20 @@ useEffect(() => {
           marginBottom: 5,
         }}
       >
-        {statut === "Corriger" && (
-          <>
-            <TouchableOpacity
-              onPress={() => {
-                setModalVisible(true);
-              }}
-              style={globalStyles.globalButton_wide}
-            >
-              <Text style={globalStyles.globalButtonText}>
-                {statut === "Corriger" ? "Commenter" : statut}
-              </Text>
-            </TouchableOpacity>
-
-            {/*
-        {!questionReponseFilter.includes('question') &&(
-      <TouchableOpacity onPress={() => {setAnswerAndQuestion("réponse");setModalVisible(true)}} style={globalStyles.globalButton_narrow}>
-      <Text style={globalStyles.globalButtonText}>Ajouter une note</Text>
-    </TouchableOpacity>
-    )}
-    {!questionReponseFilter.includes('réponse') &&(
-      <TouchableOpacity onPress={() => {setAnswerAndQuestion("question"); setModalVisible(true)}} style={globalStyles.globalButton_narrow}>
-      <Text style={globalStyles.globalButtonText}>Poser une question</Text>
-    </TouchableOpacity>
-    )}
-*/}
-          </>
+        {statut != "Lire" && statut != "Raconter" && statut != "Réagir" && (
+          <TouchableOpacity
+            onPress={() => {
+              setModalVisible(true);
+            }}
+            style={globalStyles.globalButton_wide}
+          >
+            <Text style={globalStyles.globalButtonText}>
+              {statut === "Rédiger" ? "Ajouter une note" : "Contribuer"}
+            </Text>
+          </TouchableOpacity>
         )}
 
-        {(statut === "Réagir" || statut === "Relire") && (
+        {statut === "Réagir" && (
           <View
             style={{
               flexDirection: "column",
@@ -1810,14 +1795,17 @@ useEffect(() => {
                 marginHorizontal: 10,
               }}
             >
+              <Text> </Text>
               {isLargeScreen && (
-                <Text>Afficher les notes existantes sur ce thème</Text>
+                <Text style={globalStyles.textStyle}>
+                  Afficher les notes existantes sur ce thème
+                </Text>
               )}
               <Image
                 source={plusIcon}
                 style={{
-                  width: 50,
-                  height: 50,
+                  width: 100,
+                  height: 100,
                   opacity: 0.5,
                   marginVertical: 30,
                 }}
@@ -1832,16 +1820,21 @@ useEffect(() => {
           <View
             style={{
               flexDirection: "row",
-              justifyContent: "center",
-              marginBottom: 5,
+              justifyContent: "space-between",
+              marginVertical: 20,
             }}
           >
+            <Text> </Text>
             {statut === "Raconter" && (
               <>
                 <TouchableOpacity
                   onPress={() => setShowExistingNotes(false)}
-                  style={styles.filterIcon}
+                  style={[
+                    styles.filterIcon,
+                    { alignItems: "center", justifyContent: "center" },
+                  ]}
                 >
+                  {isLargeScreen && <Text> Masquer les notes</Text>}
                   <Image
                     source={minusIcon}
                     style={{
@@ -1861,6 +1854,9 @@ useEffect(() => {
                   onPress={() => setShowDetails(!showDetails)}
                   style={styles.filterIcon}
                 >
+                  {isLargeScreen && (
+                    <Text> Afficher / masquer les notes existantes </Text>
+                  )}
                   <Image
                     source={showDetails ? minusIcon : plusIcon}
                     style={{
@@ -1881,8 +1877,12 @@ useEffect(() => {
               <>
                 <TouchableOpacity
                   onPress={() => setShowFilters(!showFilters)}
-                  style={styles.filterIcon}
+                  style={[
+                    styles.filterIcon,
+                    { alignItems: "center", justifyContent: "center" },
+                  ]}
                 >
+                  {isLargeScreen && <Text> Filtrer les notes affichées </Text>}
                   <Image
                     source={filterIcon}
                     style={{
@@ -1896,8 +1896,12 @@ useEffect(() => {
 
                 <TouchableOpacity
                   onPress={() => setShowSorting(!showSorting)}
-                  style={styles.filterIcon}
+                  style={[
+                    styles.filterIcon,
+                    { alignItems: "center", justifyContent: "center" },
+                  ]}
                 >
+                  {isLargeScreen && <Text> Trier les notes affichées </Text>}
                   <Image
                     source={sortIcon}
                     style={{
@@ -1916,7 +1920,12 @@ useEffect(() => {
                   onPress={() => {
                     copyAllToClipboard();
                   }}
+                  style={[
+                    styles.filterIcon,
+                    { alignItems: "center", justifyContent: "center" },
+                  ]}
                 >
+                  {isLargeScreen && <Text> Copier les notes affichées </Text>}
                   <Image
                     source={copyIcon}
                     style={{
@@ -1929,6 +1938,7 @@ useEffect(() => {
                 </TouchableOpacity>
               </>
             )}
+            <Text> </Text>
             {/*
   {notesMode !== 'full' &&(
   <TouchableOpacity onPress={() => setIsShareModalVisible(true)} style={styles.filterIcon}>
@@ -1950,35 +1960,20 @@ useEffect(() => {
 */}
           </View>
 
-          {showFilters && (
-            <View style={styles.filterContainer}>
-              {route.params?.reference ? (
-                <View
-                  style={{
-                    flexDirection: isLargeScreen ? "row" : "column",
-                    alignItems: "center",
-                    marginTop: 20,
-                    justifyContent: "space-between",
-                  }}
+          <Modal isVisible={showFilters}>
+            <View style={styles.overlay}>
+              <View style={styles.modalContainer}>
+                <TouchableOpacity
+                  onPress={() => setShowFilters(false)}
+                  style={styles.closeButton}
                 >
-                  <Text>Vous avez un filtre sur une question unique</Text>
-                  <TouchableOpacity
-                    onPress={() => handleRemoveFilters()}
-                    style={styles.filterIcon}
-                  >
-                    <Image
-                      source={EmptyfilterIcon}
-                      style={{
-                        width: 50,
-                        height: 50,
-                        opacity: 0.5,
-                        marginVertical: 30,
-                      }}
-                    />
-                  </TouchableOpacity>
-                </View>
-              ) : (
-                <>
+                  <Image source={closeIcon} style={styles.closeIcon} />
+                </TouchableOpacity>
+                <Text style={[styles.modalTitle, { marginBottom: 30 }]}>
+                  Définissez les filtres sur les notes existantes
+                </Text>
+
+                {route.params?.reference ? (
                   <View
                     style={{
                       flexDirection: isLargeScreen ? "row" : "column",
@@ -1987,399 +1982,7 @@ useEffect(() => {
                       justifyContent: "space-between",
                     }}
                   >
-                    <Text></Text>
-                    <View
-                      style={{ flexDirection: "column", alignItems: "center" }}
-                    >
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                          marginBottom: 10,
-                        }}
-                      >
-                        <Text style={styles.toggleText}>Audio</Text>
-                        <TouchableOpacity
-                          style={[
-                            styles.toggleButton,
-                            audioFilter && styles.selectedToggle,
-                          ]}
-                          onPress={() => setAudioFilter(!audioFilter)}
-                        >
-                          <View
-                            style={[
-                              styles.toggleButtonCircle,
-                              audioFilter ? { right: 2 } : { left: 2 },
-                            ]}
-                          />
-                        </TouchableOpacity>
-                      </View>
-
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                          marginBottom: 10,
-                        }}
-                      >
-                        <Text style={styles.toggleText}>Image</Text>
-                        <TouchableOpacity
-                          style={[
-                            styles.toggleButton,
-                            imageFilter && styles.selectedToggle,
-                          ]}
-                          onPress={() => setImageFilter(!imageFilter)}
-                        >
-                          <View
-                            style={[
-                              styles.toggleButtonCircle,
-                              imageFilter ? { right: 2 } : { left: 2 },
-                            ]}
-                          />
-                        </TouchableOpacity>
-                      </View>
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                          marginBottom: 10,
-                        }}
-                      >
-                        <Text style={styles.toggleText}>Texte</Text>
-                        <TouchableOpacity
-                          style={[
-                            styles.toggleButton,
-                            commentFilter && styles.selectedToggle,
-                          ]}
-                          onPress={() => setCommentFilter(!commentFilter)}
-                        >
-                          <View
-                            style={[
-                              styles.toggleButtonCircle,
-                              commentFilter ? { right: 2 } : { left: 2 },
-                            ]}
-                          />
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-
-                    <View
-                      style={{ flexDirection: "column", alignItems: "center" }}
-                    >
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                          marginBottom: 10,
-                        }}
-                      >
-                        <Text style={styles.toggleText}> </Text>
-                        <Text style={styles.toggleText}>Notes </Text>
-                        <TouchableOpacity
-                          style={[
-                            styles.toggleButton,
-                            !questionReponseFilter.includes("question") &&
-                              styles.selectedToggle,
-                          ]}
-                          onPress={() =>
-                            setQuestionReponseFilter((prev) =>
-                              prev.includes("question")
-                                ? prev.replace("question", "")
-                                : prev + "question"
-                            )
-                          }
-                        >
-                          <View
-                            style={[
-                              styles.toggleButtonCircle,
-                              questionReponseFilter.includes("question")
-                                ? { left: 2 }
-                                : { right: 2 },
-                            ]}
-                          />
-                        </TouchableOpacity>
-                      </View>
-
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                          marginBottom: 10,
-                        }}
-                      >
-                        <Text style={styles.toggleText}> </Text>
-                        <Text style={styles.toggleText}>Questions</Text>
-                        <TouchableOpacity
-                          style={[
-                            styles.toggleButton,
-                            !questionReponseFilter.includes("réponse") &&
-                              styles.selectedToggle,
-                          ]}
-                          onPress={() =>
-                            setQuestionReponseFilter((prev) =>
-                              prev.includes("réponse")
-                                ? prev.replace("réponse", "")
-                                : prev + "réponse"
-                            )
-                          }
-                        >
-                          <View
-                            style={[
-                              styles.toggleButtonCircle,
-                              questionReponseFilter.includes("réponse")
-                                ? { left: 2 }
-                                : { right: 2 },
-                            ]}
-                          />
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-
-                    <View
-                      style={{ flexDirection: "column", alignItems: "center" }}
-                    >
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                          marginBottom: 10,
-                        }}
-                      >
-                        <Text style={styles.toggleText}> </Text>
-                        <Text style={styles.toggleText}>Relu</Text>
-                        <TouchableOpacity
-                          style={[
-                            styles.toggleButton,
-                            (reluFilter === "relu" ||
-                              reluFilter === "relu & non_relu") &&
-                              styles.selectedToggle,
-                          ]}
-                          onPress={() =>
-                            setReluFilter((prev) =>
-                              prev === "relu"
-                                ? ""
-                                : prev === "relu & non_relu"
-                                ? "non_relu"
-                                : prev === "non_relu"
-                                ? "relu & non_relu"
-                                : "relu"
-                            )
-                          }
-                        >
-                          <View
-                            style={[
-                              styles.toggleButtonCircle,
-                              reluFilter === "relu" ||
-                              reluFilter === "relu & non_relu"
-                                ? { right: 2 }
-                                : { left: 2 },
-                            ]}
-                          />
-                        </TouchableOpacity>
-                      </View>
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                          marginBottom: 10,
-                        }}
-                      >
-                        <Text style={styles.toggleText}> </Text>
-                        <Text style={styles.toggleText}>Non relu</Text>
-                        <TouchableOpacity
-                          style={[
-                            styles.toggleButton,
-                            (reluFilter === "non_relu" ||
-                              reluFilter === "relu & non_relu") &&
-                              styles.selectedToggle,
-                          ]}
-                          onPress={() =>
-                            setReluFilter((prev) =>
-                              prev === "non_relu"
-                                ? ""
-                                : prev === "relu & non_relu"
-                                ? "relu"
-                                : prev === "relu"
-                                ? "relu & non_relu"
-                                : "non_relu"
-                            )
-                          }
-                        >
-                          <View
-                            style={[
-                              styles.toggleButtonCircle,
-                              reluFilter === "non_relu" ||
-                              reluFilter === "relu & non_relu"
-                                ? { right: 2 }
-                                : { left: 2 },
-                            ]}
-                          />
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-
-                    <View
-                      style={{ flexDirection: "column", alignItems: "center" }}
-                    >
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                          marginBottom: 10,
-                        }}
-                      >
-                        <Text style={styles.toggleText}> </Text>
-                        <Text style={styles.toggleText}>Utilisé</Text>
-                        <TouchableOpacity
-                          style={[
-                            styles.toggleButton,
-                            (utiliseFilter === "used" ||
-                              utiliseFilter === "tous") &&
-                              styles.selectedToggle,
-                          ]}
-                          onPress={() =>
-                            setUtiliseFilter((prev) =>
-                              prev === "used"
-                                ? ""
-                                : prev === "tous"
-                                ? "not_used"
-                                : prev === "not_used"
-                                ? "tous"
-                                : "used"
-                            )
-                          }
-                        >
-                          <View
-                            style={[
-                              styles.toggleButtonCircle,
-                              utiliseFilter === "used" ||
-                              utiliseFilter === "tous"
-                                ? { right: 2 }
-                                : { left: 2 },
-                            ]}
-                          />
-                        </TouchableOpacity>
-                      </View>
-
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                          marginBottom: 10,
-                        }}
-                      >
-                        <Text style={styles.toggleText}> </Text>
-                        <Text style={styles.toggleText}>Non utilisé</Text>
-                        <TouchableOpacity
-                          style={[
-                            styles.toggleButton,
-                            (utiliseFilter === "not_used" ||
-                              utiliseFilter === "tous") &&
-                              styles.selectedToggle,
-                          ]}
-                          onPress={() =>
-                            setUtiliseFilter((prev) =>
-                              prev === "not_used"
-                                ? ""
-                                : prev === "tous"
-                                ? "used"
-                                : prev === "used"
-                                ? "tous"
-                                : "not_used"
-                            )
-                          }
-                        >
-                          <View
-                            style={[
-                              styles.toggleButtonCircle,
-                              utiliseFilter === "not_used" ||
-                              utiliseFilter === "tous"
-                                ? { right: 2 }
-                                : { left: 2 },
-                            ]}
-                          />
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-                    <Text style={styles.toggleText}> </Text>
-                    <View
-                      style={{
-                        flexDirection: "column",
-                        alignItems: "center",
-                        zIndex: 2000,
-                      }}
-                    >
-                      {Platform.OS === "web" ? (
-                        <DatePicker
-                          selected={dateBefore}
-                          onChange={(date) => setDateBefore(date)}
-                          placeholderText="Filtrer avant la date"
-                          className="date-picker"
-                          style={[styles.datePicker, { marginVertical: 10 }]}
-                        />
-                      ) : (
-                        <View
-                          style={[styles.datePicker, { marginVertical: 10 }]}
-                        >
-                          <Button
-                            title="Filtrer avant la date"
-                            onPress={() => setShowDateBeforePicker(true)}
-                          />
-                          {showDateBeforePicker && (
-                            <DateTimePicker
-                              value={dateBefore || new Date()}
-                              mode="date"
-                              display="default"
-                              onChange={(event, selectedDate) => {
-                                const currentDate = selectedDate || dateBefore;
-                                setShowDateBeforePicker(false);
-                                setDateBefore(currentDate);
-                              }}
-                              style={[
-                                styles.datePicker,
-                                { marginVertical: 10 },
-                              ]}
-                            />
-                          )}
-                        </View>
-                      )}
-                      <Text style={styles.toggleText}> </Text>
-                      {Platform.OS === "web" ? (
-                        <DatePicker
-                          selected={dateAfter}
-                          onChange={(date) => setDateAfter(date)}
-                          placeholderText="Filtrer après la date"
-                          className="date-picker"
-                          style={[styles.datePicker, { marginVertical: 10 }]}
-                        />
-                      ) : (
-                        <View
-                          style={[styles.datePicker, { marginVertical: 10 }]}
-                        >
-                          <Button
-                            title="Filtrer après la date"
-                            onPress={() => setShowDateAfterPicker(true)}
-                          />
-                          {showDateAfterPicker && (
-                            <DateTimePicker
-                              value={dateAfter || new Date()}
-                              mode="date"
-                              display="default"
-                              onChange={(event, selectedDate) => {
-                                const currentDate = selectedDate || dateAfter;
-                                setShowDateAfterPicker(false);
-                                setDateAfter(currentDate);
-                              }}
-                              style={[
-                                styles.datePicker,
-                                { marginVertical: 10 },
-                              ]}
-                            />
-                          )}
-                        </View>
-                      )}
-                    </View>
-                    <Text style={styles.toggleText}> </Text>
+                    <Text>Vous avez un filtre sur une question unique</Text>
                     <TouchableOpacity
                       onPress={() => handleRemoveFilters()}
                       style={styles.filterIcon}
@@ -2394,149 +1997,608 @@ useEffect(() => {
                         }}
                       />
                     </TouchableOpacity>
-                    <Text></Text>
                   </View>
-
-                  <TextInput
-                    style={[styles.input, { backgroundColor: "white" }]}
-                    placeholder="Filtrer par texte"
-                    value={textFilter}
-                    onChangeText={setTextFilter}
-                  />
-                  <View style={styles.dropdownContainer}>
-                    <Picker
-                      selectedValue={selectedUserName}
-                      onValueChange={(itemValue, itemIndex) =>
-                        setSelectedUserName(itemValue)
-                      }
-                      style={styles.dropdown}
-                    >
-                      <Picker.Item label="Tous les utilisateurs" value="" />
-                      {Object.values(userNames).map((name, index) => (
-                        <Picker.Item key={index} label={name} value={name} />
-                      ))}
-                    </Picker>
-                  </View>
-                  <View style={styles.dropdownContainer}>
-                    <Picker
-                      selectedValue={selectedTheme}
-                      onValueChange={(itemValue, itemIndex) =>
-                        setSelectedTheme(itemValue)
-                      }
-                      style={styles.dropdown}
-                    >
-                      <Picker.Item label="Tous les thèmes" value="" />
-                      {themes
-                        .filter((theme) =>
-                          answers.some(
-                            (answer) => answer.id_connection === theme.id
-                          )
-                        ) // Filtrer les thèmes sans réponse
-                        .map((theme, index) => (
-                          <Picker.Item
-                            key={index}
-                            label={theme.theme}
-                            value={theme.id}
-                          />
-                        ))}
-                    </Picker>
-                  </View>
-                  <View style={styles.dropdownContainer}>
-                    <Picker
-                      selectedValue={route.params?.filterSelectedQuestion}
-                      onValueChange={(itemValue, itemIndex) => {
-                        const itemValueNumber = Number(itemValue); // Convertir itemValue en nombre
-                        const selectedQuestion_temp = questions.find(
-                          (question) => question.id === itemValueNumber
-                        );
-
-                        if (selectedQuestion_temp) {
-                          route.params?.setFilterSelectedQuestion(
-                            selectedQuestion_temp
-                          );
-                        } else {
-                          route.params?.setFilterSelectedQuestion(null);
-                        }
+                ) : (
+                  <>
+                    <View
+                      style={{
+                        flexDirection: isLargeScreen ? "row" : "column",
+                        alignItems: "center",
+                        marginTop: 20,
+                        justifyContent: "space-between",
                       }}
-                      style={styles.dropdown}
                     >
-                      <Picker.Item label="Tous les chapitres" value="" />
-                      {questions
-                        .filter((question) =>
-                          answers.some(
-                            (answer) => answer.id_question === question.id
-                          )
-                        ) // Filtrer les thèmes sans réponse
-                        .map((question, index) => (
-                          <Picker.Item
-                            key={index}
-                            label={question.question}
-                            value={question.id}
-                          />
-                        ))}
-                    </Picker>
-                  </View>
-                </>
-              )}
-            </View>
-          )}
+                      <Text></Text>
+                      {isLargeScreen && (
+                        <>
+                          <View
+                            style={{
+                              flexDirection: "column",
+                              alignItems: "center",
+                            }}
+                          >
+                            <View
+                              style={{
+                                flexDirection: "row",
+                                alignItems: "center",
+                                marginBottom: 10,
+                              }}
+                            >
+                              <Text style={styles.toggleText}>Audio</Text>
+                              <TouchableOpacity
+                                style={[
+                                  styles.toggleButton,
+                                  audioFilter && styles.selectedToggle,
+                                ]}
+                                onPress={() => setAudioFilter(!audioFilter)}
+                              >
+                                <View
+                                  style={[
+                                    styles.toggleButtonCircle,
+                                    audioFilter ? { right: 2 } : { left: 2 },
+                                  ]}
+                                />
+                              </TouchableOpacity>
+                            </View>
 
-          {showSorting && (
-            <View style={styles.filterContainer}>
-              <TouchableOpacity
-                onPress={() => {
-                  {
-                    sortAnswerByDate("normal");
-                    setSort("date_normal");
-                  }
-                }}
-                style={globalStyles.globalButton_wide}
-              >
-                <Text style={globalStyles.globalButtonText}>
-                  Trier par date du plus récent au plus ancien
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => {
-                  {
-                    sortAnswerByDate("inverse");
-                    setSort("date_inverse");
-                  }
-                }}
-                style={globalStyles.globalButton_wide}
-              >
-                <Text style={globalStyles.globalButtonText}>
-                  Trier par date du plus ancien au plus récent
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => {
-                  {
-                    sortAnswerNormal("normal");
-                    setSort("ordre_normal");
-                  }
-                }}
-                style={globalStyles.globalButton_wide}
-              >
-                <Text style={globalStyles.globalButtonText}>
-                  Trier par ordre défini par les utilisateurs{" "}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => {
-                  {
-                    sortAnswerNormal("inverse");
-                    setSort("ordre_inverse");
-                  }
-                }}
-                style={globalStyles.globalButton_wide}
-              >
-                <Text style={globalStyles.globalButtonText}>
-                  Trier par ordre inverse défini par les utilisateurs{" "}
-                </Text>
-              </TouchableOpacity>
+                            <View
+                              style={{
+                                flexDirection: "row",
+                                alignItems: "center",
+                                marginBottom: 10,
+                              }}
+                            >
+                              <Text style={styles.toggleText}>Image</Text>
+                              <TouchableOpacity
+                                style={[
+                                  styles.toggleButton,
+                                  imageFilter && styles.selectedToggle,
+                                ]}
+                                onPress={() => setImageFilter(!imageFilter)}
+                              >
+                                <View
+                                  style={[
+                                    styles.toggleButtonCircle,
+                                    imageFilter ? { right: 2 } : { left: 2 },
+                                  ]}
+                                />
+                              </TouchableOpacity>
+                            </View>
+                            <View
+                              style={{
+                                flexDirection: "row",
+                                alignItems: "center",
+                                marginBottom: 10,
+                              }}
+                            >
+                              <Text style={styles.toggleText}>Texte</Text>
+                              <TouchableOpacity
+                                style={[
+                                  styles.toggleButton,
+                                  commentFilter && styles.selectedToggle,
+                                ]}
+                                onPress={() => setCommentFilter(!commentFilter)}
+                              >
+                                <View
+                                  style={[
+                                    styles.toggleButtonCircle,
+                                    commentFilter ? { right: 2 } : { left: 2 },
+                                  ]}
+                                />
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+
+                          <View
+                            style={{
+                              flexDirection: "column",
+                              alignItems: "center",
+                            }}
+                          >
+                            <View
+                              style={{
+                                flexDirection: "row",
+                                alignItems: "center",
+                                marginBottom: 10,
+                              }}
+                            >
+                              <Text style={styles.toggleText}> </Text>
+                              <Text style={styles.toggleText}>Notes </Text>
+                              <TouchableOpacity
+                                style={[
+                                  styles.toggleButton,
+                                  !questionReponseFilter.includes("question") &&
+                                    styles.selectedToggle,
+                                ]}
+                                onPress={() =>
+                                  setQuestionReponseFilter((prev) =>
+                                    prev.includes("question")
+                                      ? prev.replace("question", "")
+                                      : prev + "question"
+                                  )
+                                }
+                              >
+                                <View
+                                  style={[
+                                    styles.toggleButtonCircle,
+                                    questionReponseFilter.includes("question")
+                                      ? { left: 2 }
+                                      : { right: 2 },
+                                  ]}
+                                />
+                              </TouchableOpacity>
+                            </View>
+
+                            <View
+                              style={{
+                                flexDirection: "row",
+                                alignItems: "center",
+                                marginBottom: 10,
+                              }}
+                            >
+                              <Text style={styles.toggleText}> </Text>
+                              <Text style={styles.toggleText}>Questions</Text>
+                              <TouchableOpacity
+                                style={[
+                                  styles.toggleButton,
+                                  !questionReponseFilter.includes("réponse") &&
+                                    styles.selectedToggle,
+                                ]}
+                                onPress={() =>
+                                  setQuestionReponseFilter((prev) =>
+                                    prev.includes("réponse")
+                                      ? prev.replace("réponse", "")
+                                      : prev + "réponse"
+                                  )
+                                }
+                              >
+                                <View
+                                  style={[
+                                    styles.toggleButtonCircle,
+                                    questionReponseFilter.includes("réponse")
+                                      ? { left: 2 }
+                                      : { right: 2 },
+                                  ]}
+                                />
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+
+                          <View
+                            style={{
+                              flexDirection: "column",
+                              alignItems: "center",
+                            }}
+                          >
+                            <View
+                              style={{
+                                flexDirection: "row",
+                                alignItems: "center",
+                                marginBottom: 10,
+                              }}
+                            >
+                              <Text style={styles.toggleText}> </Text>
+                              <Text style={styles.toggleText}>Relu</Text>
+                              <TouchableOpacity
+                                style={[
+                                  styles.toggleButton,
+                                  (reluFilter === "relu" ||
+                                    reluFilter === "relu & non_relu") &&
+                                    styles.selectedToggle,
+                                ]}
+                                onPress={() =>
+                                  setReluFilter((prev) =>
+                                    prev === "relu"
+                                      ? ""
+                                      : prev === "relu & non_relu"
+                                      ? "non_relu"
+                                      : prev === "non_relu"
+                                      ? "relu & non_relu"
+                                      : "relu"
+                                  )
+                                }
+                              >
+                                <View
+                                  style={[
+                                    styles.toggleButtonCircle,
+                                    reluFilter === "relu" ||
+                                    reluFilter === "relu & non_relu"
+                                      ? { right: 2 }
+                                      : { left: 2 },
+                                  ]}
+                                />
+                              </TouchableOpacity>
+                            </View>
+                            <View
+                              style={{
+                                flexDirection: "row",
+                                alignItems: "center",
+                                marginBottom: 10,
+                              }}
+                            >
+                              <Text style={styles.toggleText}> </Text>
+                              <Text style={styles.toggleText}>Non relu</Text>
+                              <TouchableOpacity
+                                style={[
+                                  styles.toggleButton,
+                                  (reluFilter === "non_relu" ||
+                                    reluFilter === "relu & non_relu") &&
+                                    styles.selectedToggle,
+                                ]}
+                                onPress={() =>
+                                  setReluFilter((prev) =>
+                                    prev === "non_relu"
+                                      ? ""
+                                      : prev === "relu & non_relu"
+                                      ? "relu"
+                                      : prev === "relu"
+                                      ? "relu & non_relu"
+                                      : "non_relu"
+                                  )
+                                }
+                              >
+                                <View
+                                  style={[
+                                    styles.toggleButtonCircle,
+                                    reluFilter === "non_relu" ||
+                                    reluFilter === "relu & non_relu"
+                                      ? { right: 2 }
+                                      : { left: 2 },
+                                  ]}
+                                />
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+
+                          <View
+                            style={{
+                              flexDirection: "column",
+                              alignItems: "center",
+                            }}
+                          >
+                            <View
+                              style={{
+                                flexDirection: "row",
+                                alignItems: "center",
+                                marginBottom: 10,
+                              }}
+                            >
+                              <Text style={styles.toggleText}> </Text>
+                              <Text style={styles.toggleText}>Utilisé</Text>
+                              <TouchableOpacity
+                                style={[
+                                  styles.toggleButton,
+                                  (utiliseFilter === "used" ||
+                                    utiliseFilter === "tous") &&
+                                    styles.selectedToggle,
+                                ]}
+                                onPress={() =>
+                                  setUtiliseFilter((prev) =>
+                                    prev === "used"
+                                      ? ""
+                                      : prev === "tous"
+                                      ? "not_used"
+                                      : prev === "not_used"
+                                      ? "tous"
+                                      : "used"
+                                  )
+                                }
+                              >
+                                <View
+                                  style={[
+                                    styles.toggleButtonCircle,
+                                    utiliseFilter === "used" ||
+                                    utiliseFilter === "tous"
+                                      ? { right: 2 }
+                                      : { left: 2 },
+                                  ]}
+                                />
+                              </TouchableOpacity>
+                            </View>
+
+                            <View
+                              style={{
+                                flexDirection: "row",
+                                alignItems: "center",
+                                marginBottom: 10,
+                              }}
+                            >
+                              <Text style={styles.toggleText}> </Text>
+                              <Text style={styles.toggleText}>Non utilisé</Text>
+                              <TouchableOpacity
+                                style={[
+                                  styles.toggleButton,
+                                  (utiliseFilter === "not_used" ||
+                                    utiliseFilter === "tous") &&
+                                    styles.selectedToggle,
+                                ]}
+                                onPress={() =>
+                                  setUtiliseFilter((prev) =>
+                                    prev === "not_used"
+                                      ? ""
+                                      : prev === "tous"
+                                      ? "used"
+                                      : prev === "used"
+                                      ? "tous"
+                                      : "not_used"
+                                  )
+                                }
+                              >
+                                <View
+                                  style={[
+                                    styles.toggleButtonCircle,
+                                    utiliseFilter === "not_used" ||
+                                    utiliseFilter === "tous"
+                                      ? { right: 2 }
+                                      : { left: 2 },
+                                  ]}
+                                />
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+                          <Text style={styles.toggleText}> </Text>
+                          <View
+                            style={{
+                              flexDirection: "column",
+                              alignItems: "center",
+                              zIndex: 2000,
+                            }}
+                          >
+                            {Platform.OS === "web" ? (
+                              <DatePicker
+                                selected={dateBefore}
+                                onChange={(date) => setDateBefore(date)}
+                                placeholderText="Filtrer avant la date"
+                                className="date-picker"
+                                style={[
+                                  styles.datePicker,
+                                  { marginVertical: 10 },
+                                ]}
+                              />
+                            ) : (
+                              <View
+                                style={[
+                                  styles.datePicker,
+                                  { marginVertical: 10 },
+                                ]}
+                              >
+                                <Button
+                                  title="Filtrer avant la date"
+                                  onPress={() => setShowDateBeforePicker(true)}
+                                />
+                                {showDateBeforePicker && (
+                                  <DateTimePicker
+                                    value={dateBefore || new Date()}
+                                    mode="date"
+                                    display="default"
+                                    onChange={(event, selectedDate) => {
+                                      const currentDate =
+                                        selectedDate || dateBefore;
+                                      setShowDateBeforePicker(false);
+                                      setDateBefore(currentDate);
+                                    }}
+                                    style={[
+                                      styles.datePicker,
+                                      { marginVertical: 10 },
+                                    ]}
+                                  />
+                                )}
+                              </View>
+                            )}
+                            <Text style={styles.toggleText}> </Text>
+                            {Platform.OS === "web" ? (
+                              <DatePicker
+                                selected={dateAfter}
+                                onChange={(date) => setDateAfter(date)}
+                                placeholderText="Filtrer après la date"
+                                className="date-picker"
+                                style={[
+                                  styles.datePicker,
+                                  { marginVertical: 10 },
+                                ]}
+                              />
+                            ) : (
+                              <View
+                                style={[
+                                  styles.datePicker,
+                                  { marginVertical: 10 },
+                                ]}
+                              >
+                                <Button
+                                  title="Filtrer après la date"
+                                  onPress={() => setShowDateAfterPicker(true)}
+                                />
+                                {showDateAfterPicker && (
+                                  <DateTimePicker
+                                    value={dateAfter || new Date()}
+                                    mode="date"
+                                    display="default"
+                                    onChange={(event, selectedDate) => {
+                                      const currentDate =
+                                        selectedDate || dateAfter;
+                                      setShowDateAfterPicker(false);
+                                      setDateAfter(currentDate);
+                                    }}
+                                    style={[
+                                      styles.datePicker,
+                                      { marginVertical: 10 },
+                                    ]}
+                                  />
+                                )}
+                              </View>
+                            )}
+                          </View>
+                        </>
+                      )}
+                      <Text style={styles.toggleText}> </Text>
+                      <TouchableOpacity
+                        onPress={() => handleRemoveFilters()}
+                        style={styles.filterIcon}
+                      >
+                        <Image
+                          source={EmptyfilterIcon}
+                          style={{
+                            width: 50,
+                            height: 50,
+                            opacity: 0.5,
+                            marginVertical: 30,
+                          }}
+                        />
+                      </TouchableOpacity>
+                      <Text></Text>
+                    </View>
+
+                    <TextInput
+                      style={[styles.input, { backgroundColor: "white" }]}
+                      placeholder="Filtrer par texte"
+                      value={textFilter}
+                      onChangeText={setTextFilter}
+                    />
+                    <View style={styles.dropdownContainer}>
+                      <Picker
+                        selectedValue={selectedUserName}
+                        onValueChange={(itemValue, itemIndex) =>
+                          setSelectedUserName(itemValue)
+                        }
+                        style={styles.dropdown}
+                      >
+                        <Picker.Item label="Tous les utilisateurs" value="" />
+                        {Object.values(userNames).map((name, index) => (
+                          <Picker.Item key={index} label={name} value={name} />
+                        ))}
+                      </Picker>
+                    </View>
+                    <View style={styles.dropdownContainer}>
+                      <Picker
+                        selectedValue={selectedTheme}
+                        onValueChange={(itemValue, itemIndex) =>
+                          setSelectedTheme(itemValue)
+                        }
+                        style={styles.dropdown}
+                      >
+                        <Picker.Item label="Tous les thèmes" value="" />
+                        {themes
+                          .filter((theme) =>
+                            answers.some(
+                              (answer) => answer.id_connection === theme.id
+                            )
+                          ) // Filtrer les thèmes sans réponse
+                          .map((theme, index) => (
+                            <Picker.Item
+                              key={index}
+                              label={theme.theme}
+                              value={theme.id}
+                            />
+                          ))}
+                      </Picker>
+                    </View>
+                    <View style={styles.dropdownContainer}>
+                      <Picker
+                        selectedValue={route.params?.filterSelectedQuestion}
+                        onValueChange={(itemValue, itemIndex) => {
+                          const itemValueNumber = Number(itemValue); // Convertir itemValue en nombre
+                          const selectedQuestion_temp = questions.find(
+                            (question) => question.id === itemValueNumber
+                          );
+
+                          if (selectedQuestion_temp) {
+                            route.params?.setFilterSelectedQuestion(
+                              selectedQuestion_temp
+                            );
+                          } else {
+                            route.params?.setFilterSelectedQuestion(null);
+                          }
+                        }}
+                        style={styles.dropdown}
+                      >
+                        <Picker.Item label="Tous les chapitres" value="" />
+                        {questions
+                          .filter((question) =>
+                            answers.some(
+                              (answer) => answer.id_question === question.id
+                            )
+                          ) // Filtrer les thèmes sans réponse
+                          .map((question, index) => (
+                            <Picker.Item
+                              key={index}
+                              label={question.question}
+                              value={question.id}
+                            />
+                          ))}
+                      </Picker>
+                    </View>
+                  </>
+                )}
+              </View>
             </View>
-          )}
+          </Modal>
+          <Modal isVisible={showSorting}>
+            <View style={styles.overlay}>
+              <View style={styles.modalContainer}>
+                <TouchableOpacity
+                  onPress={() => setShowSorting(false)}
+                  style={styles.closeButton}
+                >
+                  <Image source={closeIcon} style={styles.closeIcon} />
+                </TouchableOpacity>
+                <Text style={[styles.modalTitle, { marginBottom: 30 }]}>
+                  Définissez l'ordre d'affichage des notes existantes
+                </Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    {
+                      sortAnswerByDate("normal");
+                      setSort("date_normal");
+                    }
+                  }}
+                  style={globalStyles.globalButton_wide}
+                >
+                  <Text style={globalStyles.globalButtonText}>
+                    Trier par date du plus récent au plus ancien
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => {
+                    {
+                      sortAnswerByDate("inverse");
+                      setSort("date_inverse");
+                    }
+                  }}
+                  style={globalStyles.globalButton_wide}
+                >
+                  <Text style={globalStyles.globalButtonText}>
+                    Trier par date du plus ancien au plus récent
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => {
+                    {
+                      sortAnswerNormal("normal");
+                      setSort("ordre_normal");
+                    }
+                  }}
+                  style={globalStyles.globalButton_wide}
+                >
+                  <Text style={globalStyles.globalButtonText}>
+                    Trier par ordre défini par les utilisateurs{" "}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => {
+                    {
+                      sortAnswerNormal("inverse");
+                      setSort("ordre_inverse");
+                    }
+                  }}
+                  style={globalStyles.globalButton_wide}
+                >
+                  <Text style={globalStyles.globalButtonText}>
+                    Trier par ordre inverse défini par les utilisateurs{" "}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
 
           <DraggableFlatList
             data={filteredAnswers}

@@ -420,4 +420,10 @@ export const globalStyles = StyleSheet.create({
     color: "#555",
     textAlign: "center",
   },
+  textStyle: {
+    color: "black",
+    fontWeight: "bold",
+    textAlign: "center",
+    fontSize: 18,
+  },
 });
