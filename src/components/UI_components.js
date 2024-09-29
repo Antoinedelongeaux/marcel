@@ -717,10 +717,10 @@ export const CarrousselThemes = ({
     return `hsl(${hue}, 70%, 80%)`; // Couleur basée sur la teinte
   };
 
-  const renderItem = ({ item }) => (
+  const renderItem = ({ index, item }) => (
     <TouchableOpacity
       onPress={() => {
-        setTheme(item);
+        setCurrentIndex(index - 3);
       }}
       style={[
         styles.carouselItem,
@@ -760,7 +760,7 @@ export const CarrousselThemes = ({
         <Carousel
           ref={carouselRef}
           data={themes}
-          renderItem={renderItem}
+          renderItem={(index, item) => renderItem(index, item)}
           sliderWidth={SLIDER_WIDTH} // Ajuste le slider à la largeur d'un seul élément
           itemWidth={ITEM_WIDTH} // La largeur de chaque élément
           inactiveSlideScale={isLargeScreen ? 0.0 : 0.9} // Masque complètement les éléments inactifs sur grand écran
