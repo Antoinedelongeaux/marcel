@@ -67,7 +67,10 @@ import {
   uploadImageToSupabase,
   handlePlayPause,
 } from "../components/sound_handling"; // Ajoutez cette ligne
-import { transcribeAudio_HQ } from "../components/call_to_whisper";
+import {
+  transcribeAudio_HQ,
+  transcribeAudio_slow,
+} from "../components/call_to_whisper";
 //import { transcribeAudio } from '../components/call_to_google';
 import MicroIcon from "../../assets/icons/microphone-lines-solid.svg";
 import VolumeIcon from "../../assets/icons/volume_up_black_24dp.svg";
@@ -827,7 +830,7 @@ useEffect(() => {
           answerToUpdate.link_storage,
           answerId
         );
-        await update_answer_text(answerToUpdate.id, transcribedText);
+        //await update_answer_text(answerToUpdate.id, transcribedText);
         setTimeout(async () => {
           await refreshAnswers();
         }, 1000);
