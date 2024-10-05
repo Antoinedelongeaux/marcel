@@ -824,7 +824,8 @@ useEffect(() => {
     if (answerToUpdate && answerToUpdate.audio) {
       try {
         const transcribedText = await transcribeAudio_HQ(
-          answerToUpdate.link_storage
+          answerToUpdate.link_storage,
+          answerId
         );
         await update_answer_text(answerToUpdate.id, transcribedText);
         setTimeout(async () => {
