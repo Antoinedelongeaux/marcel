@@ -67,7 +67,7 @@ import {
   uploadImageToSupabase,
   handlePlayPause,
 } from "../components/sound_handling"; // Ajoutez cette ligne
-import { transcribeAudio } from "../components/call_to_whisper";
+import { transcribeAudio_HQ } from "../components/call_to_whisper";
 //import { transcribeAudio } from '../components/call_to_google';
 import MicroIcon from "../../assets/icons/microphone-lines-solid.svg";
 import VolumeIcon from "../../assets/icons/volume_up_black_24dp.svg";
@@ -823,7 +823,7 @@ useEffect(() => {
     const answerToUpdate = answers.find((ans) => ans.id === answerId);
     if (answerToUpdate && answerToUpdate.audio) {
       try {
-        const transcribedText = await transcribeAudio(
+        const transcribedText = await transcribeAudio_HQ(
           answerToUpdate.link_storage
         );
         await update_answer_text(answerToUpdate.id, transcribedText);
